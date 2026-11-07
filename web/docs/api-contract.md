@@ -1,0 +1,401 @@
+# Kontrak API
+
+Base URL development: `http://localhost:4000`.
+
+Error untuk endpoint di bawah memakai sampul:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "pesan",
+    "requestId": "req-id"
+  }
+}
+```
+
+Autentikasi Bearer berarti header `Authorization: Bearer <accessToken>`.
+
+## Authentication API
+
+### Register
+
+**Status:** Available
+
+**Method:** POST
+
+**Endpoint:** `/api/v1/auth/register`
+
+**Authentication:** Tidak
+
+### Request
+
+```json
+{
+  "email": "ada@example.com",
+  "displayName": "Ada",
+  "password": "minimal-12-karakter"
+}
+```
+
+### Response
+
+Status 201.
+
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "ada@example.com",
+    "displayName": "Ada",
+    "createdAt": "2026-11-07T00:00:00.000Z"
+  }
+}
+```
+
+### Notes
+
+Email dinormalisasi. Bentrok email memakai error `EMAIL_ALREADY_EXISTS`.
+
+### Login
+
+**Status:** Available
+
+**Method:** POST
+
+**Endpoint:** `/api/v1/auth/login`
+
+**Authentication:** Tidak
+
+### Request
+
+```json
+{
+  "email": "ada@example.com",
+  "password": "minimal-12-karakter"
+}
+```
+
+### Response
+
+```json
+{
+  "user": { "id": "uuid", "email": "ada@example.com", "displayName": "Ada" },
+  "accessToken": "jwt",
+  "tokenType": "Bearer",
+  "expiresIn": 900
+}
+```
+
+### Notes
+
+Refresh token disetel sebagai cookie HttpOnly `todo_refresh` pada path `/api/v1/auth`. JSON login tidak memuat refresh token.
+
+### Refresh token
+
+**Status:** Available
+
+**Method:** POST
+
+**Endpoint:** `/api/v1/auth/refresh`
+
+**Authentication:** Cookie `todo_refresh`
+
+### Response
+
+```json
+{
+  "accessToken": "jwt-baru",
+  "tokenType": "Bearer",
+  "expiresIn": 900
+}
+```
+
+### Notes
+
+Cookie dirotasi. Origin harus lolos CORS. Frontend harus mengirim `credentials: "include"`.
+
+### Logout
+
+**Status:** Available
+
+**Method:** POST
+
+**Endpoint:** `/api/v1/auth/logout`
+
+**Authentication:** Cookie refresh
+
+### Response
+
+Status 204, tanpa body.
+
+### Get current user
+
+**Status:** Available
+
+**Method:** GET
+
+**Endpoint:** `/api/v1/auth/me`
+
+**Authentication:** Bearer
+
+### Response
+
+```json
+{
+  "user": { "id": "uuid", "email": "ada@example.com", "displayName": "Ada" }
+}
+```
+
+### Notes
+
+Session yang sudah dicabut ditolak meskipun JWT masih bisa di-decode.
+
+## Workspace API
+
+Semua endpoint workspace memakai Bearer.
+
+### Create workspace
+
+**Status:** Available
+
+**Method:** POST
+
+**Endpoint:** `/api/v1/workspaces`
+
+### Request
+
+```json
+{ "name": "Personal", "description": "opsional" }
+```
+
+### Response
+
+Status 201, `{ "workspace": { "id", "name", "description", "role", "createdAt", "updatedAt", "archivedAt" } }`. Pembuat menjadi owner.
+
+### Get workspace list
+
+**Status:** Available
+
+**Method:** GET
+
+**Endpoint:** `/api/v1/workspaces`
+
+### Request
+
+Query `limit` (1–50, default 20) dan `offset` (default 0).
+
+### Response
+
+`{ "items": [...], "pagination": { "limit", "offset", "total" } }`. Item memuat id, name, description, role, createdAt.
+
+### Get workspace detail
+
+**Status:** Available
+
+**Method:** GET
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId`
+
+### Update workspace
+
+**Status:** Available
+
+**Method:** PATCH
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId`
+
+Body memuat field name dan description yang opsional, sesuai schema route.
+
+### Delete workspace
+
+**Status:** Not available
+
+Tidak ada hard delete. Pengarsipan memakai endpoint berikut.
+
+### Archive workspace
+
+**Status:** Available
+
+**Method:** POST
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId/archive`
+
+### Workspace members
+
+**Status:** Available
+
+- `GET /api/v1/workspaces/:workspaceId/members`
+- `GET /api/v1/workspaces/:workspaceId/members/:userId`
+- `PATCH /api/v1/workspaces/:workspaceId/members/:userId`
+- `DELETE /api/v1/workspaces/:workspaceId/members/:userId`
+- `POST /api/v1/workspaces/:workspaceId/leave`
+- `POST /api/v1/workspaces/:workspaceId/transfer-ownership`
+
+Bukan member sering menerima 404.
+
+## Todo API
+
+Prefix `/api/v1/workspaces`. Bearer wajib. Todo terhapus tidak dikembalikan.
+
+### Get todos
+
+**Status:** Available
+
+**Method:** GET
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId/todos`
+
+Query mendukung filter status, priority, label, dan cursor. Pagination adalah keyset, bukan total count.
+
+Juga tersedia:
+
+- `GET /:workspaceId/todos/today`
+- `GET /:workspaceId/todos/upcoming`
+- `GET /:workspaceId/todos/overdue`
+
+### Get todo detail
+
+**Status:** Available
+
+**Method:** GET
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId`
+
+### Create todo
+
+**Status:** Available
+
+**Method:** POST
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId/todos`
+
+### Request
+
+```json
+{
+  "title": "Belanja",
+  "description": "opsional",
+  "priority": "low",
+  "dueAt": "2026-11-10T09:00:00+07:00"
+}
+```
+
+`priority` opsional dan default-nya `low`. Status tidak boleh dikirim klien.
+
+### Response
+
+Status 201. Objek todo memuat id, workspaceId, title, description, status, priority, dueAt, completedAt, label, tags, createdBy, createdAt, updatedAt.
+
+### Update todo
+
+**Status:** Available
+
+**Method:** PATCH
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId`
+
+### Complete todo
+
+**Status:** Available
+
+**Method:** PATCH
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId/complete`
+
+### Delete todo
+
+**Status:** Available
+
+**Method:** DELETE
+
+**Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId`
+
+Ini soft delete. Field `deletedAt` tidak dikirim pada representasi todo aktif.
+
+## Metadata API
+
+### Tags
+
+**Status:** Available
+
+- `POST /api/v1/workspaces/:workspaceId/tags`
+- `GET /api/v1/workspaces/:workspaceId/tags`
+- `GET /api/v1/workspaces/:workspaceId/tags/:tagId`
+- `PATCH /api/v1/workspaces/:workspaceId/tags/:tagId`
+- `DELETE /api/v1/workspaces/:workspaceId/tags/:tagId`
+- `PUT /api/v1/workspaces/:workspaceId/todos/:todoId/tags` mengganti seluruh tag. Array kosong melepas semua tag.
+- `POST /api/v1/workspaces/:workspaceId/todos/:todoId/tags/:tagId`
+- `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/tags/:tagId`
+
+Maksimal 20 tag per todo.
+
+### Labels
+
+**Status:** Available
+
+- `POST /api/v1/workspaces/:workspaceId/labels`
+- `GET /api/v1/workspaces/:workspaceId/labels`
+- `GET /api/v1/workspaces/:workspaceId/labels/:labelId`
+- `PATCH /api/v1/workspaces/:workspaceId/labels/:labelId`
+- `DELETE /api/v1/workspaces/:workspaceId/labels/:labelId`
+- `PUT /api/v1/workspaces/:workspaceId/todos/:todoId/label` dengan body `labelId`
+- `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/label`
+
+Satu todo punya satu label utama.
+
+### Priority
+
+**Status:** Available sebagai field todo, bukan resource.
+
+Nilai: `low`, `medium`, `high`, `urgent`.
+
+### Due date
+
+**Status:** Available sebagai field `dueAt` pada create dan update todo. Tidak ada endpoint due date terpisah.
+
+### Reminders
+
+**Status:** Available
+
+- `POST /api/v1/workspaces/:workspaceId/todos/:todoId/reminders`
+- `GET /api/v1/workspaces/:workspaceId/todos/:todoId/reminders`
+- `GET /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId`
+- `PATCH /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId`
+- `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId`
+
+## Collaboration API
+
+**Status:** Available
+
+- `POST /api/v1/workspaces/:workspaceId/invitations`
+- `GET /api/v1/workspaces/:workspaceId/invitations`
+- `POST /api/v1/workspaces/:workspaceId/invitations/:invitationId/resend`
+- `DELETE /api/v1/workspaces/:workspaceId/invitations/:invitationId`
+- `GET /api/v1/invitations`
+- `POST /api/v1/invitations/:invitationId/accept`
+- `POST /api/v1/invitations/:invitationId/decline`
+
+Role yang sah: `owner`, `admin`, `member`.
+
+## Notification API
+
+**Status:** Available. Bearer. Hanya notifikasi milik user yang login.
+
+- `GET /api/v1/notifications` dengan query `limit`, `cursor`, `readStatus`, `type`
+- `GET /api/v1/notifications/unread-count` mengembalikan `{ "unreadCount": 0 }`
+- `GET /api/v1/notifications/preferences` mengembalikan `{ "preferences": { "inAppEnabled": true, "emailEnabled": false } }`
+- `PATCH /api/v1/notifications/preferences` body `{ "emailEnabled": true }`
+- `PATCH /api/v1/notifications/read-all` mengembalikan `{ "updated": 0 }`
+- `PATCH /api/v1/notifications/:notificationId/read`
+
+Tipe yang ada pada schema route: `reminder_due`, `todo_due_soon`.
+
+Not available: API job queue, WebSocket, dan mematikan kanal in-app.
+
+## Health
+
+**Status:** Available, tanpa autentikasi.
+
+- `GET /health` dan `GET /health/live` mengembalikan `{ "status": "ok" }`.
+- `GET /ready` memeriksa database.

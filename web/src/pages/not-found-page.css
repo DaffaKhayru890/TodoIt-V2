@@ -1,0 +1,13 @@
+@layer components {
+  .not-found-page {
+    @apply mx-auto flex max-w-xl flex-col gap-4 px-6 py-10;
+  }
+
+  .not-found-page__title {
+    @apply text-3xl font-bold;
+  }
+
+  .not-found-page__link {
+    @apply underline;
+  }
+}

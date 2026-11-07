@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './components.css';
+@import './utilities.css';
+@import '../components/ui/button/button.css';
+@import '../pages/home-page.css';
+@import '../pages/not-found-page.css';
+
+@layer base {
+  body {
+    @apply m-0 min-h-screen;
+  }
+}

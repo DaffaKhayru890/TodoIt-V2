@@ -1,0 +1,8 @@
+@layer components {
+  .app-body {
+    @apply m-0 min-h-screen;
+    color: var(--color-ink);
+    background: var(--color-paper);
+    font-family: var(--font-sans);
+  }
+}

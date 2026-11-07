@@ -1,0 +1,11 @@
+:root {
+  --color-ink: #111111;
+  --color-paper: #fffdf8;
+  --color-accent: #fde047;
+  --font-sans: 'Segoe UI', sans-serif;
+  --space-4: 1rem;
+  --border-width: 2px;
+  --radius-none: 0;
+  --shadow-none: none;
+  --z-base: 0;
+}
