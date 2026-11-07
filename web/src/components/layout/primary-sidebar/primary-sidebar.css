@@ -129,5 +129,30 @@
   .primary-sidebar--collapsed .primary-sidebar__footer,
   .primary-sidebar--collapsed .primary-sidebar__scroll {
     align-items: center;
+    padding: var(--space-2);
+  }
+
+  .primary-sidebar--collapsed .primary-sidebar__header,
+  .primary-sidebar--collapsed .primary-sidebar__footer {
+    flex-direction: column;
+  }
+
+  .primary-sidebar--collapsed .brand {
+    margin-right: 0;
+  }
+
+  .primary-sidebar--collapsed .workspace-item,
+  .primary-sidebar--collapsed .workspace-add,
+  .primary-sidebar--collapsed .dropdown,
+  .primary-sidebar--collapsed .dropdown__trigger {
+    width: 100%;
+  }
+
+  .primary-sidebar--collapsed .workspace-item,
+  .primary-sidebar--collapsed .workspace-add,
+  .primary-sidebar--collapsed .dropdown__trigger {
+    justify-content: center;
+    padding-left: var(--space-1);
+    padding-right: var(--space-1);
   }
 }

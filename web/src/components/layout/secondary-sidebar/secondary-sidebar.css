@@ -27,4 +27,26 @@
     padding: 0 var(--space-3) var(--space-4);
     min-height: 0;
   }
+
+  .secondary-sidebar--collapsed .secondary-sidebar__header {
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-2);
+  }
+
+  .secondary-sidebar--collapsed .secondary-sidebar__header nav,
+  .secondary-sidebar--collapsed .nav-item {
+    width: 100%;
+  }
+
+  .secondary-sidebar--collapsed .secondary-sidebar__scroll {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+
+  .secondary-sidebar--collapsed .nav-item {
+    justify-content: center;
+    padding-left: var(--space-1);
+    padding-right: var(--space-1);
+  }
 }
