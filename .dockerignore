@@ -1,0 +1,30 @@
+# Version control
+.git/
+.gitignore
+
+# Dependency + build cache
+node_modules/
+dist/
+coverage/
+
+# Environment files — rahasia tidak boleh masuk image layer
+.env
+.env.*
+!.env.*.example
+
+# Docker definition
+Dockerfile
+compose.yaml
+.dockerignore
+
+# Documentation & tests tidak dibutuhkan runtime production
+docs/
+tests/
+*.md
+
+# Editor / OS
+.editorconfig
+.vscode/
+.idea/
+.DS_Store
+*.log

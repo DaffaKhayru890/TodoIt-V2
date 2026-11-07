@@ -1,0 +1,39 @@
+{
+  "name": "todo-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development bun --watch --env-file=.env.development src/main.ts",
+    "start": "bun run start:production",
+    "start:staging": "NODE_ENV=staging bun --env-file=.env.staging src/main.ts",
+    "start:production": "NODE_ENV=production bun src/main.ts",
+    "test": "bun test --env-file=.env.test",
+    "test:watch": "bun test --watch --env-file=.env.test",
+    "test:coverage": "bun test --coverage --env-file=.env.test",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "bun node_modules/drizzle-kit/bin.cjs generate",
+    "db:migrate": "bun --env-file=.env.development node_modules/drizzle-kit/bin.cjs migrate",
+    "db:migrate:test": "bun --env-file=.env.test node_modules/drizzle-kit/bin.cjs migrate",
+    "db:studio": "bun --env-file=.env.development node_modules/drizzle-kit/bin.cjs studio",
+    "docker:dev": "docker compose up --build",
+    "docker:down": "docker compose down"
+  },
+  "dependencies": {
+    "@elysia/openapi": "1.4.17",
+    "@elysiajs/cors": "^1.4.0",
+    "drizzle-orm": "^0.45.4",
+    "elysia": "^1.4.31",
+    "jose": "^6.2.15",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
+    "typescript": "^5.9.3"
+  }
+}

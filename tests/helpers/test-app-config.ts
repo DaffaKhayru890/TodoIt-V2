@@ -1,0 +1,38 @@
+import type { AppConfig } from '../../src/config/app-config';
+
+/** Secret test: panjangnya memenuhi aturan minimal 32 karakter, bukan nilai nyata. */
+export const TEST_JWT_SECRET = '0123456789abcdef0123456789abcdef0123456789abcdef';
+
+/**
+ * Konfigurasi eksplisit untuk test. Sengaja tidak membaca process.env supaya
+ * unit test tetap deterministik dan tidak bergantung pada file environment.
+ */
+export function buildTestAppConfig(overrides: Partial<AppConfig> = {}): AppConfig {
+  return {
+    environment: 'test',
+    isProduction: false,
+    appName: 'Todo Backend Test',
+    appVersion: '0.0.0-test',
+    port: 4001,
+    host: '127.0.0.1',
+    logLevel: 'silent',
+    corsOrigins: ['http://localhost:3000'],
+    database: {
+      host: 'db.internal.test',
+      port: 5432,
+      user: 'svc_todo',
+      password: 'rahasia-test',
+      name: 'todo_test',
+      ssl: false
+    },
+    auth: {
+      jwtSecret: TEST_JWT_SECRET,
+      jwtIssuer: 'todo-backend',
+      jwtAudience: 'todo-api',
+      accessTokenTtlSeconds: 900,
+      refreshTokenTtlSeconds: 2_592_000,
+      refreshCookie: { name: 'todo_refresh', secure: false, sameSite: 'lax' }
+    },
+    ...overrides
+  };
+}
