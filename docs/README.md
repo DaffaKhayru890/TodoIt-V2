@@ -5,8 +5,9 @@ Dokumentasi ini menjelaskan backend aplikasi Todo List yang dibangun dengan arsi
 - **Phase 2**: Authentication Module (Register, Login, JWT, Refresh Token Rotation, Session Management, Logout, Me) dan Workspace Module (Ownership, Membership, Role-based Authorization Policy, Soft Archive).
 - **Phase 3**: Todo Core Engine (CRUD, status/priority, due date, Today/Upcoming/Overdue, filter/pencarian, cursor pagination, soft delete, dan otorisasi workspace).
 - **Phase 4**: Metadata Todo (Tag many-to-many, Label kategori tunggal, Reminder absolute/before_due). Pengiriman notifikasi belum termasuk.
+- **Phase 5**: Kolaborasi workspace (undangan email, anggota, role, transfer kepemilikan). Mesin notifikasi belum termasuk.
 
-Status implementasi: **Phase 4 selesai**.
+Status implementasi: **Phase 5 selesai**.
 
 ## Urutan membaca
 
@@ -23,6 +24,10 @@ Status implementasi: **Phase 4 selesai**.
 | [architecture/todo-architecture.md](architecture/todo-architecture.md) | Arsitektur Todo module: layer, port, authorization, error mapping, dan batas Phase 3. |
 | [architecture/todo-metadata-architecture.md](architecture/todo-metadata-architecture.md) | Arsitektur Tag dan Label di dalam bounded context Todo. |
 | [architecture/reminder-architecture.md](architecture/reminder-architecture.md) | Arsitektur jadwal Reminder dan pemisahannya dari pengiriman notifikasi. |
+| [architecture/workspace-collaboration.md](architecture/workspace-collaboration.md) | Kolaborasi di dalam bounded context Workspace. |
+| [architecture/invitation-architecture.md](architecture/invitation-architecture.md) | Siklus undangan, token, dan transaksi. |
+| [architecture/workspace-rbac.md](architecture/workspace-rbac.md) | Matriks owner, admin, dan member. |
+| [architecture/ownership-management.md](architecture/ownership-management.md) | Satu owner, transfer, dan aturan keluar. |
 | [architecture/decisions/ADR-0001-architecture.md](architecture/decisions/ADR-0001-architecture.md) | ADR-0001: Pemilihan stack teknis dan arsitektur dasar. |
 | [architecture/decisions/ADR-0002-authentication-strategy.md](architecture/decisions/ADR-0002-authentication-strategy.md) | ADR-0002: Strategi autentikasi dual token (JWT & Opaque Refresh). |
 | [architecture/decisions/ADR-0003-token-rotation.md](architecture/decisions/ADR-0003-token-rotation.md) | ADR-0003: Token rotation dan deteksi reuse token. |
@@ -38,6 +43,8 @@ Status implementasi: **Phase 4 selesai**.
 | [database/tag-schema.md](database/tag-schema.md) | Tabel tags, todo_tags, uniqueness, dan cascade. |
 | [database/label-schema.md](database/label-schema.md) | Tabel labels dan `todos.label_id` dengan ON DELETE SET NULL. |
 | [database/reminder-schema.md](database/reminder-schema.md) | Tabel reminders, check constraint, dan partial unique index. |
+| [database/invitation-schema.md](database/invitation-schema.md) | Tabel undangan, check status, dan indeks pending unik. |
+| [database/membership-schema.md](database/membership-schema.md) | Keanggotaan dan indeks satu owner. |
 
 ### 3. API & OpenAPI
 | Dokumen | Deskripsi |
@@ -49,6 +56,8 @@ Status implementasi: **Phase 4 selesai**.
 | [api/tag-api.md](api/tag-api.md) | Endpoint CRUD Tag dan assignment pada Todo. |
 | [api/label-api.md](api/label-api.md) | Endpoint CRUD Label dan assignment pada Todo. |
 | [api/reminder-api.md](api/reminder-api.md) | Endpoint jadwal Reminder: create, list, update, dan cancel. |
+| [api/invitation-api.md](api/invitation-api.md) | Endpoint undangan workspace dan undangan akun. |
+| [api/member-management-api.md](api/member-management-api.md) | Endpoint anggota, keluar, dan transfer kepemilikan. |
 
 ### 4. Fitur Todo
 | Dokumen | Deskripsi |
@@ -74,6 +83,9 @@ Status implementasi: **Phase 4 selesai**.
 | [security/jwt-security.md](security/jwt-security.md) | JWT access token, HS256, klaim minimal, dan secret validation. |
 | [security/refresh-token-security.md](security/refresh-token-security.md) | 256-bit opaque token, SHA-256 hash storage, cookie security, dan CORS. |
 | [security/session-management.md](security/session-management.md) | Multi-device session, expiry, dan pencabutan sesi (revocation). |
+| [security/invitation-token-security.md](security/invitation-token-security.md) | Token undangan opaque, hash, dan fragment URL. |
+| [security/invitation-email-security.md](security/invitation-email-security.md) | SMTP, template, dan status pengiriman. |
+| [security/workspace-authorization.md](security/workspace-authorization.md) | Pemeriksaan membership terbaru dan policy terpusat. |
 
 ### 6. Pengujian, Performa & Development
 | Dokumen | Deskripsi |
@@ -88,3 +100,5 @@ Status implementasi: **Phase 4 selesai**.
 | [development/local-setup.md](development/local-setup.md) | Panduan setup lokal dan eksekusi development server. |
 | [development/environment-configuration.md](development/environment-configuration.md) | Konfigurasi environment variables. |
 | [development/docker-development.md](development/docker-development.md) | Panduan build dan container Docker. |
+| [development/mailpit-setup.md](development/mailpit-setup.md) | SMTP development dan UI Mailpit. |
+| [testing/collaboration-testing.md](testing/collaboration-testing.md) | Cara menjalankan pengujian undangan dan anggota. |

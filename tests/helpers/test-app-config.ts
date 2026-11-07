@@ -34,6 +34,16 @@ export function buildTestAppConfig(overrides: Partial<AppConfig> = {}): AppConfi
       refreshTokenTtlSeconds: 2_592_000,
       refreshCookie: { name: 'todo_refresh', secure: false, sameSite: 'lax' }
     },
+    smtp: {
+      host: 'localhost',
+      port: 1025,
+      user: '',
+      password: '',
+      from: 'Todo Backend <noreply@localhost>',
+      secure: false
+    },
+    webAppUrl: 'http://localhost:3000',
+    invitationTokenTtlSeconds: 604_800,
     ...overrides
   };
 }

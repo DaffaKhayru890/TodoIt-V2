@@ -130,9 +130,17 @@ describe('loadAppConfig', () => {
   });
 
   test('mengenali environment production', () => {
-    expect(loadAppConfig(envWith({ NODE_ENV: 'production', AUTH_REFRESH_COOKIE_SECURE: 'true' })).isProduction).toBe(
-      true
-    );
+    expect(
+      loadAppConfig(
+        envWith({
+          NODE_ENV: 'production',
+          AUTH_REFRESH_COOKIE_SECURE: 'true',
+          WEB_APP_URL: 'https://app.example.com',
+          SMTP_HOST: 'smtp.example.com',
+          SMTP_FROM: 'Todo Backend <noreply@example.com>'
+        })
+      ).isProduction
+    ).toBe(true);
   });
 });
 
@@ -215,7 +223,14 @@ describe('validasi kombinasi antar variabel', () => {
       CORS_ALLOWED_ORIGINS: '*'
     });
 
-    expect(problems).toHaveLength(3);
+    expect(problems).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('AUTH_JWT_SECRET'),
+        expect.stringContaining('AUTH_REFRESH_COOKIE_SECURE'),
+        expect.stringContaining('CORS_ALLOWED_ORIGINS'),
+        expect.stringContaining('WEB_APP_URL')
+      ])
+    );
   });
 });
 

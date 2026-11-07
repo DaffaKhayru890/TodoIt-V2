@@ -1,4 +1,5 @@
 import { authSessions, refreshTokens, users } from '../../../../modules/auth/infrastructure/persistence/auth.schema';
+import { workspaceInvitations } from '../../../../modules/workspace/infrastructure/persistence/invitation.schema';
 import {
   workspaceMembers,
   workspaces
@@ -20,6 +21,7 @@ export const schema = {
   refreshTokens,
   workspaces,
   workspaceMembers,
+  workspaceInvitations,
   todos,
   tags,
   labels,
@@ -33,6 +35,7 @@ export {
   refreshTokens,
   workspaces,
   workspaceMembers,
+  workspaceInvitations,
   todos,
   tags,
   labels,

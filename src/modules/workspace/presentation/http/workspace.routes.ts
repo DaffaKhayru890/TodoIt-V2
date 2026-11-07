@@ -7,6 +7,11 @@ import type { GetWorkspace } from '../../application/use-cases/get-workspace';
 import type { UpdateWorkspace } from '../../application/use-cases/update-workspace';
 import type { ArchiveWorkspace } from '../../application/use-cases/archive-workspace';
 import {
+  createInvitationRoutes,
+  type InvitationRoutesDependencies
+} from './invitation.routes';
+import { createMemberRoutes, type MemberRoutesDependencies } from './member.routes';
+import {
   archiveWorkspaceResponseSchema,
   createWorkspaceBodySchema,
   createWorkspaceResponseSchema,
@@ -25,17 +30,20 @@ export interface WorkspaceRoutesDependencies {
   readonly getWorkspace: GetWorkspace;
   readonly updateWorkspace: UpdateWorkspace;
   readonly archiveWorkspace: ArchiveWorkspace;
+  readonly invitations?: InvitationRoutesDependencies;
+  readonly members?: MemberRoutesDependencies;
 }
 
-export function createWorkspaceRoutes({
-  getCurrentUser,
-  createWorkspace,
-  listWorkspaces,
-  getWorkspace,
-  updateWorkspace,
-  archiveWorkspace
-}: WorkspaceRoutesDependencies) {
-  return new Elysia({ prefix: '/api/v1/workspaces' })
+export function createWorkspaceRoutes(deps: WorkspaceRoutesDependencies) {
+  const {
+    getCurrentUser,
+    createWorkspace,
+    listWorkspaces,
+    getWorkspace,
+    updateWorkspace,
+    archiveWorkspace
+  } = deps;
+  const core = new Elysia({ prefix: '/api/v1/workspaces' })
     .use(createAuthGuard(getCurrentUser))
     .post(
       '',
@@ -182,4 +190,9 @@ export function createWorkspaceRoutes({
         }
       }
     );
+
+  return new Elysia()
+    .use(core)
+    .use(deps.invitations ? createInvitationRoutes(deps.invitations) : new Elysia())
+    .use(deps.members ? createMemberRoutes(deps.members) : new Elysia());
 }

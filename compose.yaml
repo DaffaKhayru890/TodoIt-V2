@@ -29,12 +29,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     env_file:
       - .env.development
     environment:
       # Di dalam network compose, database diakses lewat service name.
       DATABASE_HOST: postgres
       DATABASE_PORT: "5432"
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURE: "false"
     ports:
       - "127.0.0.1:4000:4000"
     volumes:
@@ -48,6 +53,14 @@ services:
       timeout: 3s
       retries: 6
       start_period: 15s
+
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    container_name: todo-mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
 
 volumes:
   postgres-data:

@@ -43,8 +43,16 @@ export const workspaceMembers = pgTable(
   },
   (table) => [
     uniqueIndex('workspace_members_workspace_id_user_id_uidx').on(table.workspaceId, table.userId),
+    uniqueIndex('workspace_members_one_owner_uidx')
+      .on(table.workspaceId)
+      .where(sql`${table.role} = 'owner'`),
     index('workspace_members_user_id_idx').on(table.userId),
     index('workspace_members_workspace_id_idx').on(table.workspaceId),
+    index('workspace_members_workspace_joined_at_user_id_idx').on(
+      table.workspaceId,
+      table.joinedAt.desc(),
+      table.userId.desc()
+    ),
     // Check constraint (bukan database enum) supaya evolusi role tidak butuh ALTER TYPE.
     // sql.raw dipakai karena DDL tidak bisa memakai parameter placeholder; daftarnya
     // berasal dari konstanta kompilasi WORKSPACE_ROLES, bukan input pengguna.

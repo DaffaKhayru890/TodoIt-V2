@@ -4,20 +4,35 @@
  */
 interface PostgresErrorLike {
   readonly code?: unknown;
+  readonly constraint?: unknown;
+}
+
+function postgresError(error: unknown): PostgresErrorLike | null {
+  let current: unknown = error;
+
+  for (let depth = 0; depth < 5 && typeof current === 'object' && current !== null; depth += 1) {
+    const candidate = current as PostgresErrorLike & { cause?: unknown };
+
+    if (candidate.code === '23505' || candidate.code === '23503') {
+      return candidate;
+    }
+
+    current = candidate.cause;
+  }
+
+  return null;
 }
 
 export function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    (error as PostgresErrorLike).code === '23505'
-  );
+  return postgresError(error)?.code === '23505';
+}
+
+export function uniqueConstraintName(error: unknown): string | null {
+  const constraint = postgresError(error)?.constraint;
+
+  return typeof constraint === 'string' ? constraint : null;
 }
 
 export function isForeignKeyViolation(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    (error as PostgresErrorLike).code === '23503'
-  );
+  return postgresError(error)?.code === '23503';
 }

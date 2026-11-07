@@ -34,6 +34,8 @@ function mapApplicationErrorCodeToStatus(code: string): number {
       return 401;
 
     case 'WORKSPACE_PERMISSION_DENIED':
+    case 'WORKSPACE_MEMBER_PERMISSION_DENIED':
+    case 'INVITATION_EMAIL_MISMATCH':
       return 403;
 
     case 'USER_NOT_FOUND':
@@ -46,6 +48,9 @@ function mapApplicationErrorCodeToStatus(code: string): number {
     case 'TAG_WORKSPACE_MISMATCH':
     case 'LABEL_WORKSPACE_MISMATCH':
     case 'REMINDER_WORKSPACE_MISMATCH':
+    case 'INVITATION_NOT_FOUND':
+    case 'WORKSPACE_MEMBER_NOT_FOUND':
+    case 'WORKSPACE_MEMBER_ALREADY_REMOVED':
       return 404;
 
     case 'INVALID_CURSOR':
@@ -59,6 +64,16 @@ function mapApplicationErrorCodeToStatus(code: string): number {
     case 'REMINDER_ALREADY_CANCELLED':
     case 'TODO_HAS_RELATIVE_REMINDERS':
     case 'TODO_DUE_DATE_CONFLICTS_WITH_REMINDERS':
+    case 'INVITATION_ALREADY_PENDING':
+    case 'INVITATION_ALREADY_ACCEPTED':
+    case 'INVITATION_ALREADY_DECLINED':
+    case 'INVITATION_ALREADY_REVOKED':
+    case 'INVITATION_EXPIRED':
+    case 'INVITATION_RESEND_NOT_ALLOWED':
+    case 'WORKSPACE_MEMBER_ALREADY_EXISTS':
+    case 'OWNER_TRANSFER_REQUIRED':
+    case 'OWNERSHIP_TRANSFER_INVALID':
+    case 'OWNERSHIP_TRANSFER_FAILED':
       return 409;
 
     case 'INVALID_EMAIL':
@@ -92,6 +107,9 @@ function mapApplicationErrorCodeToStatus(code: string): number {
     case 'INVALID_TIMEZONE':
     case 'INVALID_UPCOMING_RANGE':
     case 'VALIDATION_ERROR':
+    case 'INVITATION_TOKEN_INVALID':
+    case 'INVITATION_ROLE_INVALID':
+    case 'INVITATION_DELIVERY_FAILED':
       return 422;
 
     case 'SERVICE_UNAVAILABLE':

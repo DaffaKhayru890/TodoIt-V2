@@ -36,6 +36,15 @@ export interface AuthConfig {
   readonly refreshCookie: RefreshCookieConfig;
 }
 
+export interface SmtpConfig {
+  readonly host: string;
+  readonly port: number;
+  readonly user: string;
+  readonly password: string;
+  readonly from: string;
+  readonly secure: boolean;
+}
+
 export interface AppConfig {
   readonly environment: NodeEnvironment;
   readonly isProduction: boolean;
@@ -50,6 +59,9 @@ export interface AppConfig {
   readonly corsOrigins: readonly string[];
   readonly database: DatabaseConfig;
   readonly auth: AuthConfig;
+  readonly smtp: SmtpConfig;
+  readonly webAppUrl: string;
+  readonly invitationTokenTtlSeconds: number;
 }
 
 function readString(config: ParsedEnv, name: EnvVarName): string {
@@ -138,7 +150,17 @@ export function loadAppConfig(source: Readonly<Record<string, string | undefined
         sameSite: asCookieSameSite(parsed.AUTH_REFRESH_COOKIE_SAME_SITE),
         ...(cookieDomain.length > 0 ? { domain: cookieDomain } : {})
       }
-    }
+    },
+    smtp: {
+      host: readString(parsed, 'SMTP_HOST'),
+      port: readNumber(parsed, 'SMTP_PORT'),
+      user: readString(parsed, 'SMTP_USER'),
+      password: readString(parsed, 'SMTP_PASSWORD'),
+      from: readString(parsed, 'SMTP_FROM'),
+      secure: readBoolean(parsed, 'SMTP_SECURE')
+    },
+    webAppUrl: readString(parsed, 'WEB_APP_URL'),
+    invitationTokenTtlSeconds: readNumber(parsed, 'INVITATION_TOKEN_TTL_SECONDS')
   };
 }
 
@@ -157,6 +179,10 @@ export function describeAppConfig(config: AppConfig): Record<string, string | nu
     databaseSsl: config.database.ssl,
     accessTokenTtlSeconds: config.auth.accessTokenTtlSeconds,
     refreshTokenTtlSeconds: config.auth.refreshTokenTtlSeconds,
-    refreshCookie: `${config.auth.refreshCookie.name} sameSite=${config.auth.refreshCookie.sameSite} secure=${config.auth.refreshCookie.secure}`
+    refreshCookie: `${config.auth.refreshCookie.name} sameSite=${config.auth.refreshCookie.sameSite} secure=${config.auth.refreshCookie.secure}`,
+    smtpHost: config.smtp.host,
+    smtpPort: config.smtp.port,
+    webAppUrl: config.webAppUrl,
+    invitationTokenTtlSeconds: config.invitationTokenTtlSeconds
   };
 }

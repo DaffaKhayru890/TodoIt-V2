@@ -50,7 +50,21 @@ const ENV_RULES = {
     allowedValues: COOKIE_SAME_SITE_VALUES,
     defaultValue: 'lax'
   },
-  AUTH_REFRESH_COOKIE_DOMAIN: { kind: 'string', required: false, defaultValue: '' }
+  AUTH_REFRESH_COOKIE_DOMAIN: { kind: 'string', required: false, defaultValue: '' },
+  SMTP_HOST: { kind: 'string', required: false, defaultValue: 'localhost' },
+  SMTP_PORT: { kind: 'port', required: false, defaultValue: 1025 },
+  SMTP_USER: { kind: 'string', required: false, defaultValue: '' },
+  SMTP_PASSWORD: { kind: 'string', required: false, defaultValue: '', secret: true },
+  SMTP_FROM: { kind: 'string', required: false, defaultValue: 'Todo Backend <noreply@localhost>' },
+  SMTP_SECURE: { kind: 'boolean', required: false, defaultValue: false },
+  WEB_APP_URL: { kind: 'string', required: false, defaultValue: 'http://localhost:3000' },
+  INVITATION_TOKEN_TTL_SECONDS: {
+    kind: 'integer',
+    required: false,
+    defaultValue: 604_800,
+    min: 3600,
+    max: 2_592_000
+  }
 } satisfies Record<string, EnvFieldRule>;
 
 export type EnvVarName = keyof typeof ENV_RULES;
@@ -132,6 +146,30 @@ function findCombinationProblems(parsed: Partial<ParsedEnv>): readonly string[] 
     problems.push(
       'CORS_ALLOWED_ORIGINS tidak boleh memuat "*" karena API ini memakai kredensial (cookie refresh token dan Authorization header). Daftarkan origin secara eksplisit.'
     );
+  }
+
+  const webAppUrl = parsed.WEB_APP_URL;
+
+  if (typeof webAppUrl === 'string' && webAppUrl.length > 0) {
+    let parsedUrl: URL | null = null;
+
+    try {
+      parsedUrl = new URL(webAppUrl);
+    } catch {
+      problems.push('WEB_APP_URL harus berupa URL absolut.');
+    }
+
+    if (parsedUrl && (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:')) {
+      problems.push('WEB_APP_URL harus memakai http atau https.');
+    }
+
+    if (
+      parsedUrl &&
+      (environment === 'production' || environment === 'staging') &&
+      parsedUrl.protocol !== 'https:'
+    ) {
+      problems.push(`WEB_APP_URL pada environment ${environment} wajib memakai HTTPS.`);
+    }
   }
 
   return problems;

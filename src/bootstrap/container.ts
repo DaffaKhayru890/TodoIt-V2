@@ -20,6 +20,27 @@ import { ListWorkspaces } from '../modules/workspace/application/use-cases/list-
 import { GetWorkspace } from '../modules/workspace/application/use-cases/get-workspace';
 import { UpdateWorkspace } from '../modules/workspace/application/use-cases/update-workspace';
 import { ArchiveWorkspace } from '../modules/workspace/application/use-cases/archive-workspace';
+import { WorkspaceAuthorizationService } from '../modules/workspace/application/services/workspace-authorization.service';
+import { CreateInvitation } from '../modules/workspace/application/use-cases/invitations/create-invitation';
+import { ListInvitations } from '../modules/workspace/application/use-cases/invitations/list-invitations';
+import { ListMyInvitations } from '../modules/workspace/application/use-cases/invitations/list-my-invitations';
+import { AcceptInvitation } from '../modules/workspace/application/use-cases/invitations/accept-invitation';
+import { DeclineInvitation } from '../modules/workspace/application/use-cases/invitations/decline-invitation';
+import { ResendInvitation } from '../modules/workspace/application/use-cases/invitations/resend-invitation';
+import { RevokeInvitation } from '../modules/workspace/application/use-cases/invitations/revoke-invitation';
+import { ListMembers } from '../modules/workspace/application/use-cases/members/list-members';
+import { GetMember } from '../modules/workspace/application/use-cases/members/get-member';
+import { ChangeMemberRole } from '../modules/workspace/application/use-cases/members/change-member-role';
+import { RemoveMember } from '../modules/workspace/application/use-cases/members/remove-member';
+import { LeaveWorkspace } from '../modules/workspace/application/use-cases/members/leave-workspace';
+import { TransferOwnership } from '../modules/workspace/application/use-cases/members/transfer-ownership';
+import { DrizzleWorkspaceInvitationRepository } from '../modules/workspace/infrastructure/persistence/drizzle-invitation.repository';
+import { DrizzleWorkspaceMemberRepository } from '../modules/workspace/infrastructure/persistence/drizzle-member.repository';
+import { DrizzleWorkspaceUnitOfWork } from '../modules/workspace/infrastructure/persistence/drizzle-workspace-unit-of-work';
+import { DrizzleWorkspaceUserDirectory } from '../modules/workspace/infrastructure/persistence/drizzle-workspace-user.directory';
+import { CryptoInvitationTokenGenerator } from '../modules/workspace/infrastructure/security/crypto-invitation-token.generator';
+import { SmtpInvitationEmailSender } from '../modules/workspace/infrastructure/email/smtp-invitation-email.sender';
+import { Base64UrlCollaborationCursorCodec } from '../modules/workspace/infrastructure/pagination/collaboration-cursor';
 import type { AuthRoutesDependencies } from '../modules/auth/presentation/http/auth.routes';
 import type { WorkspaceRoutesDependencies } from '../modules/workspace/presentation/http/workspace.routes';
 import { DrizzleTodoRepository } from '../modules/todo/infrastructure/persistence/drizzle-todo.repository';
@@ -137,6 +158,35 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
   const getWorkspace = new GetWorkspace(workspaceRepository);
   const updateWorkspace = new UpdateWorkspace(workspaceRepository, systemClock);
   const archiveWorkspace = new ArchiveWorkspace(workspaceRepository, systemClock);
+  const workspaceAuthorization = new WorkspaceAuthorizationService(workspaceRepository);
+  const invitationRepository = new DrizzleWorkspaceInvitationRepository(database.db);
+  const memberRepository = new DrizzleWorkspaceMemberRepository(database.db);
+  const workspaceUnitOfWork = new DrizzleWorkspaceUnitOfWork(database.db);
+  const workspaceUsers = new DrizzleWorkspaceUserDirectory(database.db);
+  const invitationTokens = new CryptoInvitationTokenGenerator();
+  const invitationCursor = new Base64UrlCollaborationCursorCodec();
+  const invitationEmail = new SmtpInvitationEmailSender(config.smtp, logger.child({ component: 'smtp' }));
+  const createInvitation = new CreateInvitation(
+    workspaceAuthorization,
+    workspaceUnitOfWork,
+    invitationRepository,
+    workspaceUsers,
+    invitationTokens,
+    invitationEmail,
+    systemClock,
+    config.webAppUrl,
+    config.invitationTokenTtlSeconds
+  );
+  const resendInvitation = new ResendInvitation(
+    workspaceAuthorization,
+    workspaceUnitOfWork,
+    invitationRepository,
+    invitationTokens,
+    invitationEmail,
+    systemClock,
+    config.webAppUrl,
+    config.invitationTokenTtlSeconds
+  );
 
   const authDeps: AuthRoutesDependencies = {
     config,
@@ -153,7 +203,37 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
     listWorkspaces,
     getWorkspace,
     updateWorkspace,
-    archiveWorkspace
+    archiveWorkspace,
+    invitations: {
+      getCurrentUser,
+      createInvitation,
+      listInvitations: new ListInvitations(
+        workspaceAuthorization,
+        invitationRepository,
+        invitationCursor,
+        systemClock
+      ),
+      listMyInvitations: new ListMyInvitations(
+        invitationRepository,
+        workspaceRepository,
+        workspaceUsers,
+        invitationCursor,
+        systemClock
+      ),
+      resendInvitation,
+      revokeInvitation: new RevokeInvitation(workspaceAuthorization, workspaceUnitOfWork, systemClock),
+      acceptInvitation: new AcceptInvitation(workspaceUnitOfWork, invitationTokens, systemClock),
+      declineInvitation: new DeclineInvitation(workspaceUnitOfWork, invitationTokens, systemClock)
+    },
+    members: {
+      getCurrentUser,
+      listMembers: new ListMembers(workspaceAuthorization, memberRepository, workspaceUsers, invitationCursor),
+      getMember: new GetMember(workspaceAuthorization, memberRepository, workspaceUsers),
+      changeMemberRole: new ChangeMemberRole(workspaceAuthorization, workspaceUnitOfWork, workspaceUsers),
+      removeMember: new RemoveMember(workspaceAuthorization, workspaceUnitOfWork),
+      leaveWorkspace: new LeaveWorkspace(workspaceAuthorization, workspaceUnitOfWork),
+      transferOwnership: new TransferOwnership(workspaceAuthorization, workspaceUnitOfWork)
+    }
   };
 
   // Todo module: authorization memakai membership workspace yang sudah ada,
