@@ -32,7 +32,8 @@ function main(): void {
     logger: container.logger,
     readiness: container.readiness,
     auth: container.auth,
-    workspace: container.workspace
+    workspace: container.workspace,
+    todo: container.todo
   }).listen({ port: config.port, hostname: config.host });
 
   logger.info('server started', describeAppConfig(config));

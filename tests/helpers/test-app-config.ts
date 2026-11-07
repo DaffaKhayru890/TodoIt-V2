@@ -16,6 +16,7 @@ export function buildTestAppConfig(overrides: Partial<AppConfig> = {}): AppConfi
     port: 4001,
     host: '127.0.0.1',
     logLevel: 'silent',
+    defaultTimezone: 'UTC',
     corsOrigins: ['http://localhost:3000'],
     database: {
       host: 'db.internal.test',

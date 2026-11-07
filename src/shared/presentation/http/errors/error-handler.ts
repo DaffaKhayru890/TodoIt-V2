@@ -39,14 +39,58 @@ function mapApplicationErrorCodeToStatus(code: string): number {
     case 'USER_NOT_FOUND':
     case 'WORKSPACE_NOT_FOUND':
     case 'WORKSPACE_ACCESS_DENIED':
+    case 'TODO_NOT_FOUND':
+    case 'TAG_NOT_FOUND':
+    case 'LABEL_NOT_FOUND':
+    case 'REMINDER_NOT_FOUND':
+    case 'TAG_WORKSPACE_MISMATCH':
+    case 'LABEL_WORKSPACE_MISMATCH':
+    case 'REMINDER_WORKSPACE_MISMATCH':
       return 404;
 
+    case 'INVALID_CURSOR':
+      return 400;
+
     case 'EMAIL_ALREADY_EXISTS':
+    case 'TAG_ALREADY_EXISTS':
+    case 'LABEL_ALREADY_EXISTS':
+    case 'REMINDER_DUPLICATE':
+    case 'REMINDER_SCHEDULE_CONFLICT':
+    case 'REMINDER_ALREADY_CANCELLED':
+    case 'TODO_HAS_RELATIVE_REMINDERS':
+    case 'TODO_DUE_DATE_CONFLICTS_WITH_REMINDERS':
       return 409;
 
     case 'INVALID_EMAIL':
     case 'INVALID_PASSWORD':
     case 'WORKSPACE_NAME_INVALID':
+    case 'TODO_TITLE_REQUIRED':
+    case 'TODO_TITLE_TOO_LONG':
+    case 'TODO_DESCRIPTION_TOO_LONG':
+    case 'TODO_STATUS_INVALID':
+    case 'TODO_PRIORITY_INVALID':
+    case 'TODO_DUE_DATE_INVALID':
+    case 'TODO_LABEL_ASSIGNMENT_INVALID':
+    case 'TODO_TAG_ASSIGNMENT_INVALID':
+    case 'TAG_NAME_REQUIRED':
+    case 'TAG_NAME_INVALID':
+    case 'TAG_NAME_TOO_LONG':
+    case 'TAG_LIMIT_EXCEEDED':
+    case 'TAG_ASSIGNMENT_INVALID':
+    case 'LABEL_NAME_REQUIRED':
+    case 'LABEL_NAME_INVALID':
+    case 'LABEL_NAME_TOO_LONG':
+    case 'LABEL_COLOR_INVALID':
+    case 'LABEL_DESCRIPTION_TOO_LONG':
+    case 'REMINDER_TRIGGER_TYPE_INVALID':
+    case 'REMINDER_TIME_INVALID':
+    case 'REMINDER_TIME_IN_PAST':
+    case 'REMINDER_OFFSET_INVALID':
+    case 'REMINDER_TODO_INELIGIBLE':
+    case 'REMINDER_DUE_DATE_REQUIRED':
+    case 'INVALID_DATE_RANGE':
+    case 'INVALID_TIMEZONE':
+    case 'INVALID_UPCOMING_RANGE':
     case 'VALIDATION_ERROR':
       return 422;
 

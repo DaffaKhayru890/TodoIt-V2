@@ -9,11 +9,16 @@ import {
   createWorkspaceRoutes,
   type WorkspaceRoutesDependencies
 } from '../modules/workspace/presentation/http/workspace.routes';
+import {
+  createTodoRoutes,
+  type TodoRoutesDependencies
+} from '../modules/todo/presentation/http/todo.routes';
 
 export interface ModuleDependencies {
   readonly readiness: CheckServiceReadiness;
   readonly auth?: AuthRoutesDependencies | undefined;
   readonly workspace?: WorkspaceRoutesDependencies | undefined;
+  readonly todo?: TodoRoutesDependencies | undefined;
 }
 
 /**
@@ -24,20 +29,20 @@ export interface ModuleDependencies {
  * Endpoint bisnis berada di bawah `/api/v1`.
  */
 export function registerModules(deps: ModuleDependencies) {
-  const app = new Elysia().use(createHealthRoutes({ readiness: deps.readiness }));
+  type AnyElysia = Elysia<any, any, any, any, any, any, any>;
 
-  if (deps.auth && deps.workspace) {
-    return app
-      .use(createAuthRoutes(deps.auth))
-      .use(createWorkspaceRoutes(deps.workspace));
-  }
+  let app: AnyElysia = new Elysia().use(createHealthRoutes({ readiness: deps.readiness }));
 
   if (deps.auth) {
-    return app.use(createAuthRoutes(deps.auth));
+    app = app.use(createAuthRoutes(deps.auth));
   }
 
   if (deps.workspace) {
-    return app.use(createWorkspaceRoutes(deps.workspace));
+    app = app.use(createWorkspaceRoutes(deps.workspace));
+  }
+
+  if (deps.todo) {
+    app = app.use(createTodoRoutes(deps.todo));
   }
 
   return app;

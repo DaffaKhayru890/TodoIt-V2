@@ -34,6 +34,7 @@ Perilaku tambahan yang sudah diuji: `--env-file` yang menunjuk ke file tidak ada
 | `APP_VERSION` | **ya** | string | — | Versi API pada OpenAPI. |
 | `APP_PORT` | tidak | port `1`–`65535` | `4000` | Port HTTP. |
 | `APP_HOST` | tidak | string | `0.0.0.0` | Interface bind. `.env.test` memakai `127.0.0.1`. |
+| `APP_DEFAULT_TIMEZONE` | tidak | IANA timezone | `UTC` | Timezone default untuk Today/Upcoming/Overdue bila request tidak mengirim query `timezone`. Nilai divalidasi memakai `Intl`; `Asia/Jakarta`, `America/New_York`, dan `UTC` valid. |
 | `LOG_LEVEL` | tidak | enum `trace` / `debug` / `info` / `warn` / `error` / `silent` | `info` | Ambang log JSON. `silent` mematikan seluruh log. |
 | `CORS_ORIGINS` | tidak | daftar string dipisah koma | `[]` (kosong) | Origin yang diizinkan CORS. Spasi di sekitar tiap item diabaikan; item kosong dibuang. |
 
@@ -81,6 +82,7 @@ Atau bila nilainya salah bentuk:
 - `describeAppConfig()` menghasilkan field log startup yang aman: database dicetak sebagai `user@host:port/name` tanpa password.
 - `config.environment` menentukan isi `servers` pada dokumen OpenAPI ([src/shared/presentation/http/plugins/openapi-documentation.ts](file:///home/daffakhayru/Applications/TodoIt-v2/src/shared/presentation/http/plugins/openapi-documentation.ts)).
 - `config.corsOrigins` diteruskan ke plugin CORS ([src/shared/presentation/http/plugins/cors-policy.ts](file:///home/daffakhayru/Applications/TodoIt-v2/src/shared/presentation/http/plugins/cors-policy.ts)). Array kosong diterjemahkan menjadi `origin: false` sehingga tidak ada origin yang diizinkan.
+- `config.defaultTimezone` diteruskan ke `TodoDateRangeService` di composition root ([src/bootstrap/container.ts](file:///home/daffakhayru/Applications/TodoIt-v2/src/bootstrap/container.ts)). Endpoint Today/Upcoming/Overdue tetap dapat menimpa nilai ini lewat query `timezone`.
 
 ## 5. Perbedaan per environment
 
@@ -92,6 +94,7 @@ Atau bila nilainya salah bentuk:
 | `DATABASE_NAME` | `todo_development` | `todo_test` | `todo_staging` | `todo_production` |
 | `DATABASE_HOST` | `127.0.0.1` (atau `postgres` di compose) | `127.0.0.1` | host managed | host managed |
 | `DATABASE_SSL` | `false` | `false` | `true` | `true` |
+| `APP_DEFAULT_TIMEZONE` | `UTC` | `UTC` | `UTC` | `UTC` |
 | `LOG_LEVEL` | `debug` | `error` | `info` | `info` |
 | Kredensial | user `root` + `dev@123` | sama dengan development | user aplikasi terpisah | user aplikasi terpisah |
 | Sumber kredensial | file di repo lokal (di-ignore git) | file di repo lokal | secret manager / deployment env | secret manager / deployment env |

@@ -1,9 +1,6 @@
 /**
- * Sumber waktu tunggal untuk use case. Dipasang sebagai port supaya test dapat
- * mem-pin waktu tanpa menunggu expiry nyata.
+ * Re-export port waktu bersama. Modul auth tetap memakai path ini agar
+ * kompatibilitas import Phase 2 tidak berubah, sementara implementasi tunggal
+ * berada di shared domain supaya modul lain tidak bergantung pada modul auth.
  */
-export interface Clock {
-  now(): Date;
-}
-
-export const systemClock: Clock = { now: () => new Date() };
+export { systemClock, type Clock } from '../../../../shared/domain/clock';

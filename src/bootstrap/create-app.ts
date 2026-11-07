@@ -21,8 +21,11 @@ export interface AppDependencies extends ModuleDependencies {
  * Merakit instance Elysia tanpa menjalankannya. Fungsi ini dipakai `main.ts`
  * dan test (lewat `app.handle`), sehingga test tidak perlu membuka port.
  */
-export function createApp({ config, logger, readiness, auth, workspace }: AppDependencies) {
-  const appWithRequestContext = withRequestContext(new Elysia(), logger);
+export function createApp({ config, logger, readiness, auth, workspace, todo }: AppDependencies) {
+  // normalize=false membuat field asing TIDAK dibuang diam-diam, sehingga
+  // schema dengan additionalProperties:false (mis. body Todo) benar-benar
+  // menolak metadata milik server alih-alih menerimanya setelah di-strip.
+  const appWithRequestContext = withRequestContext(new Elysia({ normalize: false }), logger);
 
   return appWithRequestContext
     .use(createCorsPlugin(config))
@@ -44,5 +47,5 @@ export function createApp({ config, logger, readiness, auth, workspace }: AppDep
 
       return mappedError.payload;
     })
-    .use(registerModules({ readiness, auth, workspace }));
+    .use(registerModules({ readiness, auth, workspace, todo }));
 }

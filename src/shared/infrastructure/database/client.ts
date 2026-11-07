@@ -13,6 +13,17 @@ const POOL_CONNECTION_TIMEOUT_MS = 5_000;
 export type Database = NodePgDatabase<typeof schema>;
 
 /**
+ * Bagian dari instance Drizzle yang dibutuhkan repository. Tipe ini juga
+ * dipenuhi oleh objek transaksi Drizzle, sehingga repository yang sama dapat
+ * dipakai di luar maupun di dalam transaksi tanpa membocorkan tipe transaksi ke
+ * application layer.
+ */
+export type DatabaseExecutor = Pick<
+  Database,
+  'select' | 'insert' | 'update' | 'delete' | 'execute'
+>;
+
+/**
  * Koneksi database dipakai bersama sepanjang umur proses: request berikutnya
  * mengambil koneksi dari pool yang sama, tidak membuat koneksi baru.
  */

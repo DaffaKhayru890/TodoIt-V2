@@ -3,9 +3,10 @@ import type { AppConfig } from '../../../../config/app-config';
 
 const API_DESCRIPTION = [
   'Backend aplikasi Todo List.',
-  'Phase 1 baru menyediakan fondasi: liveness probe, readiness probe, dan dokumentasi OpenAPI.',
+  'Phase 1 menyediakan fondasi: liveness probe, readiness probe, dan dokumentasi OpenAPI.',
   'Phase 2 menambahkan Authentication dan Workspace Management.',
-  'Endpoint bisnis berikutnya ditambahkan pada phase selanjutnya.',
+  'Phase 3 menambahkan Todo Core Engine: CRUD, status/priority, cursor pagination, filtering, Today, Upcoming, dan Overdue.',
+  'Phase 4 menambahkan Todo Metadata Management: Tag (many-to-many), Label (satu per Todo), dan Reminder (absolute/before_due) beserta lifecycle dan filter metadata.',
   'Seluruh error memakai satu sampul yang sama: `{ "error": { "code", "message", "requestId" } }`.'
 ].join(' ');
 
@@ -13,6 +14,10 @@ const API_TAGS = [
   { name: 'Health', description: 'Liveness dan readiness probe untuk orkestrasi container dan monitoring.' },
   { name: 'Auth', description: 'Autentikasi pengguna, manajemen session, dan token JWT.' },
   { name: 'Workspace', description: 'Manajemen workspace dan role-based authorization.' },
+  { name: 'Todo', description: 'Todo Core Engine: CRUD, status/priority, cursor pagination, filtering, Today, Upcoming, dan Overdue.' },
+  { name: 'Tag', description: 'Tag workspace-scoped dan assignment many-to-many ke Todo.' },
+  { name: 'Label', description: 'Label workspace-scoped dengan warna dan assignment maksimal satu per Todo.' },
+  { name: 'Reminder', description: 'Reminder per Todo dengan trigger absolute atau before_due; tanpa pengiriman notifikasi pada fase ini.' },
   { name: 'Documentation', description: 'Akses dokumen OpenAPI (UI Scalar dan spesifikasi JSON).' }
 ];
 

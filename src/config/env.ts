@@ -29,6 +29,7 @@ const ENV_RULES = {
   DATABASE_SSL: { kind: 'boolean', required: false, defaultValue: false },
   LOG_LEVEL: { kind: 'enum', required: false, allowedValues: LOG_LEVELS, defaultValue: 'info' },
   CORS_ALLOWED_ORIGINS: { kind: 'csv', required: false, defaultValue: [] },
+  APP_DEFAULT_TIMEZONE: { kind: 'string', required: false, defaultValue: 'UTC' },
 
   AUTH_JWT_SECRET: { kind: 'string', required: true, secret: true, minLength: 32 },
   AUTH_JWT_ISSUER: { kind: 'string', required: false, defaultValue: 'todo-backend' },

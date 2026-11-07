@@ -1,5 +1,14 @@
-import { asCookieSameSite, asLogLevel, asNodeEnvironment, parseEnvironment, type EnvVarName, type ParsedEnv } from './env';
+import {
+  EnvironmentConfigurationError,
+  asCookieSameSite,
+  asLogLevel,
+  asNodeEnvironment,
+  parseEnvironment,
+  type EnvVarName,
+  type ParsedEnv
+} from './env';
 import type { CookieSameSite, LogLevel, NodeEnvironment } from './env-schema';
+import { isValidTimeZone } from '../shared/domain/time/timezone';
 
 export interface DatabaseConfig {
   readonly host: string;
@@ -35,6 +44,8 @@ export interface AppConfig {
   readonly port: number;
   readonly host: string;
   readonly logLevel: LogLevel;
+  /** IANA timezone default untuk Today/Upcoming/Overdue bila client tidak mengirim timezone. */
+  readonly defaultTimezone: string;
   /** Origin yang diizinkan CORS. Array kosong berarti tidak ada origin eksplisit. */
   readonly corsOrigins: readonly string[];
   readonly database: DatabaseConfig;
@@ -89,6 +100,13 @@ export function loadAppConfig(source: Readonly<Record<string, string | undefined
   const parsed = parseEnvironment(source);
   const environment = asNodeEnvironment(parsed.NODE_ENV);
   const cookieDomain = readString(parsed, 'AUTH_REFRESH_COOKIE_DOMAIN');
+  const defaultTimezone = readString(parsed, 'APP_DEFAULT_TIMEZONE');
+
+  if (!isValidTimeZone(defaultTimezone)) {
+    throw new EnvironmentConfigurationError([
+      `APP_DEFAULT_TIMEZONE harus berupa IANA timezone yang valid (ditemukan: "${defaultTimezone}"). Gunakan nilai seperti UTC, Asia/Jakarta, atau America/New_York.`
+    ]);
+  }
 
   return {
     environment,
@@ -98,6 +116,7 @@ export function loadAppConfig(source: Readonly<Record<string, string | undefined
     port: readNumber(parsed, 'APP_PORT'),
     host: readString(parsed, 'APP_HOST'),
     logLevel: asLogLevel(parsed.LOG_LEVEL),
+    defaultTimezone,
     corsOrigins: readStringList(parsed, 'CORS_ALLOWED_ORIGINS'),
     database: {
       host: readString(parsed, 'DATABASE_HOST'),
@@ -132,6 +151,7 @@ export function describeAppConfig(config: AppConfig): Record<string, string | nu
     host: config.host,
     port: config.port,
     logLevel: config.logLevel,
+    defaultTimezone: config.defaultTimezone,
     corsOrigins: config.corsOrigins.join(',') || '(none)',
     database: `${config.database.user}@${config.database.host}:${config.database.port}/${config.database.name}`,
     databaseSsl: config.database.ssl,
