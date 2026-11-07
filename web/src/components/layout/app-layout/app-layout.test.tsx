@@ -6,28 +6,23 @@ import { mockViewport } from '@/test/utils/mock-viewport';
 import { renderWithProviders } from '@/test/utils/render-with-providers';
 
 describe('AppLayout', () => {
-  test('menempatkan dua sidebar dan konten, lalu menciutkan keduanya', async () => {
-    const user = userEvent.setup();
+  test('menempatkan dua sidebar dan konten, primary collapsed default, secondary tidak', async () => {
     renderWithProviders(<AppRoutes />, '/inbox');
 
     expect(screen.getByRole('link', { name: 'Personal' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navigasi aplikasi' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Inbox' })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ciutkan workspace' }));
-    expect(screen.getByRole('button', { name: 'Bentangkan workspace' })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    );
-    expect(localStorage.getItem('todoit.sidebar')).toContain('"primaryCollapsed":true');
+    // Primary sidebar collapsed by default
+    const app = document.querySelector('.app-layout');
+    expect(app).toHaveClass('app-layout--primary-collapsed');
+    expect(app).not.toHaveClass('app-layout--secondary-collapsed');
 
-    await user.click(screen.getByRole('button', { name: 'Ciutkan navigasi' }));
-    expect(screen.getByRole('button', { name: 'Bentangkan navigasi' })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    );
-    await user.hover(screen.getByRole('link', { name: 'Inbox' }));
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Inbox');
+    // Tidak ada tombol toggle collapse pada kedua sidebar
+    expect(screen.queryByRole('button', { name: 'Ciutkan workspace' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Bentangkan workspace' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Ciutkan navigasi' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Bentangkan navigasi' })).not.toBeInTheDocument();
   });
 
   test('membuka dan menutup drawer ponsel dengan Escape dan backdrop', async () => {

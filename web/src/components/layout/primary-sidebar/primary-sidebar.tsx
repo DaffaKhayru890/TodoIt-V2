@@ -1,4 +1,4 @@
-import { FiChevronsLeft, FiChevronsRight, FiPlus, FiX } from 'react-icons/fi';
+import { FiChevronsLeft, FiPlus, FiX } from 'react-icons/fi';
 import { Link } from 'react-router';
 import type { WorkspaceFixture } from '@/app/navigation/workspace-fixtures';
 import { userFixture } from '@/app/navigation/workspace-fixtures';
@@ -18,8 +18,8 @@ export function PrimarySidebar({
 }: {
   collapsed: boolean;
   workspaces: readonly WorkspaceFixture[];
-  showCollapse: boolean;
-  onToggleCollapse: () => void;
+  showCollapse?: boolean;
+  onToggleCollapse?: () => void;
   onClose?: () => void;
 }) {
   return (
@@ -44,8 +44,13 @@ export function PrimarySidebar({
             aria-expanded={!collapsed}
             aria-controls="primary-sidebar"
             onClick={onToggleCollapse}
+            className={joinClasses('sidebar-toggle', collapsed && 'sidebar-toggle--collapsed')}
           >
-            {collapsed ? <FiChevronsRight /> : <FiChevronsLeft />}
+            <span
+              className={joinClasses('collapse-chevron', collapsed && 'collapse-chevron--rotated')}
+            >
+              <FiChevronsLeft />
+            </span>
           </IconButton>
         ) : null}
       </header>

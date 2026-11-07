@@ -11,15 +11,7 @@ describe('SecondarySidebar', () => {
       throw new Error('Fixture workspace kosong.');
     }
 
-    renderWithProviders(
-      <SecondarySidebar
-        workspaceId={workspace.id}
-        collapsed
-        showCollapse
-        onToggleCollapse={() => undefined}
-      />,
-      '/inbox'
-    );
+    renderWithProviders(<SecondarySidebar workspaceId={workspace.id} collapsed />, '/inbox');
 
     expect(screen.getByRole('navigation', { name: 'Pencarian' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'General' })).toBeInTheDocument();

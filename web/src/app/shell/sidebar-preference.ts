@@ -6,7 +6,7 @@ export interface SidebarPreference {
 }
 
 const fallback: SidebarPreference = {
-  primaryCollapsed: false,
+  primaryCollapsed: true,
   secondaryCollapsed: false
 };
 

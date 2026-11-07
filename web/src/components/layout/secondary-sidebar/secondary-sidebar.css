@@ -49,4 +49,26 @@
     padding-left: var(--space-1);
     padding-right: var(--space-1);
   }
+
+  .secondary-sidebar--collapsed .secondary-sidebar__header .sidebar-toggle {
+    justify-content: center;
+  }
+
+  .collapse-chevron {
+    display: inline-flex;
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .collapse-chevron--rotated {
+    transform: rotate(180deg);
+  }
+
+  .sidebar-toggle {
+    opacity: 0.9;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+  }
+
+  .sidebar-toggle:hover {
+    opacity: 1;
+  }
 }

@@ -1,4 +1,4 @@
-import { FiChevronsLeft, FiChevronsRight, FiX } from 'react-icons/fi';
+import { FiChevronsLeft, FiX } from 'react-icons/fi';
 import {
   buildNavigation,
   searchNavigation,
@@ -19,8 +19,8 @@ export function SecondarySidebar({
 }: {
   workspaceId: string;
   collapsed: boolean;
-  showCollapse: boolean;
-  onToggleCollapse: () => void;
+  showCollapse?: boolean;
+  onToggleCollapse?: () => void;
   onClose?: () => void;
   sections?: readonly NavigationSectionConfig[];
 }) {
@@ -46,8 +46,13 @@ export function SecondarySidebar({
             aria-expanded={!collapsed}
             aria-controls="secondary-sidebar"
             onClick={onToggleCollapse}
+            className={joinClasses('sidebar-toggle', collapsed && 'sidebar-toggle--collapsed')}
           >
-            {collapsed ? <FiChevronsRight /> : <FiChevronsLeft />}
+            <span
+              className={joinClasses('collapse-chevron', collapsed && 'collapse-chevron--rotated')}
+            >
+              <FiChevronsLeft />
+            </span>
           </IconButton>
         ) : null}
       </header>

@@ -3,11 +3,7 @@ import { FiMenu } from 'react-icons/fi';
 import { useLocation, useParams } from 'react-router';
 import { buildNavigation } from '@/app/navigation/navigation';
 import { workspaceFixtures } from '@/app/navigation/workspace-fixtures';
-import {
-  readSidebarPreference,
-  writeSidebarPreference,
-  type SidebarPreference
-} from '@/app/shell/sidebar-preference';
+import { readSidebarPreference } from '@/app/shell/sidebar-preference';
 import { MainContent } from '@/components/layout/main-content/main-content';
 import { MobileNavigationDrawer } from '@/components/layout/mobile-navigation/mobile-navigation-drawer';
 import { PrimarySidebar } from '@/components/layout/primary-sidebar/primary-sidebar';
@@ -21,7 +17,7 @@ const compactQuery = '(max-width: 1023px)';
 
 export function AppLayout() {
   const compact = useMediaQuery(compactQuery);
-  const [preference, setPreference] = useState<SidebarPreference>(readSidebarPreference);
+  const preference = readSidebarPreference();
   const [drawer, setDrawer] = useState<'none' | 'primary' | 'secondary'>('none');
   const [trackedCompact, setTrackedCompact] = useState(compact);
 
@@ -50,18 +46,6 @@ export function AppLayout() {
     () => setDrawer('none'),
     drawer === 'secondary' ? secondaryRef : primaryRef
   );
-
-  function toggle(side: 'primary' | 'secondary') {
-    setPreference((current) => {
-      const next = {
-        primaryCollapsed: side === 'primary' ? !current.primaryCollapsed : current.primaryCollapsed,
-        secondaryCollapsed:
-          side === 'secondary' ? !current.secondaryCollapsed : current.secondaryCollapsed
-      };
-      writeSidebarPreference(next);
-      return next;
-    });
-  }
 
   const primaryCollapsed = !compact && preference.primaryCollapsed;
   const secondaryCollapsed = !compact && preference.secondaryCollapsed;
@@ -111,8 +95,6 @@ export function AppLayout() {
         <PrimarySidebar
           collapsed={primaryCollapsed}
           workspaces={workspaceFixtures}
-          showCollapse={!compact}
-          onToggleCollapse={() => toggle('primary')}
           {...(compact ? { onClose: closeDrawer } : {})}
         />
       </div>
@@ -128,8 +110,6 @@ export function AppLayout() {
           workspaceId={activeWorkspaceId}
           sections={buildNavigation(activeWorkspaceId)}
           collapsed={secondaryCollapsed}
-          showCollapse={!compact}
-          onToggleCollapse={() => toggle('secondary')}
           {...(compact ? { onClose: closeDrawer } : {})}
         />
       </div>

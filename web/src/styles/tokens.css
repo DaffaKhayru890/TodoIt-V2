@@ -72,4 +72,7 @@
   --sidebar-secondary-width: 16.5rem;
   --sidebar-secondary-collapsed: 4.75rem;
   --layout-compact: 1023px;
+
+  --duration-fast: 0.2s;
+  --ease-standard: ease;
 }

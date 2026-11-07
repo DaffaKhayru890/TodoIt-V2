@@ -11,6 +11,7 @@
     overflow: hidden;
     background: var(--color-background);
     color: var(--color-text);
+    transition: grid-template-columns var(--duration-fast) var(--ease-standard);
   }
 
   .app-layout--primary-collapsed {

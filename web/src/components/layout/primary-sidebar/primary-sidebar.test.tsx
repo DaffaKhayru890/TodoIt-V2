@@ -9,12 +9,7 @@ describe('PrimarySidebar', () => {
   test('menampilkan workspace contoh, entri tambah, dan profil', async () => {
     const user = userEvent.setup();
     renderWithProviders(
-      <PrimarySidebar
-        collapsed={false}
-        workspaces={workspaceFixtures}
-        showCollapse
-        onToggleCollapse={() => undefined}
-      />,
+      <PrimarySidebar collapsed={false} workspaces={workspaceFixtures} />,
       '/inbox'
     );
 
