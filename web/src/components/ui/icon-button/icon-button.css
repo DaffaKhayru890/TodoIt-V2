@@ -1,0 +1,33 @@
+@layer components {
+  .icon-button {
+    @apply inline-flex items-center justify-center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: var(--border-default);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-brutal-sm);
+    cursor: pointer;
+    font-size: 1.15rem;
+  }
+
+  .icon-button:hover:not(:disabled) {
+    background: var(--color-primary);
+    transform: translate(-1px, -1px);
+  }
+
+  .icon-button:focus-visible {
+    outline: var(--border-focus);
+    outline-offset: 3px;
+  }
+
+  .icon-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    box-shadow: none;
+  }
+
+  .icon-button__glyph {
+    display: inline-flex;
+  }
+}

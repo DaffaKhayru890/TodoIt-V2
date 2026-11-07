@@ -3,9 +3,10 @@ import { describe, expect, test } from 'vitest';
 import { App } from '@/app/app';
 
 describe('App', () => {
-  test('merender halaman beranda', () => {
+  test('merender shell aplikasi pada inbox', () => {
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'Fondasi frontend siap.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Inbox' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'TodoIt' })).toBeInTheDocument();
   });
 });

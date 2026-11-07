@@ -1,9 +1,49 @@
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { joinClasses } from '@/core/utils/join-classes';
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
+type ButtonSize = 'small' | 'medium' | 'large';
 
-export function Button({ className, type = 'button', ...props }: ButtonProps) {
-  const classes = className ? `button ${className}` : 'button';
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  loading?: boolean;
+  fullWidth?: boolean;
+  leadingIcon?: ReactNode;
+  trailingIcon?: ReactNode;
+};
 
-  return <button className={classes} type={type} {...props} />;
+export function Button({
+  variant = 'primary',
+  size = 'medium',
+  loading = false,
+  fullWidth = false,
+  leadingIcon,
+  trailingIcon,
+  className,
+  type = 'button',
+  disabled,
+  children,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      className={joinClasses(
+        'button',
+        `button--${variant}`,
+        `button--${size}`,
+        loading && 'button--loading',
+        fullWidth && 'button--full',
+        className
+      )}
+      type={type}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      {...props}
+    >
+      {leadingIcon ? <span className="button__icon">{leadingIcon}</span> : null}
+      <span className="button__label">{children}</span>
+      {trailingIcon ? <span className="button__icon">{trailingIcon}</span> : null}
+    </button>
+  );
 }

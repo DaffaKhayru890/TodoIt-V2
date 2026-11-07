@@ -1,14 +1,16 @@
 import { Link } from 'react-router';
+import { useDocumentTitle } from '@/hooks/use-document-title';
 
 export function NotFoundPage() {
+  useDocumentTitle('Halaman tidak ditemukan');
+
   return (
-    <main className="not-found-page">
+    <div className="not-found-page">
       <h1 className="not-found-page__title">Halaman tidak ditemukan</h1>
-      <p>
-        <Link className="not-found-page__link" to="/">
-          Kembali ke beranda
-        </Link>
-      </p>
-    </main>
+      <p>Alamat ini tidak ada di aplikasi.</p>
+      <Link className="not-found-page__link" to="/inbox">
+        Kembali ke inbox
+      </Link>
+    </div>
   );
 }

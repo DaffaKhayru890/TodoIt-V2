@@ -1,3 +1,10 @@
 @utility ink {
-  color: var(--color-ink);
+  color: var(--color-text);
+}
+
+.scroll-area {
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }

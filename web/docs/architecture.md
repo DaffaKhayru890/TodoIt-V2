@@ -1,6 +1,6 @@
 # Arsitektur frontend
 
-Frontend memakai pemisahan app, core, komponen, halaman, dan style. Domain bisnis akan masuk ke `src/features/` pada phase berikutnya. Phase ini tidak membuat CRUD, sidebar, atau dashboard.
+Frontend memakai pemisahan app, core, komponen, halaman, dan style. Domain bisnis akan masuk ke `src/features/` pada phase berikutnya. Phase 2 membangun shell visual, bukan CRUD.
 
 ## App
 
@@ -8,12 +8,7 @@ Frontend memakai pemisahan app, core, komponen, halaman, dan style. Domain bisni
 
 `AppProviders` saat ini hanya membungkus `QueryProvider`. `QueryClient` dibuat lewat initializer `useState`, jadi tidak dibuat ulang setiap render.
 
-`AppRouter` memakai `BrowserRouter`. Rute yang benar-benar terpasang:
-
-- `/` menampilkan halaman placeholder.
-- `*` menampilkan halaman tidak ditemukan.
-
-Path `/login`, `/register`, dan `/workspace/:workspaceId` hanya tercatat di `route-paths.ts`. Mereka belum menjadi rute dan tidak ada guard autentikasi palsu.
+`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Detail ada di [routing.md](routing.md). Tidak ada guard autentikasi yang memeriksa boolean palsu.
 
 ## Core
 
@@ -27,9 +22,9 @@ Feature nantinya memanggil HTTP client lewat TanStack Query. Query key dan hook 
 
 ## Komponen dan halaman
 
-`src/components/ui/button` adalah contoh komponen semantik. JSX memakai class `button`. Aturan visual ada di `button.css` dengan `@apply`.
+`src/components/ui` berisi komponen design system. `src/components/layout` berisi shell dua sidebar. JSX memakai class semantik. Aturan visual ada di stylesheet komponen dan diimpor dari `globals.css`.
 
-`src/pages` berisi dua halaman fondasi. Halaman itu belum mengambil data server.
+`src/pages` berisi halaman placeholder. Halaman itu belum mengambil data server. Workspace di sidebar adalah fixture visual.
 
 ## Alur data yang direncanakan
 

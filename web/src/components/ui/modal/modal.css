@@ -1,0 +1,62 @@
+@layer components {
+  .modal-root {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: grid;
+    place-items: center;
+    padding: var(--space-4);
+  }
+
+  .modal-root__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgb(23 23 23 / 45%);
+    cursor: pointer;
+  }
+
+  .modal {
+    position: relative;
+    z-index: 1;
+    width: min(32rem, 100%);
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+    border: var(--border-thick);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-brutal-lg);
+    padding: var(--space-5);
+  }
+
+  .modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .modal__title {
+    margin: 0;
+    font-size: var(--text-h3);
+    line-height: var(--leading-tight);
+  }
+
+  .modal__close {
+    border: var(--border-default);
+    background: var(--color-primary);
+    font: inherit;
+    font-weight: var(--font-bold);
+    padding: var(--space-1) var(--space-3);
+    cursor: pointer;
+    box-shadow: var(--shadow-brutal-sm);
+  }
+
+  .modal__close:focus-visible {
+    outline: var(--border-focus);
+    outline-offset: 2px;
+  }
+
+  .modal__body {
+    margin-top: var(--space-4);
+  }
+}

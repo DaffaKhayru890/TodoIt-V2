@@ -5,24 +5,39 @@ import { AppRoutes } from '@/app/router/router';
 import { renderWithProviders } from '@/test/utils/render-with-providers';
 
 describe('AppRoutes', () => {
-  test('menampilkan placeholder pada rute akar', () => {
-    renderWithProviders(<AppRoutes />);
+  test('rute akar membuka inbox', () => {
+    renderWithProviders(<AppRoutes />, '/');
 
-    expect(screen.getByRole('button', { name: 'Tombol contoh' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Inbox' })).toBeInTheDocument();
   });
 
-  test('berpindah ke halaman tidak ditemukan', async () => {
+  test('navigasi menandai item aktif dan berpindah halaman', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<AppRoutes />);
+    renderWithProviders(<AppRoutes />, '/inbox');
 
-    await user.click(screen.getByRole('link', { name: 'Buka rute yang tidak dikenal' }));
+    expect(screen.getByRole('link', { name: 'Inbox' })).toHaveAttribute('aria-current', 'page');
+    await user.click(screen.getByRole('link', { name: 'Today' }));
 
-    expect(screen.getByRole('heading', { name: 'Halaman tidak ditemukan' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Today' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('rute yang tidak dikenal langsung menampilkan halaman tidak ditemukan', () => {
+  test('akses langsung ke settings menampilkan placeholder', () => {
+    renderWithProviders(<AppRoutes />, '/settings');
+
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
+  });
+
+  test('rute yang tidak dikenal menampilkan halaman tidak ditemukan', () => {
     renderWithProviders(<AppRoutes />, '/tidak-ada');
 
     expect(screen.getByRole('heading', { name: 'Halaman tidak ditemukan' })).toBeInTheDocument();
+  });
+
+  test('login tidak menampilkan formulir palsu', () => {
+    renderWithProviders(<AppRoutes />, '/login');
+
+    expect(screen.getByRole('heading', { name: 'Masuk' })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/password/i)).not.toBeInTheDocument();
   });
 });

@@ -25,7 +25,7 @@ Isi `VITE_API_BASE_URL=http://localhost:4000` bila backend memakai port default.
 bun run dev
 ```
 
-Server memakai port 5173 dan `strictPort`. Port ini sudah tercakup contoh CORS backend. Buka `http://localhost:5173`. Halaman `/` menampilkan placeholder. Path lain menampilkan halaman tidak ditemukan.
+Server memakai port 5173 dan `strictPort`. Port ini sudah tercakup contoh CORS backend. Buka `http://localhost:5173`. `/` masuk ke inbox di dalam application shell. Path yang tidak dikenal menampilkan halaman tidak ditemukan.
 
 ## Pemeriksaan
 

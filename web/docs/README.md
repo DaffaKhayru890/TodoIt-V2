@@ -2,7 +2,7 @@
 
 Frontend TodoIt-v2. Backend tetap berada di root repository dan tidak dipindahkan. Folder `web/` adalah aplikasi React terpisah yang berbicara ke API tersebut.
 
-Phase ini hanya menyiapkan fondasi: tooling, routing, query client, HTTP client, environment, tes, dan dokumentasi. Halaman workspace, todo, login, dan notifikasi belum dibuat.
+Phase 1 menyiapkan tooling dan fondasi API. Phase 2 menambahkan design system Neo Brutalism, komponen UI, dan application shell dengan dua sidebar. CRUD workspace, todo, pencarian, dan notifikasi belum dibuat.
 
 ## Teknologi
 
@@ -79,3 +79,9 @@ Folder `features/` belum dibuat karena belum ada domain UI.
 - [Panduan development](development-guide.md)
 - [Panduan testing](testing-guide.md)
 - [Keputusan teknis](technical-decisions.md)
+- [Design system](design-system.md)
+- [Application layout](application-layout.md)
+- [Sidebar dan navigasi](sidebar-navigation.md)
+- [Routing](routing.md)
+- [Responsive design](responsive-design.md)
+- [Aksesibilitas](accessibility.md)

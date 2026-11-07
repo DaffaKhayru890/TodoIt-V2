@@ -1,4 +1,5 @@
 import { cleanup } from '@testing-library/react';
+import { mockViewport } from '@/test/utils/mock-viewport';
 import '@testing-library/jest-dom/vitest';
 import { getResponse, type RequestHandler } from 'msw';
 import { afterEach } from 'vitest';
@@ -21,4 +22,8 @@ globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise
 afterEach(() => {
   cleanup();
   server.resetHandlers();
+  localStorage.clear();
+  mockViewport(false);
 });
+
+mockViewport(false);

@@ -1,0 +1,47 @@
+@layer components {
+  .page-header,
+  .access-page,
+  .not-found-page {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .page-header__title,
+  .access-page h1,
+  .not-found-page__title {
+    margin: 0;
+    font-size: var(--text-h1);
+    line-height: var(--leading-tight);
+  }
+
+  .page-header__description,
+  .access-page p,
+  .not-found-page p {
+    margin: 0;
+    max-width: 40rem;
+    color: var(--color-text-muted);
+  }
+
+  .not-found-page__link,
+  .access-page a {
+    color: var(--color-text);
+    font-weight: var(--font-bold);
+  }
+
+  @media (min-width: 1024px) {
+    .page-header,
+    .access-page,
+    .not-found-page {
+      padding: var(--space-8);
+    }
+
+    .page-header__title,
+    .access-page h1,
+    .not-found-page__title {
+      font-size: var(--text-display);
+    }
+  }
+}

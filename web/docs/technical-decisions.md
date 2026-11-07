@@ -12,7 +12,7 @@ Server state akan di-cache di luar state form dan state UI lokal. Phase ini hany
 
 Versi yang terpasang adalah 4.3.5 bersama `@tailwindcss/vite`. Konfigurasinya adalah plugin Vite dan `@import "tailwindcss"`, bukan file `tailwind.config.js` versi 3. `@apply` dipakai di stylesheet semantik. Class utility panjang tidak ditulis di TSX. CSS komponen diimpor dari `globals.css` karena Tailwind 4 tidak mengenali utility bila file CSS komponen menjadi entry terpisah dari TSX.
 
-Token visual masih sederhana. Design system lengkap belum dibuat.
+Token visual lengkap untuk Neo Brutalism ada di `tokens.css`. Tailwind tetap v4. Overlay dropdown, popover, modal, dan drawer dibuat sendiri agar tidak menambah Radix hanya untuk beberapa interaksi. Fokus, Escape, dan klik luar ditangani di hook kecil.
 
 ## HTTP client
 
@@ -40,6 +40,12 @@ Versi yang terpasang dipilih dari resolver Bun pada saat instalasi, bukan dari k
 React Hook Form dan Zod terpasang agar phase form tidak mengganti resolver. Belum ada form.
 
 TypeScript frontend memakai 6.0.3. Resolver sempat memilih 7.0.2, tetapi `typescript-eslint` 8.72 menolak TypeScript 7, jadi compiler diturunkan ke 6 agar typecheck dan ESLint memakai parser yang sama. Backend tetap pada TypeScript 5.9 di root.
+
+## Shell dan data contoh
+
+Dua sidebar memakai state React di `AppLayout`. Preferensi ciutkan disimpan di `localStorage` dengan kunci `todoit.sidebar` dan hanya berisi dua boolean. Workspace serta nama pengguna adalah fixture di `workspace-fixtures.ts`, bukan hasil API.
+
+Breakpoint compact adalah `max-width: 1023px`. Di bawah itu kedua sidebar menjadi drawer, dan hanya satu drawer yang dibuka.
 
 ## Trade-off
 

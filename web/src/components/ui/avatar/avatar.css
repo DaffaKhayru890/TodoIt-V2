@@ -1,0 +1,43 @@
+@layer components {
+  .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: var(--border-default);
+    background: var(--color-primary);
+    color: var(--color-text);
+    font-size: var(--text-body-sm);
+    font-weight: var(--font-bold);
+    box-shadow: var(--shadow-brutal-sm);
+    overflow: hidden;
+    flex: none;
+  }
+
+  .avatar--small {
+    width: 2rem;
+    height: 2rem;
+    font-size: var(--text-caption);
+  }
+
+  .avatar--large {
+    width: 3.25rem;
+    height: 3.25rem;
+    font-size: var(--text-body);
+  }
+
+  .avatar--secondary {
+    background: var(--color-secondary);
+  }
+
+  .avatar--accent {
+    background: var(--color-accent);
+  }
+
+  .avatar__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}

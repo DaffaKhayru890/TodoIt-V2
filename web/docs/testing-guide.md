@@ -29,6 +29,10 @@ Runtime tes adalah Bun. Interceptor jaringan MSW 3 mencoba menambal `tls.TLSSock
 
 Tes HTTP client mencakup respons JSON sukses, error API, kegagalan jaringan lewat `HttpResponse.error()`, JSON tidak valid, penggabungan base URL, header Bearer, dan serialisasi body.
 
+## Komponen Phase 2
+
+Setiap komponen UI dan layout baru punya tes perilaku: variant, klik, disabled, keyboard, Escape, dan state aktif navigasi. Viewport compact disimulasikan dengan `mockViewport` karena JSDOM tidak mengukur CSS. Pemeriksaan visual responsive dilakukan di browser.
+
 ## Konvensi
 
 - Satu perilaku per tes.
