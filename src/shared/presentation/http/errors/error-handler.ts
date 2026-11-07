@@ -51,6 +51,7 @@ function mapApplicationErrorCodeToStatus(code: string): number {
     case 'INVITATION_NOT_FOUND':
     case 'WORKSPACE_MEMBER_NOT_FOUND':
     case 'WORKSPACE_MEMBER_ALREADY_REMOVED':
+    case 'NOTIFICATION_NOT_FOUND':
       return 404;
 
     case 'INVALID_CURSOR':

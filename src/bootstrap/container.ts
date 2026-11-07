@@ -41,6 +41,18 @@ import { DrizzleWorkspaceUserDirectory } from '../modules/workspace/infrastructu
 import { CryptoInvitationTokenGenerator } from '../modules/workspace/infrastructure/security/crypto-invitation-token.generator';
 import { SmtpInvitationEmailSender } from '../modules/workspace/infrastructure/email/smtp-invitation-email.sender';
 import { Base64UrlCollaborationCursorCodec } from '../modules/workspace/infrastructure/pagination/collaboration-cursor';
+import { ListNotifications } from '../modules/notification/application/use-cases/list-notifications';
+import {
+  GetNotificationPreferences,
+  GetUnreadCount,
+  MarkAllNotificationsRead,
+  MarkNotificationRead,
+  UpdateNotificationPreferences
+} from '../modules/notification/application/use-cases/notification-inbox';
+import { DrizzleNotificationPreferenceRepository } from '../modules/notification/infrastructure/persistence/drizzle-notification-preference.repository';
+import { DrizzleNotificationRepository } from '../modules/notification/infrastructure/persistence/drizzle-notification.repository';
+import { Base64UrlNotificationCursorCodec } from '../modules/notification/infrastructure/pagination/notification-cursor';
+import type { NotificationRoutesDependencies } from '../modules/notification/presentation/http/notification.routes';
 import type { AuthRoutesDependencies } from '../modules/auth/presentation/http/auth.routes';
 import type { WorkspaceRoutesDependencies } from '../modules/workspace/presentation/http/workspace.routes';
 import { DrizzleTodoRepository } from '../modules/todo/infrastructure/persistence/drizzle-todo.repository';
@@ -99,6 +111,7 @@ export interface ApplicationContainer {
   readonly auth: AuthRoutesDependencies;
   readonly workspace: WorkspaceRoutesDependencies;
   readonly todo: TodoRoutesDependencies;
+  readonly notification: NotificationRoutesDependencies;
   /** Melepas seluruh resource teknis (connection pool). */
   close(): Promise<void>;
 }
@@ -314,6 +327,19 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
     )
   };
 
+  const notificationRepository = new DrizzleNotificationRepository(database.db);
+  const notificationPreferences = new DrizzleNotificationPreferenceRepository(database.db);
+  const notificationCursor = new Base64UrlNotificationCursorCodec();
+  const notificationDeps: NotificationRoutesDependencies = {
+    getCurrentUser,
+    listNotifications: new ListNotifications(notificationRepository, notificationCursor),
+    getUnreadCount: new GetUnreadCount(notificationRepository),
+    markNotificationRead: new MarkNotificationRead(notificationRepository, systemClock),
+    markAllNotificationsRead: new MarkAllNotificationsRead(notificationRepository, systemClock),
+    getNotificationPreferences: new GetNotificationPreferences(notificationPreferences, systemClock),
+    updateNotificationPreferences: new UpdateNotificationPreferences(notificationPreferences, systemClock)
+  };
+
   return {
     config,
     logger,
@@ -322,6 +348,7 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
     auth: authDeps,
     workspace: workspaceDeps,
     todo: todoDeps,
+    notification: notificationDeps,
     close: () => database.close()
   };
 }

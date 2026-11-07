@@ -44,6 +44,18 @@ export function buildTestAppConfig(overrides: Partial<AppConfig> = {}): AppConfi
     },
     webAppUrl: 'http://localhost:3000',
     invitationTokenTtlSeconds: 604_800,
+    notification: {
+      workerEnabled: true,
+      pollIntervalMs: 5000,
+      concurrency: 5,
+      leaseSeconds: 60,
+      maxAttempts: 8,
+      baseRetrySeconds: 5,
+      maxRetrySeconds: 3600,
+      schedulerIntervalSeconds: 60,
+      lookaheadDays: 90,
+      dueSoonOffsetMinutes: [60, 1440]
+    },
     ...overrides
   };
 }

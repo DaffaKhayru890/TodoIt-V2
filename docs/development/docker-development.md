@@ -11,7 +11,7 @@ Lima stage, semuanya berbasis `oven/bun:1.4.4-slim` (versi dipin, tidak ada tag 
 | `base` | image Bun + `WORKDIR /app` + salin `package.json` dan `bun.lock` | fondasi stage lain |
 | `dependencies` | `bun install --frozen-lockfile` (termasuk devDependencies) | `development`, `build` |
 | `development` | salin seluruh source, `NODE_ENV=development`, `CMD ["bun","run","dev"]` | container dev dengan hot reload |
-| `build` | `bun run typecheck` lalu `bun build src/main.ts --outdir=dist --target=bun` | menghasilkan `dist/` untuk production |
+| `build` | `bun run typecheck` lalu bundle `src/main.ts` dan `src/worker.ts` ke `dist/` | menghasilkan entry API dan worker |
 | `production` | install runtime-only, salin `dist`, `USER bun`, `HEALTHCHECK`, `CMD ["bun","run","dist/main.js"]` | image rilis |
 
 Pilihan yang perlu dicatat:
@@ -32,7 +32,7 @@ HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
 
 ## 2. Compose development
 
-Dua service.
+Empat service development: `postgres`, `backend` (API), `worker`, dan `mailpit`. Production image yang sama menjalankan API lewat `dist/main.js` atau worker lewat `dist/worker.js`. Mailpit tidak ikut image production.
 
 ### `postgres`
 
@@ -54,6 +54,17 @@ Dua service.
 - `env_file: .env.development` plus override `DATABASE_HOST: postgres` dan `DATABASE_PORT: "5432"`. Override ini menang atas nilai di file (Bun memberi prioritas ke environment proses), jadi container terhubung lewat service name sementara host tetap bisa memakai `127.0.0.1:5432`.
 - Bind mount `./:/app` agar edit kode langsung terlihat di container, ditambah anonymous volume `/app/node_modules` agar `node_modules` hasil build dalam image tidak tertimpa folder host.
 - Port `127.0.0.1:4000:4000` dan healthcheck `/health`.
+
+### `worker`
+
+- Image development yang sama dengan API, command `bun --watch --env-file=.env.development src/worker.ts`.
+- Menunggu Postgres sehat. Tidak memublikasikan port HTTP.
+- SMTP development mengarah ke service `mailpit`.
+
+### `mailpit`
+
+- Image `axllent/mailpit:v1.21.8`, UI `127.0.0.1:8025`, SMTP `127.0.0.1:1025`.
+- Hanya ada di compose development.
 
 ## 3. Perintah
 

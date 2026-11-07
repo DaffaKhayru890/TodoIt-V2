@@ -5,9 +5,10 @@ Dokumentasi ini menjelaskan backend aplikasi Todo List yang dibangun dengan arsi
 - **Phase 2**: Authentication Module (Register, Login, JWT, Refresh Token Rotation, Session Management, Logout, Me) dan Workspace Module (Ownership, Membership, Role-based Authorization Policy, Soft Archive).
 - **Phase 3**: Todo Core Engine (CRUD, status/priority, due date, Today/Upcoming/Overdue, filter/pencarian, cursor pagination, soft delete, dan otorisasi workspace).
 - **Phase 4**: Metadata Todo (Tag many-to-many, Label kategori tunggal, Reminder absolute/before_due). Pengiriman notifikasi belum termasuk.
-- **Phase 5**: Kolaborasi workspace (undangan email, anggota, role, transfer kepemilikan). Mesin notifikasi belum termasuk.
+- **Phase 5**: Kolaborasi workspace (undangan email, anggota, role, transfer kepemilikan).
+- **Phase 6**: Notification engine dan background worker (inbox, preferensi, due-soon, reminder, antrean PostgreSQL, retry, dan email).
 
-Status implementasi: **Phase 5 selesai**.
+Status implementasi: **Phase 6 selesai**.
 
 ## Urutan membaca
 
@@ -28,6 +29,10 @@ Status implementasi: **Phase 5 selesai**.
 | [architecture/invitation-architecture.md](architecture/invitation-architecture.md) | Siklus undangan, token, dan transaksi. |
 | [architecture/workspace-rbac.md](architecture/workspace-rbac.md) | Matriks owner, admin, dan member. |
 | [architecture/ownership-management.md](architecture/ownership-management.md) | Satu owner, transfer, dan aturan keluar. |
+| [architecture/notification-architecture.md](architecture/notification-architecture.md) | Notification, job, channel, dan kebijakan penerima. |
+| [architecture/background-worker-architecture.md](architecture/background-worker-architecture.md) | Proses worker, klaim, dan shutdown. |
+| [architecture/notification-scheduling.md](architecture/notification-scheduling.md) | Rekonsiliasi reminder dan due-soon. |
+| [architecture/job-queue-architecture.md](architecture/job-queue-architecture.md) | Antrean PostgreSQL, lease, dan retry. |
 | [architecture/decisions/ADR-0001-architecture.md](architecture/decisions/ADR-0001-architecture.md) | ADR-0001: Pemilihan stack teknis dan arsitektur dasar. |
 | [architecture/decisions/ADR-0002-authentication-strategy.md](architecture/decisions/ADR-0002-authentication-strategy.md) | ADR-0002: Strategi autentikasi dual token (JWT & Opaque Refresh). |
 | [architecture/decisions/ADR-0003-token-rotation.md](architecture/decisions/ADR-0003-token-rotation.md) | ADR-0003: Token rotation dan deteksi reuse token. |
@@ -45,6 +50,8 @@ Status implementasi: **Phase 5 selesai**.
 | [database/reminder-schema.md](database/reminder-schema.md) | Tabel reminders, check constraint, dan partial unique index. |
 | [database/invitation-schema.md](database/invitation-schema.md) | Tabel undangan, check status, dan indeks pending unik. |
 | [database/membership-schema.md](database/membership-schema.md) | Keanggotaan dan indeks satu owner. |
+| [database/notification-schema.md](database/notification-schema.md) | Tabel notifications dan preferences. |
+| [database/notification-job-schema.md](database/notification-job-schema.md) | Tabel antrean job dan constraint lease. |
 
 ### 3. API & OpenAPI
 | Dokumen | Deskripsi |
@@ -58,6 +65,7 @@ Status implementasi: **Phase 5 selesai**.
 | [api/reminder-api.md](api/reminder-api.md) | Endpoint jadwal Reminder: create, list, update, dan cancel. |
 | [api/invitation-api.md](api/invitation-api.md) | Endpoint undangan workspace dan undangan akun. |
 | [api/member-management-api.md](api/member-management-api.md) | Endpoint anggota, keluar, dan transfer kepemilikan. |
+| [api/notification-api.md](api/notification-api.md) | Inbox, unread count, dan preferensi. |
 
 ### 4. Fitur Todo
 | Dokumen | Deskripsi |
@@ -75,6 +83,11 @@ Status implementasi: **Phase 5 selesai**.
 | [features/reminder-management.md](features/reminder-management.md) | Membuat, mengubah, menampilkan, dan membatalkan Reminder. |
 | [features/reminder-scheduling-rules.md](features/reminder-scheduling-rules.md) | Absolute, before_due, effective time, dueAt, dan konkurensi. |
 | [features/todo-metadata-integration.md](features/todo-metadata-integration.md) | Metadata pada response Todo, filter, dan fingerprint cursor. |
+| [features/due-soon-notifications.md](features/due-soon-notifications.md) | Offset due-soon dan kelayakan todo. |
+| [features/reminder-notifications.md](features/reminder-notifications.md) | Reminder Phase 4 sebagai sumber jadwal. |
+| [features/notification-inbox.md](features/notification-inbox.md) | Daftar, cursor, dan status baca. |
+| [features/notification-preferences.md](features/notification-preferences.md) | In-app tetap aktif dan email opsional. |
+| [features/email-delivery.md](features/email-delivery.md) | Template, Message-ID, dan retry SMTP. |
 
 ### 5. Keamanan
 | Dokumen | Deskripsi |
@@ -102,3 +115,13 @@ Status implementasi: **Phase 5 selesai**.
 | [development/docker-development.md](development/docker-development.md) | Panduan build dan container Docker. |
 | [development/mailpit-setup.md](development/mailpit-setup.md) | SMTP development dan UI Mailpit. |
 | [testing/collaboration-testing.md](testing/collaboration-testing.md) | Cara menjalankan pengujian undangan dan anggota. |
+| [testing/notification-testing.md](testing/notification-testing.md) | Cakupan pengujian notification dan worker. |
+| [performance/notification-query-optimization.md](performance/notification-query-optimization.md) | Index scheduler, klaim, dan unread count. |
+| [reliability/idempotency.md](reliability/idempotency.md) | Key stabil dan transaksi dispatch. |
+| [reliability/retry-mechanism.md](reliability/retry-mechanism.md) | Backoff, jitter, dan job gagal. |
+| [reliability/job-lease-recovery.md](reliability/job-lease-recovery.md) | Lease kedaluwarsa dan klaim ulang. |
+| [reliability/worker-shutdown.md](reliability/worker-shutdown.md) | SIGTERM dan pelepasan lease. |
+| [reliability/delivery-guarantees.md](reliability/delivery-guarantees.md) | At-least-once untuk job dan email. |
+| [operations/worker-operations.md](operations/worker-operations.md) | Menjalankan, menghentikan, dan memantau worker. |
+| [operations/failed-jobs.md](operations/failed-jobs.md) | Inspeksi dan antrian ulang job gagal. |
+| [operations/production-deployment.md](operations/production-deployment.md) | Image API dan worker. |

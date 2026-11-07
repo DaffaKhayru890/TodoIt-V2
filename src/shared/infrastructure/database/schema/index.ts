@@ -6,6 +6,9 @@ import {
 } from '../../../../modules/workspace/infrastructure/persistence/workspace.schema';
 import { labels } from '../../../../modules/todo/infrastructure/persistence/label.schema';
 import { reminders } from '../../../../modules/todo/infrastructure/persistence/reminder.schema';
+import { notificationJobs } from '../../../../modules/notification/infrastructure/persistence/notification-job.schema';
+import { notificationPreferences } from '../../../../modules/notification/infrastructure/persistence/notification-preference.schema';
+import { notifications } from '../../../../modules/notification/infrastructure/persistence/notification.schema';
 import { tags } from '../../../../modules/todo/infrastructure/persistence/tag.schema';
 import { todoTags } from '../../../../modules/todo/infrastructure/persistence/todo-tag.schema';
 import { todos } from '../../../../modules/todo/infrastructure/persistence/todo.schema';
@@ -26,7 +29,10 @@ export const schema = {
   tags,
   labels,
   todoTags,
-  reminders
+  reminders,
+  notifications,
+  notificationJobs,
+  notificationPreferences
 };
 
 export {
@@ -40,7 +46,10 @@ export {
   tags,
   labels,
   todoTags,
-  reminders
+  reminders,
+  notifications,
+  notificationJobs,
+  notificationPreferences
 };
 
 export default schema;

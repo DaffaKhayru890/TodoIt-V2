@@ -54,6 +54,29 @@ services:
       retries: 6
       start_period: 15s
 
+  worker:
+    build:
+      context: .
+      target: development
+    container_name: todo-notification-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    env_file:
+      - .env.development
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      SMTP_SECURE: "false"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    command: ["bun", "--watch", "--env-file=.env.development", "src/worker.ts"]
+
   mailpit:
     image: axllent/mailpit:v1.21.8
     container_name: todo-mailpit

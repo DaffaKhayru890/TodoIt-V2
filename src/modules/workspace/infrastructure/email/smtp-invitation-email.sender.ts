@@ -1,5 +1,6 @@
-import nodemailer, { type Transporter } from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import type { Logger } from '../../../../shared/infrastructure/logging/logger';
+import { createSmtpTransport, sendSmtpMessage } from '../../../../shared/infrastructure/email/smtp-transport';
 import type {
   InvitationEmailMessage,
   InvitationEmailSender
@@ -26,22 +27,14 @@ export class SmtpInvitationEmailSender implements InvitationEmailSender {
     private readonly config: SmtpInvitationConfig,
     private readonly logger: Logger
   ) {
-    this.transport = nodemailer.createTransport({
-      host: config.host,
-      port: config.port,
-      secure: config.secure,
-      ...(config.user.length > 0
-        ? { auth: { user: config.user, pass: config.password } }
-        : {})
-    });
+    this.transport = createSmtpTransport(config);
   }
 
   async sendWorkspaceInvitation(input: InvitationEmailMessage): Promise<void> {
     const content = renderInvitationEmail(input);
 
     try {
-      await this.transport.sendMail({
-        from: this.config.from,
+      await sendSmtpMessage(this.transport, this.config.from, {
         to: input.recipientEmail,
         subject: content.subject,
         text: content.text,

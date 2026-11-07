@@ -64,7 +64,29 @@ const ENV_RULES = {
     defaultValue: 604_800,
     min: 3600,
     max: 2_592_000
-  }
+  },
+  NOTIFICATION_WORKER_ENABLED: { kind: 'boolean', required: false, defaultValue: true },
+  NOTIFICATION_WORKER_POLL_INTERVAL_MS: {
+    kind: 'integer',
+    required: false,
+    defaultValue: 5000,
+    min: 100,
+    max: 600_000
+  },
+  NOTIFICATION_WORKER_CONCURRENCY: { kind: 'integer', required: false, defaultValue: 5, min: 1, max: 50 },
+  NOTIFICATION_JOB_LEASE_SECONDS: { kind: 'integer', required: false, defaultValue: 60, min: 5, max: 3600 },
+  NOTIFICATION_JOB_MAX_ATTEMPTS: { kind: 'integer', required: false, defaultValue: 8, min: 1, max: 20 },
+  NOTIFICATION_JOB_BASE_RETRY_SECONDS: { kind: 'integer', required: false, defaultValue: 5, min: 1, max: 3600 },
+  NOTIFICATION_JOB_MAX_RETRY_SECONDS: { kind: 'integer', required: false, defaultValue: 3600, min: 1, max: 86_400 },
+  NOTIFICATION_SCHEDULER_INTERVAL_SECONDS: {
+    kind: 'integer',
+    required: false,
+    defaultValue: 60,
+    min: 5,
+    max: 3600
+  },
+  NOTIFICATION_LOOKAHEAD_DAYS: { kind: 'integer', required: false, defaultValue: 90, min: 1, max: 365 },
+  TODO_DUE_SOON_OFFSETS_MINUTES: { kind: 'string', required: false, defaultValue: '1440,60' }
 } satisfies Record<string, EnvFieldRule>;
 
 export type EnvVarName = keyof typeof ENV_RULES;
@@ -172,7 +194,69 @@ function findCombinationProblems(parsed: Partial<ParsedEnv>): readonly string[] 
     }
   }
 
+  const baseRetry = parsed.NOTIFICATION_JOB_BASE_RETRY_SECONDS;
+  const maxRetry = parsed.NOTIFICATION_JOB_MAX_RETRY_SECONDS;
+
+  if (typeof baseRetry === 'number' && typeof maxRetry === 'number' && maxRetry < baseRetry) {
+    problems.push('NOTIFICATION_JOB_MAX_RETRY_SECONDS harus lebih besar atau sama dengan NOTIFICATION_JOB_BASE_RETRY_SECONDS.');
+  }
+
+  const offsets = parsed.TODO_DUE_SOON_OFFSETS_MINUTES;
+  const lookahead = parsed.NOTIFICATION_LOOKAHEAD_DAYS;
+
+  if (typeof offsets === 'string') {
+    const parsedOffsets = parseDueSoonOffsets(offsets);
+
+    if (typeof parsedOffsets === 'string') {
+      problems.push(parsedOffsets);
+    } else if (typeof lookahead === 'number') {
+      const maxOffset = parsedOffsets[parsedOffsets.length - 1] ?? 0;
+
+      if (lookahead * 24 * 60 < maxOffset) {
+        problems.push(
+          'NOTIFICATION_LOOKAHEAD_DAYS harus cukup besar untuk offset due-soon terbesar supaya jadwal tidak terlewat.'
+        );
+      }
+    }
+  }
+
   return problems;
+}
+
+/** Offset due-soon, unik, terurut naik. Mengembalikan pesan error bila tidak valid. */
+export function parseDueSoonOffsets(raw: string): readonly number[] | string {
+  const parts = raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+
+  if (parts.length === 0) {
+    return 'TODO_DUE_SOON_OFFSETS_MINUTES wajib berisi minimal satu offset menit.';
+  }
+
+  const seen = new Set<number>();
+  const values: number[] = [];
+
+  for (const part of parts) {
+    if (!/^[1-9]\d*$/.test(part)) {
+      return 'TODO_DUE_SOON_OFFSETS_MINUTES harus bilangan bulat positif yang dipisah koma.';
+    }
+
+    const value = Number(part);
+
+    if (value > 43_200) {
+      return 'TODO_DUE_SOON_OFFSETS_MINUTES tidak boleh lebih dari 43200 menit.';
+    }
+
+    if (seen.has(value)) {
+      return 'TODO_DUE_SOON_OFFSETS_MINUTES tidak boleh berisi offset duplikat.';
+    }
+
+    seen.add(value);
+    values.push(value);
+  }
+
+  return values.sort((left, right) => left - right);
 }
 
 /** Tipe bantu supaya pemanggil tidak perlu casting manual per variabel. */

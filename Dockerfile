@@ -21,7 +21,7 @@ FROM dependencies AS build
 COPY tsconfig.json drizzle.config.ts ./
 COPY src ./src
 RUN bun run typecheck
-RUN bun build src/main.ts --outdir=dist --target=bun
+RUN bun build src/main.ts --outdir=dist --target=bun && bun build src/worker.ts --outdir=dist --target=bun
 
 # ---- production: runtime dependency saja, non-root, tanpa .env ----
 FROM oven/bun:1.4.4-slim AS production

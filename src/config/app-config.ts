@@ -3,6 +3,7 @@ import {
   asCookieSameSite,
   asLogLevel,
   asNodeEnvironment,
+  parseDueSoonOffsets,
   parseEnvironment,
   type EnvVarName,
   type ParsedEnv
@@ -45,6 +46,19 @@ export interface SmtpConfig {
   readonly secure: boolean;
 }
 
+export interface NotificationConfig {
+  readonly workerEnabled: boolean;
+  readonly pollIntervalMs: number;
+  readonly concurrency: number;
+  readonly leaseSeconds: number;
+  readonly maxAttempts: number;
+  readonly baseRetrySeconds: number;
+  readonly maxRetrySeconds: number;
+  readonly schedulerIntervalSeconds: number;
+  readonly lookaheadDays: number;
+  readonly dueSoonOffsetMinutes: readonly number[];
+}
+
 export interface AppConfig {
   readonly environment: NodeEnvironment;
   readonly isProduction: boolean;
@@ -62,6 +76,7 @@ export interface AppConfig {
   readonly smtp: SmtpConfig;
   readonly webAppUrl: string;
   readonly invitationTokenTtlSeconds: number;
+  readonly notification: NotificationConfig;
 }
 
 function readString(config: ParsedEnv, name: EnvVarName): string {
@@ -160,7 +175,29 @@ export function loadAppConfig(source: Readonly<Record<string, string | undefined
       secure: readBoolean(parsed, 'SMTP_SECURE')
     },
     webAppUrl: readString(parsed, 'WEB_APP_URL'),
-    invitationTokenTtlSeconds: readNumber(parsed, 'INVITATION_TOKEN_TTL_SECONDS')
+    invitationTokenTtlSeconds: readNumber(parsed, 'INVITATION_TOKEN_TTL_SECONDS'),
+    notification: readNotificationConfig(parsed)
+  };
+}
+
+function readNotificationConfig(parsed: ParsedEnv): NotificationConfig {
+  const offsets = parseDueSoonOffsets(readString(parsed, 'TODO_DUE_SOON_OFFSETS_MINUTES'));
+
+  if (typeof offsets === 'string') {
+    throw new EnvironmentConfigurationError([offsets]);
+  }
+
+  return {
+    workerEnabled: readBoolean(parsed, 'NOTIFICATION_WORKER_ENABLED'),
+    pollIntervalMs: readNumber(parsed, 'NOTIFICATION_WORKER_POLL_INTERVAL_MS'),
+    concurrency: readNumber(parsed, 'NOTIFICATION_WORKER_CONCURRENCY'),
+    leaseSeconds: readNumber(parsed, 'NOTIFICATION_JOB_LEASE_SECONDS'),
+    maxAttempts: readNumber(parsed, 'NOTIFICATION_JOB_MAX_ATTEMPTS'),
+    baseRetrySeconds: readNumber(parsed, 'NOTIFICATION_JOB_BASE_RETRY_SECONDS'),
+    maxRetrySeconds: readNumber(parsed, 'NOTIFICATION_JOB_MAX_RETRY_SECONDS'),
+    schedulerIntervalSeconds: readNumber(parsed, 'NOTIFICATION_SCHEDULER_INTERVAL_SECONDS'),
+    lookaheadDays: readNumber(parsed, 'NOTIFICATION_LOOKAHEAD_DAYS'),
+    dueSoonOffsetMinutes: offsets
   };
 }
 
@@ -183,6 +220,8 @@ export function describeAppConfig(config: AppConfig): Record<string, string | nu
     smtpHost: config.smtp.host,
     smtpPort: config.smtp.port,
     webAppUrl: config.webAppUrl,
-    invitationTokenTtlSeconds: config.invitationTokenTtlSeconds
+    invitationTokenTtlSeconds: config.invitationTokenTtlSeconds,
+    notificationWorkerEnabled: config.notification.workerEnabled,
+    dueSoonOffsets: config.notification.dueSoonOffsetMinutes.join(',')
   };
 }

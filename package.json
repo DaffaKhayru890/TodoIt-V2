@@ -19,6 +19,11 @@
     "db:migrate": "bun --env-file=.env.development node_modules/drizzle-kit/bin.cjs migrate",
     "db:migrate:test": "bun --env-file=.env.test node_modules/drizzle-kit/bin.cjs migrate",
     "db:studio": "bun --env-file=.env.development node_modules/drizzle-kit/bin.cjs studio",
+    "worker": "NODE_ENV=production bun src/worker.ts",
+    "worker:dev": "NODE_ENV=development bun --watch --env-file=.env.development src/worker.ts",
+    "notifications:retry-failed": "bun --env-file=.env.development src/commands/notification-ops.ts retry-failed",
+    "notifications:inspect-job": "bun --env-file=.env.development src/commands/notification-ops.ts inspect",
+    "notifications:reconcile": "bun --env-file=.env.development src/commands/notification-ops.ts reconcile",
     "docker:dev": "docker compose up --build",
     "docker:down": "docker compose down"
   },

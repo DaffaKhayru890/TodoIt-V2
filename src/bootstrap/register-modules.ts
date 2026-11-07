@@ -13,12 +13,17 @@ import {
   createTodoRoutes,
   type TodoRoutesDependencies
 } from '../modules/todo/presentation/http/todo.routes';
+import {
+  createNotificationRoutes,
+  type NotificationRoutesDependencies
+} from '../modules/notification/presentation/http/notification.routes';
 
 export interface ModuleDependencies {
   readonly readiness: CheckServiceReadiness;
   readonly auth?: AuthRoutesDependencies | undefined;
   readonly workspace?: WorkspaceRoutesDependencies | undefined;
   readonly todo?: TodoRoutesDependencies | undefined;
+  readonly notification?: NotificationRoutesDependencies | undefined;
 }
 
 /**
@@ -43,6 +48,10 @@ export function registerModules(deps: ModuleDependencies) {
 
   if (deps.todo) {
     app = app.use(createTodoRoutes(deps.todo));
+  }
+
+  if (deps.notification) {
+    app = app.use(createNotificationRoutes(deps.notification));
   }
 
   return app;

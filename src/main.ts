@@ -33,7 +33,8 @@ function main(): void {
     readiness: container.readiness,
     auth: container.auth,
     workspace: container.workspace,
-    todo: container.todo
+    todo: container.todo,
+    notification: container.notification
   }).listen({ port: config.port, hostname: config.host });
 
   logger.info('server started', describeAppConfig(config));

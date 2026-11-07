@@ -29,6 +29,13 @@
       "when": 1794035399344,
       "tag": "0003_workspace_invitations",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794037629206,
+      "tag": "0004_notification_engine",
+      "breakpoints": true
     }
   ]
 }

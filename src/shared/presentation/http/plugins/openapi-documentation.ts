@@ -8,6 +8,7 @@ const API_DESCRIPTION = [
   'Phase 3 menambahkan Todo Core Engine: CRUD, status/priority, cursor pagination, filtering, Today, Upcoming, dan Overdue.',
   'Phase 4 menambahkan Todo Metadata Management: Tag (many-to-many), Label (satu per Todo), dan Reminder (absolute/before_due) beserta lifecycle dan filter metadata.',
   'Phase 5 menambahkan kolaborasi workspace: undangan email, anggota, role, dan perpindahan kepemilikan.',
+  'Phase 6 menambahkan inbox notifikasi, preferensi email, dan worker latar untuk reminder serta due-soon. Antrian pekerjaan ada di PostgreSQL.',
   'Seluruh error memakai satu sampul yang sama: `{ "error": { "code", "message", "requestId" } }`.'
 ].join(' ');
 
@@ -21,6 +22,7 @@ const API_TAGS = [
   { name: 'Reminder', description: 'Reminder per Todo dengan trigger absolute atau before_due; tanpa pengiriman notifikasi pada fase ini.' },
   { name: 'Invitation', description: 'Undangan workspace melalui email. Token hanya ada di fragment URL dan body POST.' },
   { name: 'Workspace Member', description: 'Anggota workspace, perubahan role, keluar, dan perpindahan kepemilikan.' },
+  { name: 'Notification', description: 'Inbox notifikasi milik penerima dan preferensi email. Antrian worker tidak diekspos.' },
   { name: 'Documentation', description: 'Akses dokumen OpenAPI (UI Scalar dan spesifikasi JSON).' }
 ];
 
