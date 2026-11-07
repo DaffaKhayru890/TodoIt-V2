@@ -24,8 +24,21 @@
     "notifications:retry-failed": "bun --env-file=.env.development src/commands/notification-ops.ts retry-failed",
     "notifications:inspect-job": "bun --env-file=.env.development src/commands/notification-ops.ts inspect",
     "notifications:reconcile": "bun --env-file=.env.development src/commands/notification-ops.ts reconcile",
-    "docker:dev": "docker compose up --build",
-    "docker:down": "docker compose down"
+    "notifications:cleanup": "bun --env-file=.env.development src/commands/notification-ops.ts cleanup",
+    "test:security": "bun test --env-file=.env.test tests/security tests/unit/architecture-boundaries.test.ts",
+    "test:concurrency": "bun test --env-file=.env.test tests/integration/notification-database.test.ts tests/unit/notification/notification-engine.test.ts",
+    "test:integration": "bun test --env-file=.env.test tests/integration",
+    "lint": "bun scripts/check-boundaries.ts",
+    "format": "bun scripts/check-boundaries.ts",
+    "format:check": "bun scripts/check-boundaries.ts",
+    "build": "bun build src/main.ts --outdir=dist --target=bun && bun build src/worker.ts --outdir=dist --target=bun",
+    "openapi:validate": "bun scripts/validate-openapi.ts",
+    "db:backup": "infra/scripts/backup-database.sh",
+    "db:restore": "infra/scripts/restore-database.sh",
+    "docker:dev": "docker compose -f compose.yaml up --build",
+    "docker:production": "docker compose -f compose.production.yaml config",
+    "docker:down": "docker compose -f compose.yaml down",
+    "verify": "bun scripts/verify.ts"
   },
   "dependencies": {
     "@elysia/openapi": "1.4.17",

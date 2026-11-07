@@ -5,9 +5,6 @@ import type { DatabaseConfig } from '../../../config/app-config';
 import type { Logger } from '../logging/logger';
 import { schema } from './schema';
 
-const POOL_MAX_CONNECTIONS = 10;
-const POOL_IDLE_TIMEOUT_MS = 30_000;
-const POOL_CONNECTION_TIMEOUT_MS = 5_000;
 
 /** Instance Drizzle bertipe penuh: repository memperoleh tabel dari schema gabungan. */
 export type Database = NodePgDatabase<typeof schema>;
@@ -27,11 +24,18 @@ export type DatabaseExecutor = Pick<
  * Koneksi database dipakai bersama sepanjang umur proses: request berikutnya
  * mengambil koneksi dari pool yang sama, tidak membuat koneksi baru.
  */
+export interface DatabasePoolStats {
+  readonly total: number;
+  readonly idle: number;
+  readonly waiting: number;
+}
+
 export interface DatabaseClient {
   /** Menyelesaikan `SELECT 1`; menolak (reject) bila database tidak dapat diakses. */
   ping(): Promise<void>;
   /** Instance Drizzle untuk repository module. */
   readonly db: Database;
+  poolStats(): DatabasePoolStats;
   /** Menutup seluruh koneksi pool secara rapi (graceful shutdown). */
   close(): Promise<void>;
 }
@@ -53,9 +57,11 @@ export function createDatabaseClient(config: DatabaseConfig, logger: Logger): Da
     password: config.password,
     database: config.name,
     ssl: config.ssl ? { rejectUnauthorized: true } : undefined,
-    max: POOL_MAX_CONNECTIONS,
-    idleTimeoutMillis: POOL_IDLE_TIMEOUT_MS,
-    connectionTimeoutMillis: POOL_CONNECTION_TIMEOUT_MS
+    max: config.poolMax,
+    idleTimeoutMillis: config.idleTimeoutMs,
+    connectionTimeoutMillis: config.connectionTimeoutMs,
+    statement_timeout: config.statementTimeoutMs,
+    query_timeout: config.statementTimeoutMs
   });
 
   // pg memancarkan error pada pool bila koneksi idle putus; tanpa handler ini
@@ -70,6 +76,9 @@ export function createDatabaseClient(config: DatabaseConfig, logger: Logger): Da
     db,
     async ping(): Promise<void> {
       await db.execute(sql`SELECT 1`);
+    },
+    poolStats(): DatabasePoolStats {
+      return { total: pool.totalCount, idle: pool.idleCount, waiting: pool.waitingCount };
     },
     async close(): Promise<void> {
       await pool.end();

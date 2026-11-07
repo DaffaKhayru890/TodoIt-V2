@@ -78,6 +78,7 @@ describe('loadAppConfig', () => {
     expect(config.corsOrigins).toEqual([]);
     expect(config.auth).toEqual({
       jwtSecret: JWT_SECRET,
+      jwtPreviousSecrets: [],
       jwtIssuer: 'todo-backend',
       jwtAudience: 'todo-api',
       accessTokenTtlSeconds: 900,
@@ -137,7 +138,11 @@ describe('loadAppConfig', () => {
           AUTH_REFRESH_COOKIE_SECURE: 'true',
           WEB_APP_URL: 'https://app.example.com',
           SMTP_HOST: 'smtp.example.com',
-          SMTP_FROM: 'Todo Backend <noreply@example.com>'
+          SMTP_FROM: 'Todo Backend <noreply@example.com>',
+          DATABASE_USER: 'todo_app',
+          DATABASE_PASSWORD: 'not-the-development-password',
+          DATABASE_SSL: 'true',
+          CORS_ALLOWED_ORIGINS: 'https://app.example.com'
         })
       ).isProduction
     ).toBe(true);

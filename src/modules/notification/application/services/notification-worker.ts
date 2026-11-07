@@ -20,7 +20,8 @@ export class NotificationWorkerRuntime {
       leaseSeconds: number;
       graceMs: number;
     },
-    private readonly sleep: (ms: number) => Promise<void>
+    private readonly sleep: (ms: number) => Promise<void>,
+    private readonly heartbeat: ((counts: Record<string, number>) => Promise<void>) | null = null
   ) {}
 
   requestStop(): void {
@@ -89,6 +90,10 @@ export class NotificationWorkerRuntime {
         failed: counts.failed ?? 0,
         completed: counts.completed ?? 0
       });
+
+      if (this.heartbeat) {
+        await this.heartbeat(counts);
+      }
     } catch (error) {
       this.logger.error('scheduler cycle failed', {
         workerId: this.workerId,

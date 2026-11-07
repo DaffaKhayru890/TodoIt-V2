@@ -1,0 +1,20 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Tag image yang sudah lulus CI
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  approve:
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: record approval gate
+        run: echo "Deployment production menunggu eksekusi manual. Image ${{ inputs.image_tag }} tidak didorong oleh workflow ini."

@@ -9,6 +9,7 @@ import { systemClock } from '../../application/ports/clock';
 
 export interface JoseAccessTokenServiceConfig {
   readonly secret: string;
+  readonly previousSecrets?: readonly string[];
   readonly issuer: string;
   readonly audience: string;
   readonly ttlSeconds: number;
@@ -17,6 +18,7 @@ export interface JoseAccessTokenServiceConfig {
 
 export class JoseAccessTokenService implements AccessTokenService {
   private readonly secretKey: Uint8Array;
+  private readonly verificationKeys: readonly Uint8Array[];
   private readonly issuer: string;
   private readonly audience: string;
   private readonly ttlSeconds: number;
@@ -24,6 +26,9 @@ export class JoseAccessTokenService implements AccessTokenService {
 
   constructor(config: JoseAccessTokenServiceConfig) {
     this.secretKey = new TextEncoder().encode(config.secret);
+    this.verificationKeys = [config.secret, ...(config.previousSecrets ?? [])].map((secret) =>
+      new TextEncoder().encode(secret)
+    );
     this.issuer = config.issuer;
     this.audience = config.audience;
     this.ttlSeconds = config.ttlSeconds;
@@ -52,24 +57,28 @@ export class JoseAccessTokenService implements AccessTokenService {
   }
 
   async verify(token: string): Promise<AccessTokenClaims | null> {
-    try {
-      const { payload } = await jwtVerify(token, this.secretKey, {
-        issuer: this.issuer,
-        audience: this.audience,
-        algorithms: ['HS256'],
-        currentDate: this.clock.now()
-      });
+    for (const key of this.verificationKeys) {
+      try {
+        const { payload } = await jwtVerify(token, key, {
+          issuer: this.issuer,
+          audience: this.audience,
+          algorithms: ['HS256'],
+          currentDate: this.clock.now()
+        });
 
-      if (typeof payload.sub !== 'string' || typeof payload.sid !== 'string') {
-        return null;
+        if (typeof payload.sub !== 'string' || typeof payload.sid !== 'string') {
+          return null;
+        }
+
+        return {
+          userId: payload.sub,
+          sessionId: payload.sid
+        };
+      } catch {
+        continue;
       }
-
-      return {
-        userId: payload.sub,
-        sessionId: payload.sid
-      };
-    } catch {
-      return null;
     }
+
+    return null;
   }
 }

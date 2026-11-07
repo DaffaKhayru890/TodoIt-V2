@@ -14,6 +14,7 @@ export interface SmtpInvitationConfig {
   readonly password: string;
   readonly from: string;
   readonly secure: boolean;
+  readonly connectionTimeoutMs?: number;
 }
 
 /**
@@ -27,7 +28,7 @@ export class SmtpInvitationEmailSender implements InvitationEmailSender {
     private readonly config: SmtpInvitationConfig,
     private readonly logger: Logger
   ) {
-    this.transport = createSmtpTransport(config);
+    this.transport = createSmtpTransport({ ...config, connectionTimeoutMs: config.connectionTimeoutMs ?? 10_000 });
   }
 
   async sendWorkspaceInvitation(input: InvitationEmailMessage): Promise<void> {

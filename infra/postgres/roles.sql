@@ -1,0 +1,12 @@
+-- Contoh role production. Jangan dijalankan pada database development yang memakai user root.
+-- Migration user membuat schema. Application user hanya DML pada schema public.
+
+-- CREATE ROLE todo_migrator LOGIN PASSWORD '...';
+-- CREATE ROLE todo_app LOGIN PASSWORD '...';
+-- GRANT CONNECT ON DATABASE todo_production TO todo_migrator, todo_app;
+-- GRANT USAGE, CREATE ON SCHEMA public TO todo_migrator;
+-- GRANT USAGE ON SCHEMA public TO todo_app;
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO todo_app;
+-- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO todo_app;
+-- ALTER DEFAULT PRIVILEGES FOR ROLE todo_migrator IN SCHEMA public
+--   GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO todo_app;

@@ -9,6 +9,7 @@ import { reminders } from '../../../../modules/todo/infrastructure/persistence/r
 import { notificationJobs } from '../../../../modules/notification/infrastructure/persistence/notification-job.schema';
 import { notificationPreferences } from '../../../../modules/notification/infrastructure/persistence/notification-preference.schema';
 import { notifications } from '../../../../modules/notification/infrastructure/persistence/notification.schema';
+import { auditEvents, rateLimitWindows, workerHeartbeats } from '../../persistence/operations.schema';
 import { tags } from '../../../../modules/todo/infrastructure/persistence/tag.schema';
 import { todoTags } from '../../../../modules/todo/infrastructure/persistence/todo-tag.schema';
 import { todos } from '../../../../modules/todo/infrastructure/persistence/todo.schema';
@@ -32,7 +33,10 @@ export const schema = {
   reminders,
   notifications,
   notificationJobs,
-  notificationPreferences
+  notificationPreferences,
+  auditEvents,
+  rateLimitWindows,
+  workerHeartbeats
 };
 
 export {
@@ -49,7 +53,10 @@ export {
   reminders,
   notifications,
   notificationJobs,
-  notificationPreferences
+  notificationPreferences,
+  auditEvents,
+  rateLimitWindows,
+  workerHeartbeats
 };
 
 export default schema;

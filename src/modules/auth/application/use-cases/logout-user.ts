@@ -1,6 +1,7 @@
 import type { AuthSessionRepository } from '../../domain/repositories/auth-session-repository';
 import type { Clock } from '../ports/clock';
 import type { RefreshTokenGenerator } from '../ports/refresh-token-generator';
+import { noopAuditRecorder, safeRecord, type AuditRecorder } from '../../../../shared/application/audit-recorder';
 
 export interface LogoutUserInput {
   readonly refreshToken: string | null | undefined;
@@ -14,7 +15,8 @@ export class LogoutUser {
   constructor(
     private readonly sessions: AuthSessionRepository,
     private readonly refreshTokenGenerator: RefreshTokenGenerator,
-    private readonly clock: Clock
+    private readonly clock: Clock,
+    private readonly audit: AuditRecorder = noopAuditRecorder
   ) {}
 
   async execute(input: LogoutUserInput): Promise<void> {
@@ -22,10 +24,22 @@ export class LogoutUser {
       return;
     }
 
+    const now = this.clock.now();
     const hash = await this.refreshTokenGenerator.hash(input.refreshToken);
     await this.sessions.revokeSessionByRefreshToken({
       hash,
-      now: this.clock.now()
+      now
+    });
+    await safeRecord(this.audit, {
+      actorUserId: null,
+      action: 'auth.session_revoke',
+      resourceType: 'session',
+      resourceId: null,
+      workspaceId: null,
+      requestId: null,
+      outcome: 'success',
+      metadata: {},
+      occurredAt: now
     });
   }
 }

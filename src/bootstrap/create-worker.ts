@@ -14,6 +14,7 @@ import { DrizzleNotificationRepository } from '../modules/notification/infrastru
 import { DrizzleNotificationUnitOfWork } from '../modules/notification/infrastructure/persistence/drizzle-notification-unit-of-work';
 import { PostgresNotificationJobQueue } from '../modules/notification/infrastructure/queue/postgres-job-queue';
 import { PostgresScheduleSource } from '../modules/notification/infrastructure/scheduling/postgres-schedule.source';
+import { DrizzleWorkerOperations } from '../shared/infrastructure/persistence/worker-operations';
 
 export interface WorkerHandle {
   readonly runtime: NotificationWorkerRuntime;
@@ -21,11 +22,16 @@ export interface WorkerHandle {
   readonly logger: Logger;
   readonly queue: PostgresNotificationJobQueue;
   readonly reconciliation: NotificationReconciliation;
+  readonly operations: DrizzleWorkerOperations;
 }
 
 export function createWorker(config: AppConfig, workerId = `worker-${hostname()}-${process.pid}`): WorkerHandle {
-  const logger = createLogger(config.logLevel);
+  const logger = createLogger(config.logLevel, undefined, {
+    service: config.appName,
+    environment: config.environment
+  });
   const database = createDatabaseClient(config.database, logger);
+  const operations = new DrizzleWorkerOperations(database.db);
   const queue = new PostgresNotificationJobQueue(database.db);
   const reconciliation = new NotificationReconciliation(
     new PostgresScheduleSource(database.db),
@@ -70,10 +76,19 @@ export function createWorker(config: AppConfig, workerId = `worker-${hostname()}
       schedulerIntervalSeconds: config.notification.schedulerIntervalSeconds,
       concurrency: config.notification.concurrency,
       leaseSeconds: config.notification.leaseSeconds,
-      graceMs: Math.min(15_000, config.notification.leaseSeconds * 1000)
+      graceMs: Math.min(config.security.shutdownGraceMs, config.notification.leaseSeconds * 1000)
     },
-    (ms) => Bun.sleep(ms)
+    (ms) => Bun.sleep(ms),
+    async (counts) => {
+      await operations.beat({
+        workerId,
+        pending: counts.pending ?? 0,
+        processing: counts.processing ?? 0,
+        failed: counts.failed ?? 0,
+        now: systemClock.now()
+      });
+    }
   );
 
-  return { runtime, database, logger, queue, reconciliation };
+  return { runtime, database, logger, queue, reconciliation, operations };
 }

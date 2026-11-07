@@ -8,6 +8,18 @@ async function main(): Promise<void> {
   const worker = createWorker(config, 'operator');
 
   try {
+    if (command === 'cleanup') {
+      const dryRun = process.argv.includes('--dry-run');
+      const now = Date.now();
+      const result = await worker.operations.cleanupJobs({
+        completedBefore: new Date(now - config.notification.completedRetentionDays * 86_400_000),
+        failedBefore: new Date(now - config.notification.failedRetentionDays * 86_400_000),
+        dryRun
+      });
+      process.stdout.write(`${JSON.stringify({ dryRun, ...result })}\n`);
+      return;
+    }
+
     if (command === 'reconcile') {
       const result = await worker.reconciliation.run();
       process.stdout.write(`${JSON.stringify(result)}\n`);

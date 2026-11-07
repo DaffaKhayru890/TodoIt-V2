@@ -10,6 +10,7 @@ import type { RefreshTokenGenerator } from '../ports/refresh-token-generator';
 import type { TokenLifetimePolicy } from '../ports/token-lifetime-policy';
 import { expiresAt } from '../services/token-expiry';
 import { TIMING_EQUALIZER_HASH } from '../services/timing-equalizer';
+import { noopAuditRecorder, safeRecord, type AuditRecorder } from '../../../../shared/application/audit-recorder';
 
 const USER_AGENT_MAX_LENGTH = 512;
 
@@ -33,7 +34,8 @@ export class LoginUser {
     private readonly accessTokens: AccessTokenService,
     private readonly refreshTokenGenerator: RefreshTokenGenerator,
     private readonly policy: TokenLifetimePolicy,
-    private readonly clock: Clock
+    private readonly clock: Clock,
+    private readonly audit: AuditRecorder = noopAuditRecorder
   ) {}
 
   async execute(input: LoginUserInput): Promise<LoginResult> {
@@ -42,10 +44,32 @@ export class LoginUser {
 
     if (!user) {
       await this.passwords.verify(input.password, TIMING_EQUALIZER_HASH);
+      await safeRecord(this.audit, {
+        actorUserId: null,
+        action: 'auth.login',
+        resourceType: 'session',
+        resourceId: null,
+        workspaceId: null,
+        requestId: null,
+        outcome: 'failure',
+        metadata: { reason: 'unknown_account' },
+        occurredAt: this.clock.now()
+      });
       throw AuthError.invalidCredentials();
     }
 
     if (!(await this.passwords.verify(input.password, user.passwordHash))) {
+      await safeRecord(this.audit, {
+        actorUserId: user.id,
+        action: 'auth.login',
+        resourceType: 'session',
+        resourceId: null,
+        workspaceId: null,
+        requestId: null,
+        outcome: 'failure',
+        metadata: { reason: 'bad_password' },
+        occurredAt: this.clock.now()
+      });
       throw AuthError.invalidCredentials();
     }
 
@@ -65,6 +89,18 @@ export class LoginUser {
     });
 
     const accessToken = await this.accessTokens.generate({ userId: user.id, sessionId: session.id });
+
+    await safeRecord(this.audit, {
+      actorUserId: user.id,
+      action: 'auth.login',
+      resourceType: 'session',
+      resourceId: session.id,
+      workspaceId: null,
+      requestId: null,
+      outcome: 'success',
+      metadata: {},
+      occurredAt: now
+    });
 
     return {
       user: { id: user.id, email: user.email.value, displayName: user.displayName },

@@ -30,6 +30,24 @@ const consoleSink: LogSink = (line, level) => {
   destination.write(`${line}\n`);
 };
 
+const SENSITIVE_KEY = /password|authorization|cookie|set-cookie|token|secret|credential|jwt/i;
+
+function redactValue(key: string, value: LogFieldValue): LogFieldValue {
+  if (SENSITIVE_KEY.test(key)) {
+    return '[redacted]';
+  }
+
+  if (typeof value === 'string') {
+    return value.replace(/bearer\s+\S+/gi, 'Bearer [redacted]');
+  }
+
+  return value;
+}
+
+function redactFields(fields: LogFields): LogFields {
+  return Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, redactValue(key, value)]));
+}
+
 function writeJson(
   sink: LogSink,
   minWeight: number,
@@ -47,8 +65,10 @@ function writeJson(
       timestamp: new Date().toISOString(),
       level,
       message,
-      ...Object.fromEntries(Object.entries(context).filter(([, value]) => value !== undefined)),
-      ...(fields ? Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined)) : {})
+      ...Object.fromEntries(Object.entries(redactFields(context)).filter(([, value]) => value !== undefined)),
+      ...(fields
+        ? Object.fromEntries(Object.entries(redactFields(fields)).filter(([, value]) => value !== undefined))
+        : {})
     }),
     level
   );

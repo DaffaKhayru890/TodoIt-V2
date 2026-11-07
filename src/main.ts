@@ -34,8 +34,14 @@ function main(): void {
     auth: container.auth,
     workspace: container.workspace,
     todo: container.todo,
-    notification: container.notification
-  }).listen({ port: config.port, hostname: config.host });
+    notification: container.notification,
+    rateLimiter: config.security.rateLimit.enabled ? container.rateLimiter : null,
+    metrics: container.metrics
+  }).listen({
+    port: config.port,
+    hostname: config.host,
+    idleTimeout: Math.min(255, Math.ceil(config.security.requestTimeoutMs / 1000))
+  });
 
   logger.info('server started', describeAppConfig(config));
 

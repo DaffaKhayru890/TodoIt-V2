@@ -24,10 +24,15 @@ export function buildTestAppConfig(overrides: Partial<AppConfig> = {}): AppConfi
       user: 'svc_todo',
       password: 'rahasia-test',
       name: 'todo_test',
-      ssl: false
+      ssl: false,
+      poolMax: 5,
+      idleTimeoutMs: 30_000,
+      connectionTimeoutMs: 5_000,
+      statementTimeoutMs: 15_000
     },
     auth: {
       jwtSecret: TEST_JWT_SECRET,
+      jwtPreviousSecrets: [],
       jwtIssuer: 'todo-backend',
       jwtAudience: 'todo-api',
       accessTokenTtlSeconds: 900,
@@ -40,7 +45,8 @@ export function buildTestAppConfig(overrides: Partial<AppConfig> = {}): AppConfi
       user: '',
       password: '',
       from: 'Todo Backend <noreply@localhost>',
-      secure: false
+      secure: false,
+      connectionTimeoutMs: 10_000
     },
     webAppUrl: 'http://localhost:3000',
     invitationTokenTtlSeconds: 604_800,
@@ -54,7 +60,24 @@ export function buildTestAppConfig(overrides: Partial<AppConfig> = {}): AppConfi
       maxRetrySeconds: 3600,
       schedulerIntervalSeconds: 60,
       lookaheadDays: 90,
-      dueSoonOffsetMinutes: [60, 1440]
+      dueSoonOffsetMinutes: [60, 1440],
+      completedRetentionDays: 14,
+      failedRetentionDays: 90
+    },
+    security: {
+      trustedProxyHops: 0,
+      requestBodyLimitBytes: 1_048_576,
+      requestTimeoutMs: 30_000,
+      shutdownGraceMs: 15_000,
+      hsts: false,
+      auditRetentionDays: 365,
+      rateLimit: {
+        enabled: true,
+        authPerMinute: 20,
+        invitationPerMinute: 30,
+        todoWritePerMinute: 120,
+        notificationPerMinute: 240
+      }
     },
     ...overrides
   };

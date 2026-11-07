@@ -1,3 +1,4 @@
+import { noopAuditRecorder, safeRecord, type AuditRecorder } from '../../../../shared/application/audit-recorder';
 import type { Clock } from '../../../../shared/domain/clock';
 import { NotificationError } from '../../domain/errors/notification-error';
 import type { NotificationPreference } from '../../domain/entities/notification-preference';
@@ -68,16 +69,30 @@ export class GetNotificationPreferences {
 export class UpdateNotificationPreferences {
   constructor(
     private readonly preferences: NotificationPreferenceRepository,
-    private readonly clock: Clock
+    private readonly clock: Clock,
+    private readonly audit: AuditRecorder = noopAuditRecorder
   ) {}
 
   async execute(input: { userId: string; emailEnabled: boolean }): Promise<{
     preferences: { inAppEnabled: true; emailEnabled: boolean };
   }> {
+    const now = this.clock.now();
     const saved: NotificationPreference = await this.preferences.upsert({
       userId: input.userId,
       emailEnabled: input.emailEnabled,
-      updatedAt: this.clock.now()
+      updatedAt: now
+    });
+
+    await safeRecord(this.audit, {
+      actorUserId: input.userId,
+      action: 'notification.preferences_updated',
+      resourceType: 'notification_preference',
+      resourceId: null,
+      workspaceId: null,
+      requestId: null,
+      outcome: 'success',
+      metadata: { emailEnabled: saved.emailEnabled },
+      occurredAt: now
     });
 
     return { preferences: { inAppEnabled: true, emailEnabled: saved.emailEnabled } };

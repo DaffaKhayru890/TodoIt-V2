@@ -7,8 +7,9 @@ Dokumentasi ini menjelaskan backend aplikasi Todo List yang dibangun dengan arsi
 - **Phase 4**: Metadata Todo (Tag many-to-many, Label kategori tunggal, Reminder absolute/before_due). Pengiriman notifikasi belum termasuk.
 - **Phase 5**: Kolaborasi workspace (undangan email, anggota, role, transfer kepemilikan).
 - **Phase 6**: Notification engine dan background worker (inbox, preferensi, due-soon, reminder, antrean PostgreSQL, retry, dan email).
+- **Phase 7**: Penguatan produksi, audit keamanan, observasi, artefak deploy, dan runbook. Tidak menambah fitur bisnis.
 
-Status implementasi: **Phase 6 selesai**.
+Status implementasi: **Phase 7 selesai sebagai kesiapan artefak**. Deployment production belum dieksekusi.
 
 ## Urutan membaca
 
@@ -125,3 +126,8 @@ Status implementasi: **Phase 6 selesai**.
 | [operations/worker-operations.md](operations/worker-operations.md) | Menjalankan, menghentikan, dan memantau worker. |
 | [operations/failed-jobs.md](operations/failed-jobs.md) | Inspeksi dan antrian ulang job gagal. |
 | [operations/production-deployment.md](operations/production-deployment.md) | Image API dan worker. |
+| [architecture/final-architecture.md](architecture/final-architecture.md) | Bentuk akhir API dan worker. |
+| [security/security-audit.md](security/security-audit.md) | Temuan dan hasil `bun audit`. |
+| [deployment/release-checklist.md](deployment/release-checklist.md) | Daftar periksa rilis. |
+| [database/backup-strategy.md](database/backup-strategy.md) | Backup dan RPO provisional. |
+| [testing/regression-testing.md](testing/regression-testing.md) | Cara menjalankan regresi. |

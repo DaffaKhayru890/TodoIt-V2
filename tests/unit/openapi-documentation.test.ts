@@ -84,6 +84,6 @@ describe('OpenAPI documentation', () => {
     const spec = await loadSpec();
 
     // /openapi dan /openapi/json adalah dokumen itu sendiri, tidak didokumentasikan.
-    expect(Object.keys(spec.paths).sort()).toEqual(['/health', '/ready']);
+    expect(Object.keys(spec.paths).sort()).toEqual(['/health', '/health/live', '/ready']);
   });
 });

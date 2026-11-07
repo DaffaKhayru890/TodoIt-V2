@@ -86,7 +86,26 @@ const ENV_RULES = {
     max: 3600
   },
   NOTIFICATION_LOOKAHEAD_DAYS: { kind: 'integer', required: false, defaultValue: 90, min: 1, max: 365 },
-  TODO_DUE_SOON_OFFSETS_MINUTES: { kind: 'string', required: false, defaultValue: '1440,60' }
+  TODO_DUE_SOON_OFFSETS_MINUTES: { kind: 'string', required: false, defaultValue: '1440,60' },
+  DATABASE_POOL_MAX: { kind: 'integer', required: false, defaultValue: 10, min: 1, max: 50 },
+  DATABASE_IDLE_TIMEOUT_MS: { kind: 'integer', required: false, defaultValue: 30_000, min: 1000, max: 600_000 },
+  DATABASE_CONNECTION_TIMEOUT_MS: { kind: 'integer', required: false, defaultValue: 5_000, min: 100, max: 60_000 },
+  DATABASE_STATEMENT_TIMEOUT_MS: { kind: 'integer', required: false, defaultValue: 15_000, min: 100, max: 120_000 },
+  TRUSTED_PROXY_HOPS: { kind: 'integer', required: false, defaultValue: 0, min: 0, max: 5 },
+  REQUEST_BODY_LIMIT_BYTES: { kind: 'integer', required: false, defaultValue: 1_048_576, min: 1024, max: 10_485_760 },
+  REQUEST_TIMEOUT_MS: { kind: 'integer', required: false, defaultValue: 30_000, min: 1000, max: 120_000 },
+  SHUTDOWN_GRACE_MS: { kind: 'integer', required: false, defaultValue: 15_000, min: 1000, max: 120_000 },
+  SECURITY_HSTS: { kind: 'boolean', required: false, defaultValue: false },
+  RATE_LIMIT_ENABLED: { kind: 'boolean', required: false, defaultValue: true },
+  RATE_LIMIT_AUTH_PER_MINUTE: { kind: 'integer', required: false, defaultValue: 20, min: 1, max: 10_000 },
+  RATE_LIMIT_INVITATION_PER_MINUTE: { kind: 'integer', required: false, defaultValue: 30, min: 1, max: 10_000 },
+  RATE_LIMIT_TODO_WRITE_PER_MINUTE: { kind: 'integer', required: false, defaultValue: 120, min: 1, max: 10_000 },
+  RATE_LIMIT_NOTIFICATION_PER_MINUTE: { kind: 'integer', required: false, defaultValue: 240, min: 1, max: 10_000 },
+  SMTP_CONNECTION_TIMEOUT_MS: { kind: 'integer', required: false, defaultValue: 10_000, min: 1000, max: 60_000 },
+  NOTIFICATION_JOB_COMPLETED_RETENTION_DAYS: { kind: 'integer', required: false, defaultValue: 14, min: 1, max: 3650 },
+  NOTIFICATION_JOB_FAILED_RETENTION_DAYS: { kind: 'integer', required: false, defaultValue: 90, min: 1, max: 3650 },
+  AUDIT_LOG_RETENTION_DAYS: { kind: 'integer', required: false, defaultValue: 365, min: 30, max: 3650 },
+  AUTH_JWT_PREVIOUS_SECRETS: { kind: 'csv', required: false, defaultValue: [] }
 } satisfies Record<string, EnvFieldRule>;
 
 export type EnvVarName = keyof typeof ENV_RULES;
@@ -216,6 +235,45 @@ function findCombinationProblems(parsed: Partial<ParsedEnv>): readonly string[] 
         problems.push(
           'NOTIFICATION_LOOKAHEAD_DAYS harus cukup besar untuk offset due-soon terbesar supaya jadwal tidak terlewat.'
         );
+      }
+    }
+  }
+
+  if (environment === 'production' || environment === 'staging') {
+    const dbUser = parsed.DATABASE_USER;
+    const dbPassword = parsed.DATABASE_PASSWORD;
+    const dbSsl = parsed.DATABASE_SSL;
+    const smtpHost = parsed.SMTP_HOST;
+
+    if (typeof dbUser === 'string' && ['root', 'postgres', 'admin'].includes(dbUser)) {
+      problems.push(
+        `DATABASE_USER pada environment ${environment} tidak boleh memakai role superuser atau development (${dbUser}). Gunakan user aplikasi dengan least privilege.`
+      );
+    }
+
+    if (dbPassword === 'dev@123') {
+      problems.push(`DATABASE_PASSWORD development tidak boleh dipakai pada environment ${environment}.`);
+    }
+
+    if (Array.isArray(origins) && origins.length === 0) {
+      problems.push(`CORS_ALLOWED_ORIGINS pada environment ${environment} wajib berisi origin eksplisit.`);
+    }
+
+    if (dbSsl === false) {
+      problems.push(`DATABASE_SSL pada environment ${environment} wajib true.`);
+    }
+
+    if (typeof smtpHost === 'string' && ['localhost', '127.0.0.1', 'mailpit'].includes(smtpHost)) {
+      problems.push(`SMTP_HOST pada environment ${environment} tidak boleh menunjuk ke server development.`);
+    }
+  }
+
+  const previousSecrets = parsed.AUTH_JWT_PREVIOUS_SECRETS;
+
+  if (Array.isArray(previousSecrets)) {
+    for (const secret of previousSecrets) {
+      if (secret.length < 32) {
+        problems.push('AUTH_JWT_PREVIOUS_SECRETS setiap nilai wajib minimal 32 karakter.');
       }
     }
   }

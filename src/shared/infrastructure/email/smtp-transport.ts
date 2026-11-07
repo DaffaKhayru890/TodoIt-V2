@@ -15,6 +15,9 @@ export function createSmtpTransport(config: SmtpConfig): Transporter {
     host: config.host,
     port: config.port,
     secure: config.secure,
+    connectionTimeout: config.connectionTimeoutMs,
+    socketTimeout: config.connectionTimeoutMs,
+    greetingTimeout: config.connectionTimeoutMs,
     ...(config.user.length > 0 ? { auth: { user: config.user, pass: config.password } } : {})
   });
 }

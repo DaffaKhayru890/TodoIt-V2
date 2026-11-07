@@ -63,6 +63,14 @@ export function createHealthRoutes(deps: { readiness: CheckServiceReadiness }) {
         }
       }
     )
+    .get('/health/live', () => ({ status: 'ok' as const }), {
+      response: { 200: healthResponseSchema },
+      detail: {
+        summary: 'Alias liveness',
+        description: 'Setara dengan GET /health.',
+        tags: ['Health']
+      }
+    })
     .get(
       '/ready',
       async ({ headers, set }) => {

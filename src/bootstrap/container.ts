@@ -2,7 +2,11 @@ import type { AppConfig } from '../config/app-config';
 import { CheckServiceReadiness } from '../modules/health/application/check-service-readiness';
 import { createDatabaseProbe } from '../modules/health/infrastructure/database-probe';
 import { createDatabaseClient, type DatabaseClient } from '../shared/infrastructure/database/client';
+import { safeRecord } from '../shared/application/audit-recorder';
 import { createLogger, type Logger } from '../shared/infrastructure/logging/logger';
+import { InProcessMetrics } from '../shared/infrastructure/observability/metrics';
+import { DrizzleAuditRecorder } from '../shared/infrastructure/persistence/drizzle-audit-recorder';
+import { PostgresRateLimiter } from '../shared/infrastructure/persistence/postgres-rate-limiter';
 import { DrizzleAuthRepository } from '../modules/auth/infrastructure/persistence/drizzle-auth.repository';
 import { DrizzleWorkspaceRepository } from '../modules/workspace/infrastructure/persistence/drizzle-workspace.repository';
 import { BunPasswordHasher } from '../modules/auth/infrastructure/security/bun-password-hasher';
@@ -112,13 +116,21 @@ export interface ApplicationContainer {
   readonly workspace: WorkspaceRoutesDependencies;
   readonly todo: TodoRoutesDependencies;
   readonly notification: NotificationRoutesDependencies;
+  readonly rateLimiter: PostgresRateLimiter;
+  readonly metrics: InProcessMetrics;
   /** Melepas seluruh resource teknis (connection pool). */
   close(): Promise<void>;
 }
 
 export function createApplicationContainer(config: AppConfig): ApplicationContainer {
-  const logger = createLogger(config.logLevel);
+  const logger = createLogger(config.logLevel, undefined, {
+    service: config.appName,
+    environment: config.environment
+  });
   const database = createDatabaseClient(config.database, logger.child({ component: 'database' }));
+  const audit = new DrizzleAuditRecorder(database.db);
+  const rateLimiter = new PostgresRateLimiter(database.db);
+  const metrics = new InProcessMetrics();
   const readiness = new CheckServiceReadiness(createDatabaseProbe(database));
 
   // Infrastructure repositories
@@ -129,6 +141,7 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
   const passwordHasher = new BunPasswordHasher();
   const accessTokenService = new JoseAccessTokenService({
     secret: config.auth.jwtSecret,
+    previousSecrets: config.auth.jwtPreviousSecrets,
     issuer: config.auth.jwtIssuer,
     audience: config.auth.jwtAudience,
     ttlSeconds: config.auth.accessTokenTtlSeconds,
@@ -152,7 +165,8 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
     accessTokenService,
     refreshTokenGenerator,
     tokenLifetimePolicy,
-    systemClock
+    systemClock,
+    audit
   );
   const refreshSession = new RefreshSession(
     authRepository,
@@ -162,7 +176,7 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
     systemClock,
     securityLog
   );
-  const logoutUser = new LogoutUser(authRepository, refreshTokenGenerator, systemClock);
+  const logoutUser = new LogoutUser(authRepository, refreshTokenGenerator, systemClock, audit);
   const getCurrentUser = new GetCurrentUser(authRepository, authRepository, accessTokenService, systemClock);
 
   // Workspace use cases
@@ -337,8 +351,19 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
     markNotificationRead: new MarkNotificationRead(notificationRepository, systemClock),
     markAllNotificationsRead: new MarkAllNotificationsRead(notificationRepository, systemClock),
     getNotificationPreferences: new GetNotificationPreferences(notificationPreferences, systemClock),
-    updateNotificationPreferences: new UpdateNotificationPreferences(notificationPreferences, systemClock)
+    updateNotificationPreferences: new UpdateNotificationPreferences(notificationPreferences, systemClock, audit)
   };
+
+  observeWorkspaceAudit(archiveWorkspace, audit, 'workspace.archive', 'workspace');
+  observeWorkspaceAudit(createInvitation, audit, 'invitation.created', 'invitation');
+  if (workspaceDeps.invitations && workspaceDeps.members) {
+    observeWorkspaceAudit(workspaceDeps.invitations.revokeInvitation, audit, 'invitation.revoked', 'invitation');
+    observeWorkspaceAudit(workspaceDeps.invitations.acceptInvitation, audit, 'invitation.accepted', 'invitation');
+    observeWorkspaceAudit(workspaceDeps.invitations.declineInvitation, audit, 'invitation.declined', 'invitation');
+    observeWorkspaceAudit(workspaceDeps.members.changeMemberRole, audit, 'member.role_changed', 'member');
+    observeWorkspaceAudit(workspaceDeps.members.removeMember, audit, 'member.removed', 'member');
+    observeWorkspaceAudit(workspaceDeps.members.transferOwnership, audit, 'ownership.transferred', 'workspace');
+  }
 
   return {
     config,
@@ -349,6 +374,58 @@ export function createApplicationContainer(config: AppConfig): ApplicationContai
     workspace: workspaceDeps,
     todo: todoDeps,
     notification: notificationDeps,
+    rateLimiter,
+    metrics,
     close: () => database.close()
+  };
+}
+
+function observeWorkspaceAudit(
+  useCase: object,
+  audit: DrizzleAuditRecorder,
+  action: string,
+  resourceType: string
+): void {
+  const target = useCase as { execute: (input: Record<string, unknown>) => Promise<unknown> };
+  const original = target.execute.bind(target);
+
+  target.execute = async (input) => {
+    const actorUserId = typeof input.userId === 'string' ? input.userId : typeof input.actorId === 'string' ? input.actorId : null;
+    const workspaceId = typeof input.workspaceId === 'string' ? input.workspaceId : null;
+    const resourceId =
+      typeof input.invitationId === 'string'
+        ? input.invitationId
+        : typeof input.memberUserId === 'string'
+          ? input.memberUserId
+          : workspaceId;
+
+    try {
+      const result = await original(input);
+      await safeRecord(audit, {
+        actorUserId,
+        action,
+        resourceType,
+        resourceId,
+        workspaceId,
+        requestId: null,
+        outcome: 'success',
+        metadata: {},
+        occurredAt: systemClock.now()
+      });
+      return result;
+    } catch (error) {
+      await safeRecord(audit, {
+        actorUserId,
+        action,
+        resourceType,
+        resourceId,
+        workspaceId,
+        requestId: null,
+        outcome: 'failure',
+        metadata: {},
+        occurredAt: systemClock.now()
+      });
+      throw error;
+    }
   };
 }
