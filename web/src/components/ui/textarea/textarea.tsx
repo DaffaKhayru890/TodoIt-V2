@@ -3,10 +3,10 @@ import { joinClasses } from '@/core/utils/join-classes';
 
 type TextareaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> & {
   label: string;
-  hint?: string;
-  error?: string;
-  resize?: 'none' | 'vertical';
-  id?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
+  resize?: 'none' | 'vertical' | undefined;
+  id?: string | undefined;
 };
 
 export function Textarea({

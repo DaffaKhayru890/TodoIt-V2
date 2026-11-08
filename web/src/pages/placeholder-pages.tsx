@@ -1,5 +1,7 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { paths } from '@/app/router/route-paths';
 import { EmptyState } from '@/components/feedback/empty-state/empty-state';
+import { CreateWorkspaceDialog } from '@/features/workspaces/components/create-workspace-dialog/CreateWorkspaceDialog';
 import { PageHeader } from '@/pages/page-header';
 import { useDocumentTitle } from '@/hooks/use-document-title';
 
@@ -54,11 +56,17 @@ export function SettingsPage() {
 }
 
 export function NewWorkspacePage() {
+  const navigate = useNavigate();
+  useDocumentTitle('Tambah workspace');
+
   return (
-    <PageHeader
-      title="Tambah workspace"
-      description="Tombol ini adalah pintu masuk. Pembuatan workspace akan diimplementasikan pada phase berikutnya, tanpa menyimpan data sekarang."
-    />
+    <div className="workspace-page">
+      <CreateWorkspaceDialog
+        open
+        onClose={() => navigate(paths.inbox, { replace: true })}
+        onSuccess={(workspace) => navigate(paths.workspace(workspace.id))}
+      />
+    </div>
   );
 }
 

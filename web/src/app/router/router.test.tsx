@@ -16,10 +16,19 @@ describe('AppRoutes', () => {
     renderWithProviders(<AppRoutes />, '/inbox');
 
     expect(screen.getByRole('link', { name: 'Inbox' })).toHaveAttribute('aria-current', 'page');
+
+    // Navigasi workspace baru tersedia setelah daftar workspace selesai dimuat.
+    expect(await screen.findByRole('link', { name: 'Personal' })).toBeInTheDocument();
     await user.click(screen.getByRole('link', { name: 'Today' }));
 
     expect(screen.getByRole('heading', { name: 'Today' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Today' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  test('akses langsung ke /workspaces/new membuka dialog pembuatan workspace', async () => {
+    renderWithProviders(<AppRoutes />, '/workspaces/new');
+
+    expect(await screen.findByRole('dialog', { name: 'Buat Workspace Baru' })).toBeInTheDocument();
   });
 
   test('akses langsung ke settings menampilkan placeholder', () => {

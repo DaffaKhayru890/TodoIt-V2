@@ -19,7 +19,7 @@ Coverage memakai `@vitest/coverage-v8`. File tes, setup, dan `main.tsx` dikeluar
 
 `renderWithProviders` membungkus komponen dengan `QueryClientProvider` baru dan `MemoryRouter`. Query client tes terpisah dari client aplikasi.
 
-Interaksi memakai `@testing-library/user-event`. Tes router mengklik tautan dan memeriksa heading halaman tidak ditemukan.
+Interaksi memakai `@testing-library/user-event`. Tes router mengklik tautan dan memeriksa heading halaman tidak ditemukan. Karena daftar workspace dimuat secara asinkron, tes yang membutuhkan tautan workspace menunggu `findByRole` sebelum berinteraksi.
 
 ## MSW
 
@@ -29,9 +29,23 @@ Runtime tes adalah Bun. Interceptor jaringan MSW 3 mencoba menambal `tls.TLSSock
 
 Tes HTTP client mencakup respons JSON sukses, error API, kegagalan jaringan lewat `HttpResponse.error()`, JSON tidak valid, penggabungan base URL, header Bearer, dan serialisasi body.
 
-## Komponen Phase 2
+## Komponen & Fitur Phase 3 (Workspace)
 
-Setiap komponen UI dan layout baru punya tes perilaku: variant, klik, disabled, keyboard, Escape, dan state aktif navigasi. Viewport compact disimulasikan dengan `mockViewport` karena JSDOM tidak mengukur CSS. Pemeriksaan visual responsive dilakukan di browser.
+Pengujian Phase 3 mencakup:
+
+- **Model & Mapper Tests (`workspace.mapper.test.ts`):** Transformasi DTO ke Entity domain, Date parsing, dan mark derivation.
+- **Form Schemas (`workspace-schemas.test.ts`):** Validasi Zod nama dan deskripsi.
+- **Validation Mapping (`utils/api-validation.test.ts`):** Pemetaan `error.details` backend ke field form.
+- **API Service Tests (`workspace.api.test.ts`):** Pemanggilan endpoint, parameter, normalisasi error 404/403, dan detail validasi 422.
+- **Query & Mutation Hooks (`workspace-hooks.test.tsx`):** `useWorkspaces`, `useWorkspace`, `useCreateWorkspace`, `useUpdateWorkspace`, `useArchiveWorkspace`, error 401 tanpa retry berulang, invalidasi `lists()`, pengisian `detail(id)`, dan `removeQueries` setelah archive.
+- **Component Tests:** `CreateWorkspaceDialog` (termasuk dirty close dan detail validasi), `EditWorkspaceDialog` (termasuk dirty close), `ArchiveWorkspaceDialog`, `DiscardChanges`, `WorkspaceHeader` (termasuk non-owner), `WorkspaceEmptyState`, `WorkspacePage` (termasuk 403/404 dan non-owner), `PrimarySidebar` (loading/error/cache/empty), dan `WorkspaceItem`.
+- **Integration Workflow Tests (`workspace-workflows.test.tsx`):** Alur penuh pembuatan workspace, pengubahan workspace, dan pengarsipan workspace beserta navigasi router.
+
+Fixture bersama berada di `src/test/fixtures/workspaces.ts`. File itu tidak boleh diimpor dari kode produksi. ID fixture memakai bentuk UUID agar konsisten dengan schema backend.
+
+Hasil akhir Phase 3: 40 file test, 129 test lulus, coverage 88,84% statements / 84,30% branches / 92,09% functions / 88,63% lines.
+
+`configure({ asyncUtilTimeout: 5000 })` dipasang di setup karena suite berjalan paralel; ini memberi ruang bagi query async sebelum assertion, tanpa mengubah perilaku aplikasi.
 
 ## Konvensi
 

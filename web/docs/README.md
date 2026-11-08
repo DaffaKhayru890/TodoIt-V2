@@ -2,22 +2,24 @@
 
 Frontend TodoIt-v2. Backend tetap berada di root repository dan tidak dipindahkan. Folder `web/` adalah aplikasi React terpisah yang berbicara ke API tersebut.
 
-Phase 1 menyiapkan tooling dan fondasi API. Phase 2 menambahkan design system Neo Brutalism, komponen UI, dan application shell dengan dua sidebar. CRUD workspace, todo, pencarian, dan notifikasi belum dibuat.
+Phase 1 menyiapkan tooling dan fondasi API. Phase 2 menambahkan design system Neo Brutalism, komponen UI, dan application shell dengan dua sidebar. Phase 3 mengimplementasikan Workspace Management dengan integrasi API backend, TanStack Query, dialog create/edit, konfirmasi archive, detail page, dan penanganan permission. Hard delete belum tersedia di backend sehingga berstatus BLOCKED.
+
+Dokumentasi lengkap fitur workspace: [workspace-feature.md](workspace-feature.md).
 
 ## Teknologi
 
-| Paket                                           | Peran                                 |
-| ----------------------------------------------- | ------------------------------------- |
-| Vite 8                                          | Dev server dan bundler                |
-| React 19                                        | UI                                    |
-| TypeScript 6                                    | Bahasa, mode strict                   |
-| Tailwind CSS 4                                  | Utility CSS lewat stylesheet          |
-| React Router 8                                  | Routing SPA                           |
-| TanStack Query 5                                | Server state                          |
-| React Hook Form 7, Zod 4, @hookform/resolvers 7 | Terpasang untuk form phase berikutnya |
-| React Icons 5                                   | Ikon                                  |
-| Vitest 5, Testing Library, MSW 3                | Tes                                   |
-| ESLint 10 dan Prettier 3                        | Kualitas kode                         |
+| Paket                                           | Peran                        |
+| ----------------------------------------------- | ---------------------------- |
+| Vite 8                                          | Dev server dan bundler       |
+| React 19                                        | UI                           |
+| TypeScript 6                                    | Bahasa, mode strict          |
+| Tailwind CSS 4                                  | Utility CSS lewat stylesheet |
+| React Router 8                                  | Routing SPA                  |
+| TanStack Query 5                                | Server state                 |
+| React Hook Form 7, Zod 4, @hookform/resolvers 7 | Form workspace dan validasi  |
+| React Icons 5                                   | Ikon                         |
+| Vitest 5, Testing Library, MSW 3                | Tes                          |
+| ESLint 10 dan Prettier 3                        | Kualitas kode                |
 
 Versi tepat ada di `package.json`. Package manager frontend adalah Bun, dengan lockfile sendiri di `web/bun.lock`.
 
@@ -61,18 +63,19 @@ web/
 ├── docs/
 ├── src/
 │   ├── app/          inisialisasi, provider, router
-│   ├── components/   komponen UI bersama
+│   ├── components/   komponen UI dan layout bersama
 │   ├── core/         HTTP client, env, error
+│   ├── features/     domain bisnis (workspace)
+│   ├── hooks/        hook UI bersama
 │   ├── pages/        halaman placeholder
 │   ├── styles/       token, global, komponen, utility
-│   └── test/         setup, helper render, server MSW
+│   └── test/         setup, helper render, fixture, server MSW
 └── package.json
 ```
 
-Folder `features/` belum dibuat karena belum ada domain UI.
-
 ## Dokumentasi
 
+- [Fitur workspace](workspace-feature.md)
 - [Arsitektur](architecture.md)
 - [Audit backend](backend-audit.md)
 - [Kontrak API](api-contract.md)

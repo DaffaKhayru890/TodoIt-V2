@@ -3,11 +3,11 @@ import { joinClasses } from '@/core/utils/join-classes';
 
 type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> & {
   label: string;
-  hint?: string;
-  error?: string;
+  hint?: string | undefined;
+  error?: string | undefined;
   leadingIcon?: ReactNode;
   trailingIcon?: ReactNode;
-  id?: string;
+  id?: string | undefined;
 };
 
 export function Input({

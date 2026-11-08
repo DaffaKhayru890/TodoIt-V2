@@ -1,7 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { describe, expect, test } from 'vitest';
 import { AppRoutes } from '@/app/router/router';
+import { server } from '@/test/mocks/server';
 import { mockViewport } from '@/test/utils/mock-viewport';
 import { renderWithProviders } from '@/test/utils/render-with-providers';
 
@@ -9,7 +11,7 @@ describe('AppLayout', () => {
   test('menempatkan dua sidebar dan konten, primary collapsed default, secondary tidak', async () => {
     renderWithProviders(<AppRoutes />, '/inbox');
 
-    expect(screen.getByRole('link', { name: 'Personal' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Personal' })).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Navigasi aplikasi' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Inbox' })).toBeInTheDocument();
 
@@ -23,6 +25,28 @@ describe('AppLayout', () => {
     expect(screen.queryByRole('button', { name: 'Bentangkan workspace' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ciutkan navigasi' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Bentangkan navigasi' })).not.toBeInTheDocument();
+  });
+
+  test('menampilkan empty state dan navigasi tanpa workspace ketika daftar kosong', async () => {
+    server.use(
+      http.get('http://localhost:4000/api/v1/workspaces', () => {
+        return HttpResponse.json({
+          items: [],
+          pagination: { limit: 50, offset: 0, total: 0 }
+        });
+      })
+    );
+
+    renderWithProviders(<AppRoutes />, '/inbox');
+
+    expect(await screen.findByText('Belum ada workspace.')).toBeInTheDocument();
+
+    const navigation = screen.getByRole('navigation', { name: 'Navigasi aplikasi' });
+    expect(
+      within(navigation).queryByRole('heading', { name: 'Workspace' })
+    ).not.toBeInTheDocument();
+    expect(within(navigation).queryByRole('link', { name: 'Today' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tambah workspace' })).toBeInTheDocument();
   });
 
   test('membuka dan menutup drawer ponsel dengan Escape dan backdrop', async () => {

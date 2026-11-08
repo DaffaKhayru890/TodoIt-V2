@@ -1,4 +1,5 @@
 import { isApiErrorBody } from '@/core/api/api-response';
+import { appEnv } from '@/core/config/env';
 import { ApiError } from '@/core/errors/api-error';
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -62,7 +63,12 @@ export function createHttpClient(options: HttpClientOptions): HttpClient {
 
       if (!response.ok) {
         if (isApiErrorBody(payload)) {
-          throw new ApiError(payload.error.message, response.status, payload.error.code);
+          throw new ApiError(
+            payload.error.message,
+            response.status,
+            payload.error.code,
+            payload.error.details ?? []
+          );
         }
 
         throw new ApiError('Permintaan ditolak server.', response.status);
@@ -86,3 +92,7 @@ async function readJson(response: Response): Promise<unknown> {
     throw new ApiError('Respons server bukan JSON yang valid.', response.status, 'INVALID_JSON');
   }
 }
+
+export const httpClient = createHttpClient({
+  baseUrl: appEnv.apiBaseUrl
+});

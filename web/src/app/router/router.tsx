@@ -1,8 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AppLayout } from '@/components/layout/app-layout/app-layout';
+import { WorkspacePage } from '@/features/workspaces/pages/WorkspacePage';
 import {
   AccessPlaceholder,
-  AllTasksPage,
   CompletedPage,
   InboxPage,
   LabelsPage,
@@ -43,7 +43,7 @@ export function AppRoutes() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="workspaces/new" element={<NewWorkspacePage />} />
         <Route path="workspace/:workspaceId">
-          <Route index element={<AllTasksPage />} />
+          <Route index element={<WorkspacePage />} />
           <Route path="today" element={<TodayPage />} />
           <Route path="upcoming" element={<UpcomingPage />} />
           <Route path="completed" element={<CompletedPage />} />

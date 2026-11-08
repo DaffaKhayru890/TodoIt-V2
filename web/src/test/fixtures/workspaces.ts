@@ -1,12 +1,14 @@
+/**
+ * Fixture khusus pengujian. Jangan diimpor dari kode produksi.
+ *
+ * ID sengaja memakai UUID agar bentuk data menyerupai respons backend
+ * (`workspaceParamSchema` mensyaratkan UUID).
+ */
 export interface WorkspaceFixture {
-  id: string;
-  name: string;
-  mark: string;
+  readonly id: string;
+  readonly name: string;
+  readonly mark: string;
 }
-
-export const userFixture = {
-  displayName: 'Pengguna contoh'
-} as const;
 
 export const workspaceFixtures: readonly WorkspaceFixture[] = [
   { id: '11111111-1111-4111-8111-111111111111', name: 'Personal', mark: 'P' },

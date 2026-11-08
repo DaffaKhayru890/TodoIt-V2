@@ -1,27 +1,46 @@
 import { FiChevronsLeft, FiPlus, FiX } from 'react-icons/fi';
 import { Link } from 'react-router';
-import type { WorkspaceFixture } from '@/app/navigation/workspace-fixtures';
-import { userFixture } from '@/app/navigation/workspace-fixtures';
 import { paths } from '@/app/router/route-paths';
-import { WorkspaceItem } from '@/components/layout/workspace-item/workspace-item';
+import {
+  WorkspaceItem,
+  type WorkspaceItemData
+} from '@/components/layout/workspace-item/workspace-item';
 import { Avatar } from '@/components/ui/avatar/avatar';
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown/dropdown';
 import { IconButton } from '@/components/ui/icon-button/icon-button';
+import { Skeleton } from '@/components/ui/skeleton/skeleton';
 import { joinClasses } from '@/core/utils/join-classes';
 
-export function PrimarySidebar({
-  collapsed,
-  workspaces,
-  showCollapse,
-  onToggleCollapse,
-  onClose
-}: {
+export interface PrimarySidebarProps {
   collapsed: boolean;
-  workspaces: readonly WorkspaceFixture[];
+  workspaces?: readonly WorkspaceItemData[];
+  /**
+   * Nama pengguna untuk area profil. Autentikasi belum menjadi bagian Phase 3,
+   * sehingga pemanggil dapat memberi nilai netral sampai data `/auth/me`
+   * terintegrasi pada phase berikutnya.
+   */
+  userName?: string;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+  onAddWorkspace?: () => void;
   showCollapse?: boolean;
   onToggleCollapse?: () => void;
   onClose?: () => void;
-}) {
+}
+
+export function PrimarySidebar({
+  collapsed,
+  workspaces = [],
+  userName = 'Pengguna',
+  isLoading = false,
+  isError = false,
+  onRetry,
+  onAddWorkspace,
+  showCollapse,
+  onToggleCollapse,
+  onClose
+}: PrimarySidebarProps) {
   return (
     <div className={joinClasses('primary-sidebar', collapsed && 'primary-sidebar--collapsed')}>
       <header className="primary-sidebar__header">
@@ -54,28 +73,80 @@ export function PrimarySidebar({
           </IconButton>
         ) : null}
       </header>
+
       <div className="primary-sidebar__scroll scroll-area">
-        <p className={joinClasses('primary-sidebar__caption', collapsed && 'visually-hidden')}>
-          Data contoh
-        </p>
         <h2 className={joinClasses('primary-sidebar__title', collapsed && 'visually-hidden')}>
           Workspace
         </h2>
-        <ul className="primary-sidebar__list">
-          {workspaces.map((workspace) => (
-            <WorkspaceItem key={workspace.id} workspace={workspace} collapsed={collapsed} />
-          ))}
-        </ul>
-        <Link className="workspace-add" to={paths.newWorkspace}>
-          <FiPlus aria-hidden="true" />
-          <span className={joinClasses(collapsed && 'visually-hidden')}>Tambah workspace</span>
-        </Link>
+
+        {isLoading ? (
+          <div className="primary-sidebar__skeleton-list" aria-label="Memuat daftar workspace">
+            <div className="primary-sidebar__skeleton-item">
+              <Skeleton variant="avatar" />
+              <Skeleton variant="text" />
+            </div>
+            <div className="primary-sidebar__skeleton-item">
+              <Skeleton variant="avatar" />
+              <Skeleton variant="text" />
+            </div>
+            <div className="primary-sidebar__skeleton-item">
+              <Skeleton variant="avatar" />
+              <Skeleton variant="text" />
+            </div>
+          </div>
+        ) : (
+          <>
+            {isError ? (
+              <div className="primary-sidebar__status primary-sidebar__status--error" role="alert">
+                <span>Gagal memuat workspace.</span>
+                {onRetry ? (
+                  <button type="button" className="primary-sidebar__retry-btn" onClick={onRetry}>
+                    Coba lagi
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {workspaces.length === 0 ? (
+              isError ? null : (
+                <div className="primary-sidebar__empty">
+                  <span>Belum ada workspace.</span>
+                  <p>Mulai dengan membuat workspace pertama kamu.</p>
+                </div>
+              )
+            ) : (
+              <ul className="primary-sidebar__list">
+                {workspaces.map((workspace) => (
+                  <WorkspaceItem key={workspace.id} workspace={workspace} collapsed={collapsed} />
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+
+        {onAddWorkspace ? (
+          <button
+            type="button"
+            className="workspace-add"
+            onClick={onAddWorkspace}
+            aria-label="Tambah workspace"
+          >
+            <FiPlus aria-hidden="true" />
+            <span className={joinClasses(collapsed && 'visually-hidden')}>Tambah workspace</span>
+          </button>
+        ) : (
+          <Link className="workspace-add" to={paths.newWorkspace}>
+            <FiPlus aria-hidden="true" />
+            <span className={joinClasses(collapsed && 'visually-hidden')}>Tambah workspace</span>
+          </Link>
+        )}
       </div>
+
       <footer className="primary-sidebar__footer">
         <div className="profile">
-          <Avatar name={userFixture.displayName} size="small" tone="secondary" />
+          <Avatar name={userName} size="small" tone="secondary" />
           <span className={joinClasses('profile__name', collapsed && 'visually-hidden')}>
-            {userFixture.displayName}
+            {userName}
           </span>
         </div>
         <Dropdown label={collapsed ? 'Menu' : 'Menu pengguna'} placement="up">

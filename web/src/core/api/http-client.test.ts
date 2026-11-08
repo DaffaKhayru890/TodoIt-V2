@@ -31,6 +31,31 @@ describe('createHttpClient', () => {
     });
   });
 
+  test('mempertahankan detail validasi dari backend', async () => {
+    server.use(
+      http.post('http://api.test/workspaces', () =>
+        HttpResponse.json(
+          {
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Permintaan tidak lolos validasi skema.',
+              requestId: 'req-422',
+              details: [{ path: 'body.name', message: 'Nama terlalu panjang.' }]
+            }
+          },
+          { status: 422 }
+        )
+      )
+    );
+    const client = createHttpClient({ baseUrl: 'http://api.test' });
+
+    await expect(client.request('/workspaces', { method: 'POST' })).rejects.toMatchObject({
+      status: 422,
+      code: 'VALIDATION_ERROR',
+      details: [{ path: 'body.name', message: 'Nama terlalu panjang.' }]
+    });
+  });
+
   test('mengubah kegagalan jaringan menjadi ApiError', async () => {
     server.use(http.get('http://api.test/down', () => HttpResponse.error()));
     const client = createHttpClient({ baseUrl: 'http://api.test' });

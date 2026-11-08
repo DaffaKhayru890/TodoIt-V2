@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { FiMenu } from 'react-icons/fi';
-import { useLocation, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { buildNavigation } from '@/app/navigation/navigation';
-import { workspaceFixtures } from '@/app/navigation/workspace-fixtures';
+import { paths } from '@/app/router/route-paths';
 import { readSidebarPreference } from '@/app/shell/sidebar-preference';
 import { MainContent } from '@/components/layout/main-content/main-content';
 import { MobileNavigationDrawer } from '@/components/layout/mobile-navigation/mobile-navigation-drawer';
@@ -10,6 +10,8 @@ import { PrimarySidebar } from '@/components/layout/primary-sidebar/primary-side
 import { SecondarySidebar } from '@/components/layout/secondary-sidebar/secondary-sidebar';
 import { IconButton } from '@/components/ui/icon-button/icon-button';
 import { joinClasses } from '@/core/utils/join-classes';
+import { CreateWorkspaceDialog } from '@/features/workspaces/components/create-workspace-dialog/CreateWorkspaceDialog';
+import { useWorkspaces } from '@/features/workspaces/hooks/use-workspaces';
 import { useDialogBehavior } from '@/hooks/use-dialog-behavior';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -20,6 +22,8 @@ export function AppLayout() {
   const preference = readSidebarPreference();
   const [drawer, setDrawer] = useState<'none' | 'primary' | 'secondary'>('none');
   const [trackedCompact, setTrackedCompact] = useState(compact);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const navigate = useNavigate();
 
   if (compact !== trackedCompact) {
     setTrackedCompact(compact);
@@ -35,8 +39,20 @@ export function AppLayout() {
     setTrackedPath(location.pathname);
     setDrawer('none');
   }
-  const known = workspaceFixtures.find((item) => item.id === workspaceId);
-  const activeWorkspaceId = known?.id ?? workspaceFixtures[0]?.id ?? '';
+
+  const {
+    data: workspacesData,
+    isLoading: workspacesLoading,
+    isError: workspacesError,
+    refetch: refetchWorkspaces
+  } = useWorkspaces({ limit: 50 });
+
+  const workspaces = workspacesData?.items ?? [];
+
+  // URL adalah sumber utama workspace aktif. Fallback ke workspace pertama
+  // hanya dipakai ketika pengguna berada di luar rute workspace.
+  const activeWorkspaceId = workspaceId ?? workspaces[0]?.id ?? '';
+
   const primaryRef = useRef<HTMLDivElement>(null);
   const secondaryRef = useRef<HTMLDivElement>(null);
   const drawerOpen = compact && drawer !== 'none';
@@ -94,7 +110,11 @@ export function AppLayout() {
       >
         <PrimarySidebar
           collapsed={primaryCollapsed}
-          workspaces={workspaceFixtures}
+          workspaces={workspaces}
+          isLoading={workspacesLoading}
+          isError={workspacesError}
+          onRetry={() => refetchWorkspaces()}
+          onAddWorkspace={() => setIsCreateOpen(true)}
           {...(compact ? { onClose: closeDrawer } : {})}
         />
       </div>
@@ -107,13 +127,21 @@ export function AppLayout() {
         aria-label={compact && drawer === 'secondary' ? 'Navigasi aplikasi' : undefined}
       >
         <SecondarySidebar
-          workspaceId={activeWorkspaceId}
-          sections={buildNavigation(activeWorkspaceId)}
+          workspaceId={activeWorkspaceId || undefined}
+          sections={buildNavigation(activeWorkspaceId || undefined)}
           collapsed={secondaryCollapsed}
           {...(compact ? { onClose: closeDrawer } : {})}
         />
       </div>
       <MainContent />
+
+      <CreateWorkspaceDialog
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+        onSuccess={(created) => {
+          navigate(paths.workspace(created.id));
+        }}
+      />
     </div>
   );
 }

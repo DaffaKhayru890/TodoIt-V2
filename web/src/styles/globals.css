@@ -23,6 +23,10 @@
 @import '../components/layout/mobile-navigation/mobile-navigation-drawer.css';
 @import '../components/layout/app-layout/app-layout.css';
 @import '../pages/page-header.css';
+@import '../features/workspaces/components/create-workspace-dialog/create-workspace-dialog.css';
+@import '../features/workspaces/components/workspace-header/workspace-header.css';
+@import '../features/workspaces/components/workspace-empty-state/workspace-empty-state.css';
+@import '../features/workspaces/pages/workspace-page.css';
 
 @layer base {
   *,

@@ -37,13 +37,15 @@ Versi yang terpasang dipilih dari resolver Bun pada saat instalasi, bukan dari k
 - msw 3.0.4
 - eslint 10.14.0, typescript-eslint 8.72.1, eslint-plugin-react-hooks 7, eslint-plugin-react-refresh 0.5, eslint-plugin-jsx-a11y 6.10, prettier 3.9
 
-React Hook Form dan Zod terpasang agar phase form tidak mengganti resolver. Belum ada form.
+React Hook Form, Zod, dan `@hookform/resolvers` dipakai untuk form Create/Edit Workspace pada Phase 3.
 
 TypeScript frontend memakai 6.0.3. Resolver sempat memilih 7.0.2, tetapi `typescript-eslint` 8.72 menolak TypeScript 7, jadi compiler diturunkan ke 6 agar typecheck dan ESLint memakai parser yang sama. Backend tetap pada TypeScript 5.9 di root.
 
-## Shell dan data contoh
+## Shell dan sumber data
 
-Dua sidebar memakai state React di `AppLayout`. Preferensi ciutkan disimpan di `localStorage` dengan kunci `todoit.sidebar` dan hanya berisi dua boolean. Workspace serta nama pengguna adalah fixture di `workspace-fixtures.ts`, bukan hasil API.
+Dua sidebar memakai state React di `AppLayout`. Preferensi ciutkan disimpan di `localStorage` dengan kunci `todoit.sidebar` dan hanya berisi dua boolean.
+
+Daftar workspace berasal dari backend melalui TanStack Query. Fixture workspace hanya berada di `src/test/fixtures/workspaces.ts` dan dipakai oleh test/MSW, bukan runtime produksi. Nama pengguna pada area profil masih placeholder netral karena autentikasi belum diimplementasikan; tidak ada data workspace mock yang ditampilkan sebagai fallback ketika API gagal.
 
 Breakpoint compact adalah `max-width: 1023px`. Di bawah itu kedua sidebar menjadi drawer, dan hanya satu drawer yang dibuka.
 

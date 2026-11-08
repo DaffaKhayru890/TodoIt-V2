@@ -1,40 +1,55 @@
 # Arsitektur frontend
 
-Frontend memakai pemisahan app, core, komponen, halaman, dan style. Domain bisnis akan masuk ke `src/features/` pada phase berikutnya. Phase 2 membangun shell visual, bukan CRUD.
+Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/features/`), dan style. Pada Phase 3, domain bisnis Workspace diimplementasikan secara modular pada `src/features/workspaces/`.
 
 ## App
 
 `src/app` memasang provider dan router.
 
-`AppProviders` saat ini hanya membungkus `QueryProvider`. `QueryClient` dibuat lewat initializer `useState`, jadi tidak dibuat ulang setiap render.
+`AppProviders` membungkus `QueryProvider`. `QueryClient` dibuat lewat initializer `useState`, jadi tidak dibuat ulang setiap render.
 
-`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Detail ada di [routing.md](routing.md). Tidak ada guard autentikasi yang memeriksa boolean palsu.
+`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Rute `/workspace/:workspaceId` terhubung ke `WorkspacePage`.
+
+## Features (`src/features/`)
+
+Pada Phase 3, domain workspace diorganisasi secara modular:
+
+- `models/`: DTO backend, Domain entities, dan Mapper.
+- `api/`: Centralized workspace API service dan Query Key Factory.
+- `hooks/`: TanStack Query hooks (`useWorkspaces`, `useWorkspace`, `useCreateWorkspace`, `useUpdateWorkspace`, `useArchiveWorkspace`).
+- `schemas/`: Zod schemas untuk form validation (`CreateWorkspaceDialog`, `EditWorkspaceDialog`).
+- `components/`: Dialog pembuatan, dialog pengubahan, dialog pengarsipan, konfirmasi discard, header detail, dan empty state.
+- `pages/`: `WorkspacePage` detail view.
+- `utils/`: Pemetaan detail validasi backend ke field form.
+
+Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime produksi.
 
 ## Core
 
-`src/core` adalah infrastruktur.
+`src/core` adalah infrastruktur terpusat:
 
 - `env.ts` membaca dan memvalidasi `VITE_API_BASE_URL`.
-- `http-client.ts` membuat request JSON ke base URL itu.
+- `http-client.ts` membuat request JSON ke base URL itu dan menyediakan instance bersama `httpClient`.
 - `api-error.ts` menormalkan kegagalan menjadi `ApiError`.
-
-Feature nantinya memanggil HTTP client lewat TanStack Query. Query key dan hook domain belum dibuat.
 
 ## Komponen dan halaman
 
 `src/components/ui` berisi komponen design system. `src/components/layout` berisi shell dua sidebar. JSX memakai class semantik. Aturan visual ada di stylesheet komponen dan diimpor dari `globals.css`.
 
-`src/pages` berisi halaman placeholder. Halaman itu belum mengambil data server. Workspace di sidebar adalah fixture visual.
+`src/pages` berisi halaman placeholder untuk domain yang belum dikerjakan (todo, tag, label, pengaturan, dan sejenisnya). Halaman tersebut belum mengambil data server. Khusus workspace, `src/features/workspaces/pages/WorkspacePage.tsx` sudah mengambil detail dari API. Daftar workspace di Primary Sidebar berasal dari `GET /api/v1/workspaces`, bukan fixture.
 
-## Alur data yang direncanakan
+## Alur data
 
-1. Komponen feature memanggil hook query.
-2. Hook memakai HTTP client.
+1. Komponen feature memanggil hook query/mutation TanStack Query.
+2. Hook memakai `workspaceApi`, yang memakai HTTP client terpusat.
 3. HTTP client menambah header `Authorization` hanya jika pemanggil memberi access token.
 4. Cookie refresh dikirim dengan `credentials: 'include'` ke path auth backend.
-5. Respons sukses dikembalikan sebagai JSON. Respons gagal menjadi `ApiError` dengan `status` dan `code`.
+5. Respons sukses dikembalikan sebagai JSON. Respons gagal menjadi `ApiError` dengan `status`, `code`, `message`, dan `details`.
 
-Login, penyimpanan access token, dan pemanggilan `/api/v1/auth/refresh` belum diimplementasikan. `getAccessToken` adalah titik integrasi untuk phase autentikasi.
+Query key workspace memisahkan `lists()` dan `detail(id)`. Mutation menginvalidasi
+`lists()` dan memperbarui atau menghapus cache detail sesuai operasi.
+
+Login, penyimpanan access token, dan pemanggilan `/api/v1/auth/refresh` belum diimplementasikan. `getAccessToken` adalah titik integrasi untuk phase autentikasi. Tanpa phase tersebut, request ke backend nyata akan ditolak 401; handler MSW dipakai untuk pengujian.
 
 ## CSS
 

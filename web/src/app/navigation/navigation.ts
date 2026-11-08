@@ -30,18 +30,24 @@ export function searchNavigation(): NavigationItemConfig {
   return { id: 'search', label: 'Cari', href: paths.search, icon: FiSearch };
 }
 
-export function buildNavigation(workspaceId: string): readonly NavigationSectionConfig[] {
-  return [
-    {
-      id: 'general',
-      title: 'General',
-      items: [
-        { id: 'inbox', label: 'Inbox', href: paths.inbox, icon: FiInbox },
-        { id: 'today', label: 'Today', href: paths.today(workspaceId), icon: FiCalendar },
-        { id: 'upcoming', label: 'Upcoming', href: paths.upcoming(workspaceId), icon: FiClock }
-      ]
-    },
-    {
+export function buildNavigation(workspaceId?: string): readonly NavigationSectionConfig[] {
+  const generalItems: NavigationItemConfig[] = [
+    { id: 'inbox', label: 'Inbox', href: paths.inbox, icon: FiInbox }
+  ];
+
+  const sections: NavigationSectionConfig[] = [];
+
+  if (workspaceId) {
+    generalItems.push(
+      { id: 'today', label: 'Today', href: paths.today(workspaceId), icon: FiCalendar },
+      { id: 'upcoming', label: 'Upcoming', href: paths.upcoming(workspaceId), icon: FiClock }
+    );
+  }
+
+  sections.push({ id: 'general', title: 'General', items: generalItems });
+
+  if (workspaceId) {
+    sections.push({
       id: 'workspace',
       title: 'Workspace',
       items: [
@@ -61,11 +67,14 @@ export function buildNavigation(workspaceId: string): readonly NavigationSection
         { id: 'tags', label: 'Tags', href: paths.tags(workspaceId), icon: FiTag },
         { id: 'labels', label: 'Labels', href: paths.labels(workspaceId), icon: FiBookmark }
       ]
-    },
-    {
-      id: 'preferences',
-      title: 'Preferences',
-      items: [{ id: 'settings', label: 'Settings', href: paths.settings, icon: FiSettings }]
-    }
-  ];
+    });
+  }
+
+  sections.push({
+    id: 'preferences',
+    title: 'Preferences',
+    items: [{ id: 'settings', label: 'Settings', href: paths.settings, icon: FiSettings }]
+  });
+
+  return sections;
 }

@@ -155,6 +155,26 @@ Session yang sudah dicabut ditolak meskipun JWT masih bisa di-decode.
 
 Semua endpoint workspace memakai Bearer.
 
+### Laporan Status Integrasi Workspace (Phase 3)
+
+| Fitur             | Ketersediaan API Backend                                  | Status Implementasi Frontend | Catatan                                                                           |
+| ----------------- | --------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------- |
+| List workspace    | Verified (`GET /api/v1/workspaces`)                       | PASS                         | Diintegrasikan dengan TanStack Query (`useWorkspaces`) dan Primary Sidebar        |
+| Workspace detail  | Verified (`GET /api/v1/workspaces/:workspaceId`)          | PASS                         | Diintegrasikan pada `WorkspacePage` (`useWorkspace`)                              |
+| Create workspace  | Verified (`POST /api/v1/workspaces`)                      | PASS                         | Diintegrasikan pada `CreateWorkspaceDialog` (`useCreateWorkspace`)                |
+| Update workspace  | Verified (`PATCH /api/v1/workspaces/:workspaceId`)        | PASS                         | Diintegrasikan pada `EditWorkspaceDialog` (`useUpdateWorkspace`, hanya owner)     |
+| Delete workspace  | Not available                                             | **BLOCKED**                  | Backend tidak mendukung hard delete; penonaktifan memakai soft archive            |
+| Archive workspace | Verified (`POST /api/v1/workspaces/:workspaceId/archive`) | PASS                         | Diintegrasikan pada `ArchiveWorkspaceDialog` (`useArchiveWorkspace`, hanya owner) |
+
+### Aturan otorisasi workspace (hasil audit source code)
+
+- Semua endpoint memerlukan Bearer token.
+- Role pengguna pada workspace: `owner`, `admin`, `member`.
+- `GET /workspaces` hanya mengembalikan workspace aktif (`archived_at IS NULL`) tempat pengguna menjadi anggota.
+- `GET /workspaces/:workspaceId` mengembalikan **404** `WORKSPACE_ACCESS_DENIED` untuk non-member dan workspace terarsip (bukan 403), guna mencegah enumerasi UUID.
+- `PATCH` dan `POST /archive` hanya untuk `owner`. Non-member mendapat 404; `admin`/`member` mendapat 403 `WORKSPACE_PERMISSION_DENIED`.
+- Tidak ada dukungan `color`, `icon`, `slug`, unique name, atau hard delete.
+
 ### Create workspace
 
 **Status:** Available
@@ -196,6 +216,11 @@ Query `limit` (1–50, default 20) dan `offset` (default 0).
 **Method:** GET
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId`
+
+### Response
+
+Status 200, `{ "workspace": { id, name, description, role, createdAt, updatedAt, archivedAt } }`.
+Non-member dan workspace terarsip menghasilkan 404 `WORKSPACE_ACCESS_DENIED`.
 
 ### Update workspace
 

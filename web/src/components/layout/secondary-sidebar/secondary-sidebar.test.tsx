@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
-import { workspaceFixtures } from '@/app/navigation/workspace-fixtures';
+import { workspaceFixtures } from '@/test/fixtures/workspaces';
 import { SecondarySidebar } from '@/components/layout/secondary-sidebar/secondary-sidebar';
 import { renderWithProviders } from '@/test/utils/render-with-providers';
 
@@ -18,5 +18,14 @@ describe('SecondarySidebar', () => {
     expect(screen.getByRole('heading', { name: 'Workspace' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Preferences' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Inbox' })).toBeInTheDocument();
+  });
+
+  test('menyembunyikan navigasi workspace ketika belum ada workspace', () => {
+    renderWithProviders(<SecondarySidebar collapsed={false} />, '/inbox');
+
+    expect(screen.getByRole('link', { name: 'Inbox' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Today' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Workspace' })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Preferences' })).toBeInTheDocument();
   });
 });

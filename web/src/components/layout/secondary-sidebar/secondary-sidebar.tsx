@@ -17,7 +17,7 @@ export function SecondarySidebar({
   onClose,
   sections
 }: {
-  workspaceId: string;
+  workspaceId?: string | undefined;
   collapsed: boolean;
   showCollapse?: boolean;
   onToggleCollapse?: () => void;
