@@ -1,0 +1,17 @@
+@layer components {
+  .todo-empty {
+    display: flex;
+    flex-direction: column;
+    border: 2px dashed var(--color-border);
+    background: var(--color-surface);
+    padding: var(--space-6);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .todo-empty .empty-state {
+    border: 0;
+    box-shadow: var(--shadow-none);
+    padding: 0;
+  }
+}

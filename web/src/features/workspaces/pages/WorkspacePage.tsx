@@ -4,10 +4,10 @@ import { EmptyState } from '@/components/feedback/empty-state/empty-state';
 import { Button } from '@/components/ui/button/button';
 import { Skeleton } from '@/components/ui/skeleton/skeleton';
 import { ApiError } from '@/core/errors/api-error';
+import { WorkspaceTodoSection } from '@/features/todos/components/workspace-todo-section/WorkspaceTodoSection';
 import { useDocumentTitle } from '@/hooks/use-document-title';
 import { ArchiveWorkspaceDialog } from '../components/archive-workspace-dialog/ArchiveWorkspaceDialog';
 import { EditWorkspaceDialog } from '../components/edit-workspace-dialog/EditWorkspaceDialog';
-import { WorkspaceEmptyState } from '../components/workspace-empty-state/WorkspaceEmptyState';
 import { WorkspaceHeader } from '../components/workspace-header/WorkspaceHeader';
 import { useWorkspace } from '../hooks/use-workspace';
 
@@ -94,9 +94,11 @@ export function WorkspacePage() {
         onArchive={() => setArchiveOpen(true)}
       />
 
-      <section aria-label="Daftar tugas workspace">
-        <WorkspaceEmptyState />
-      </section>
+      <WorkspaceTodoSection
+        key={workspace.id}
+        workspaceId={workspace.id}
+        workspaceName={workspace.name}
+      />
 
       <EditWorkspaceDialog
         open={editOpen}

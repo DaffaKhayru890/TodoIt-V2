@@ -1,6 +1,6 @@
 # Arsitektur frontend
 
-Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/features/`), dan style. Pada Phase 3, domain bisnis Workspace diimplementasikan secara modular pada `src/features/workspaces/`.
+Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/features/`), dan style. Domain bisnis Workspace diimplementasikan pada Phase 3, lalu Todo Management ditambahkan pada Phase 4 dalam modul terpisah `src/features/todos/`.
 
 ## App
 
@@ -8,11 +8,13 @@ Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/feat
 
 `AppProviders` membungkus `QueryProvider`. `QueryClient` dibuat lewat initializer `useState`, jadi tidak dibuat ulang setiap render.
 
-`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Rute `/workspace/:workspaceId` terhubung ke `WorkspacePage`.
+`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Rute `/workspace/:workspaceId` terhubung ke `WorkspacePage`, dan rute anak `/workspace/:workspaceId/todos/:todoId` terhubung ke `TodoDetailPage`.
 
 ## Features (`src/features/`)
 
-Pada Phase 3, domain workspace diorganisasi secara modular:
+### Workspace (Phase 3)
+
+Domain workspace diorganisasi secara modular:
 
 - `models/`: DTO backend, Domain entities, dan Mapper.
 - `api/`: Centralized workspace API service dan Query Key Factory.
@@ -21,6 +23,20 @@ Pada Phase 3, domain workspace diorganisasi secara modular:
 - `components/`: Dialog pembuatan, dialog pengubahan, dialog pengarsipan, konfirmasi discard, header detail, dan empty state.
 - `pages/`: `WorkspacePage` detail view.
 - `utils/`: Pemetaan detail validasi backend ke field form.
+
+### Todo (Phase 4)
+
+Modul todo terpisah di `src/features/todos/`:
+
+- `models/`: DTO respons backend, domain model, runtime guard, dan mapper.
+- `api/`: `todoApi` dan query key factory yang selalu membawa `workspaceId`.
+- `hooks/`: Query list/detail dan mutation create/update/complete/reopen/delete.
+- `schemas/`: Zod schema field bersama untuk create dan edit.
+- `components/`: `WorkspaceTodoSection`, `TodoList`, `TodoItem`, empty state, form fields, dan tiga dialog.
+- `pages/`: `TodoDetailPage`.
+- `utils/`: Pemetaan `VALIDATION_ERROR` ke field todo.
+
+`WorkspacePage` hanya merender `WorkspaceTodoSection`; seluruh state query, dialog, dan feedback todo tetap berada di fitur todos. Detail arsitektur ada di [todo-management.md](todo-management.md) dan [todo-components.md](todo-components.md).
 
 Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime produksi.
 
@@ -36,7 +52,7 @@ Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime 
 
 `src/components/ui` berisi komponen design system. `src/components/layout` berisi shell dua sidebar. JSX memakai class semantik. Aturan visual ada di stylesheet komponen dan diimpor dari `globals.css`.
 
-`src/pages` berisi halaman placeholder untuk domain yang belum dikerjakan (todo, tag, label, pengaturan, dan sejenisnya). Halaman tersebut belum mengambil data server. Khusus workspace, `src/features/workspaces/pages/WorkspacePage.tsx` sudah mengambil detail dari API. Daftar workspace di Primary Sidebar berasal dari `GET /api/v1/workspaces`, bukan fixture.
+`src/pages` berisi halaman placeholder untuk domain yang belum dikerjakan (tag, label, pengaturan, dan sejenisnya). Halaman tersebut belum mengambil data server. Khusus workspace, `src/features/workspaces/pages/WorkspacePage.tsx` sudah mengambil detail dari API. Daftar workspace di Primary Sidebar berasal dari `GET /api/v1/workspaces`, bukan fixture. Daftar tugas dan detail todo berasal dari endpoint todo backend melalui `src/features/todos/`.
 
 ## Alur data
 
@@ -48,6 +64,8 @@ Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime 
 
 Query key workspace memisahkan `lists()` dan `detail(id)`. Mutation menginvalidasi
 `lists()` dan memperbarui atau menghapus cache detail sesuai operasi.
+
+Query key todo selalu membawa `workspaceId`: `workspaceLists(workspaceId)` untuk daftar dan `detail(workspaceId, todoId)` untuk detail. Mutation todo hanya menginvalidasi daftar workspace terkait dan memperbarui/menghapus cache detail todo. Ini mencegah cache Workspace A tersentuh oleh operasi Workspace B. Detail ada di [todo-api-integration.md](todo-api-integration.md).
 
 Login, penyimpanan access token, dan pemanggilan `/api/v1/auth/refresh` belum diimplementasikan. `getAccessToken` adalah titik integrasi untuk phase autentikasi. Tanpa phase tersebut, request ke backend nyata akan ditolak 401; handler MSW dipakai untuk pengujian.
 

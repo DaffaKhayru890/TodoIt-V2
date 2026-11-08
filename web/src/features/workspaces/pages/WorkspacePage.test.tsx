@@ -56,7 +56,7 @@ describe('WorkspacePage', () => {
       ).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Your workspace is ready!')).toBeInTheDocument();
+    expect(await screen.findByText('Belum ada tugas!')).toBeInTheDocument();
   });
 
   test('menampilkan pesan workspace tidak ditemukan ketika 404', async () => {

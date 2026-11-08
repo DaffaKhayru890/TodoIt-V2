@@ -263,6 +263,8 @@ Bukan member sering menerima 404.
 
 Prefix `/api/v1/workspaces`. Bearer wajib. Todo terhapus tidak dikembalikan.
 
+Seluruh anggota workspace (`owner`, `admin`, `member`) boleh melihat, membuat, mengubah, menyelesaikan, dan menghapus todo. Non-member atau workspace arsip menghasilkan `404` dengan kode `WORKSPACE_ACCESS_DENIED`; role yang ditolak menghasilkan `403 WORKSPACE_PERMISSION_DENIED`.
+
 ### Get todos
 
 **Status:** Available
@@ -271,7 +273,36 @@ Prefix `/api/v1/workspaces`. Bearer wajib. Todo terhapus tidak dikembalikan.
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos`
 
-Query mendukung filter status, priority, label, dan cursor. Pagination adalah keyset, bukan total count.
+Query: `limit` (1–100, default 20), `cursor`, serta filter status/priority/label dan rentang tanggal. Pagination adalah keyset, bukan total count. Phase 4 frontend hanya memakai `limit=100` dan satu halaman pertama.
+
+**Response 200**
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "workspaceId": "uuid",
+      "title": "Menyusun rencana sprint",
+      "description": null,
+      "status": "todo",
+      "priority": "low",
+      "dueAt": null,
+      "completedAt": null,
+      "label": null,
+      "tags": [],
+      "createdBy": "uuid",
+      "createdAt": "2026-11-07T09:00:00.000Z",
+      "updatedAt": "2026-11-07T09:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "limit": 100,
+    "hasMore": false,
+    "nextCursor": null
+  }
+}
+```
 
 Juga tersedia:
 
@@ -286,6 +317,8 @@ Juga tersedia:
 **Method:** GET
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId`
+
+**Response 200:** `{ "todo": { ... } }`. Todo yang tidak ada, sudah dihapus, atau berada di workspace lain menghasilkan `404 TODO_NOT_FOUND`.
 
 ### Create todo
 
@@ -306,7 +339,7 @@ Juga tersedia:
 }
 ```
 
-`priority` opsional dan default-nya `low`. Status tidak boleh dikirim klien.
+`title` wajib 1–200 karakter. `description` opsional maksimal 5000 karakter. `priority` opsional dan default-nya `low`. Status tidak boleh dikirim klien. Phase 4 hanya mengirim `title` dan `description`.
 
 ### Response
 
@@ -320,6 +353,8 @@ Status 201. Objek todo memuat id, workspaceId, title, description, status, prior
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId`
 
+Body parsial: `title`, `description`, `status`, `priority`, `dueAt`, `labelId`, `tagIds`. Schema memakai `additionalProperties: false`, jadi field `undefined` tidak boleh ikut dikirim. Reopen di frontend memakai `{ "status": "todo" }` karena tidak ada endpoint reopen khusus.
+
 ### Complete todo
 
 **Status:** Available
@@ -327,6 +362,8 @@ Status 201. Objek todo memuat id, workspaceId, title, description, status, prior
 **Method:** PATCH
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId/complete`
+
+Tanpa body. Respons berisi todo terbaru dengan `status` `completed` dan `completedAt` terisi.
 
 ### Delete todo
 
@@ -336,7 +373,14 @@ Status 201. Objek todo memuat id, workspaceId, title, description, status, prior
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId`
 
-Ini soft delete. Field `deletedAt` tidak dikirim pada representasi todo aktif.
+Soft delete, idempoten, respons `204 No Content`. Field `deletedAt` tidak dikirim pada representasi todo aktif. Tidak ada endpoint restore/hard delete yang dipakai frontend.
+
+### Status dan priority
+
+- Status: `todo`, `in_progress`, `completed`, `cancelled`.
+- Priority: `low`, `medium`, `high`, `urgent`.
+
+Phase 4 menampilkan `todo`/`in_progress` sebagai aktif dan `completed` sebagai selesai. `cancelled` tidak dirender.
 
 ## Metadata API
 

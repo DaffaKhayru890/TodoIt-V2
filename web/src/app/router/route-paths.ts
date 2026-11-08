@@ -6,6 +6,7 @@ export const paths = {
   register: '/register',
   newWorkspace: '/workspaces/new',
   workspace: (workspaceId: string) => `/workspace/${workspaceId}`,
+  todo: (workspaceId: string, todoId: string) => `/workspace/${workspaceId}/todos/${todoId}`,
   today: (workspaceId: string) => `/workspace/${workspaceId}/today`,
   upcoming: (workspaceId: string) => `/workspace/${workspaceId}/upcoming`,
   completed: (workspaceId: string) => `/workspace/${workspaceId}/completed`,

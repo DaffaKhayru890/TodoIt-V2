@@ -1,16 +1,20 @@
-import { useId, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useId, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { useDismissable } from '@/hooks/use-dismissable';
 import { joinClasses } from '@/core/utils/join-classes';
 
+const DropdownCloseContext = createContext<() => void>(() => undefined);
+
 export function Dropdown({
   label,
   children,
-  placement = 'down'
+  placement = 'down',
+  ariaLabel
 }: {
-  label: string;
+  label: ReactNode;
   children: ReactNode;
   placement?: 'down' | 'up';
+  ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -22,6 +26,7 @@ export function Dropdown({
       <button
         className="dropdown__trigger"
         type="button"
+        aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls={menuId}
@@ -36,13 +41,15 @@ export function Dropdown({
         {label}
       </button>
       {open ? (
-        <div
-          id={menuId}
-          role="menu"
-          className={joinClasses('dropdown__menu', placement === 'up' && 'dropdown__menu--up')}
-        >
-          {children}
-        </div>
+        <DropdownCloseContext.Provider value={() => setOpen(false)}>
+          <div
+            id={menuId}
+            role="menu"
+            className={joinClasses('dropdown__menu', placement === 'up' && 'dropdown__menu--up')}
+          >
+            {children}
+          </div>
+        </DropdownCloseContext.Provider>
       ) : null}
     </div>
   );
@@ -57,16 +64,23 @@ export function DropdownItem({
   onSelect?: () => void;
   to?: string;
 }) {
+  const close = useContext(DropdownCloseContext);
+
+  const handleSelect = () => {
+    close();
+    onSelect?.();
+  };
+
   if (to) {
     return (
-      <Link className="dropdown__item" role="menuitem" to={to} onClick={onSelect}>
+      <Link className="dropdown__item" role="menuitem" to={to} onClick={handleSelect}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button className="dropdown__item" type="button" role="menuitem" onClick={onSelect}>
+    <button className="dropdown__item" type="button" role="menuitem" onClick={handleSelect}>
       {children}
     </button>
   );

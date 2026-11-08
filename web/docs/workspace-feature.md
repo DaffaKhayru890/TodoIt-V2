@@ -23,7 +23,7 @@ Workspace mewakili entitas ruang kerja yang memiliki:
 
 ### 3. Hubungan Workspace dengan Todolist
 
-Workspace adalah induk dari entitas Todo. Seluruh todolist, filter hari ini (today), upcoming, completed, label, dan tag berada di bawah konteks satu workspace aktif (`/workspace/:workspaceId/*`). Pada Phase 3, boundary konten todolist telah disiapkan dalam bentuk slot dan state kosong (_Workspace Empty State_) tanpa membuat data mock tugas, menunggu implementasi CRUD Todo pada Phase 4.
+Workspace adalah induk dari entitas Todo. Seluruh todolist, filter hari ini (today), upcoming, completed, label, dan tag berada di bawah konteks satu workspace aktif (`/workspace/:workspaceId/*`). Sejak Phase 4, area konten workspace merender `WorkspaceTodoSection` yang terhubung ke API todo backend. Todo Management dijelaskan terpisah pada [todo-management.md](todo-management.md).
 
 ### 4. Workspace User Experience
 

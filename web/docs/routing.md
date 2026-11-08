@@ -12,6 +12,7 @@ Router memakai React Router 8: `BrowserRouter`, `Routes`, `Route`, `NavLink`, da
   workspaces/new
   workspace/:workspaceId
     index        All Tasks
+    todos/:todoId  Detail todo
     today
     upcoming
     completed
@@ -24,7 +25,9 @@ Router memakai React Router 8: `BrowserRouter`, `Routes`, `Route`, `NavLink`, da
 
 `/workspaces/new` membuka `CreateWorkspaceDialog` secara langsung. Menutup dialog mengarahkan pengguna ke `/inbox`, sedangkan pembuatan yang berhasil mengarahkan ke `/workspace/:workspaceId` baru. Tombol “Tambah workspace” di Primary Sidebar membuka dialog yang sama tanpa berpindah rute.
 
-`/workspace/:workspaceId` adalah halaman detail workspace. Halaman placeholder lain menampilkan judul, deskripsi, dan badge “Phase berikutnya”; belum ada data todo pada Phase 3.
+`/workspace/:workspaceId` adalah halaman detail workspace yang memuat daftar todo workspace. `/workspace/:workspaceId/todos/:todoId` adalah halaman detail todo. Judul item pada daftar menautkan ke rute tersebut. Penghapusan todo dari halaman detail mengarahkan kembali ke `/workspace/:workspaceId` dengan `replace`.
+
+Rute placeholder lain (`today`, `upcoming`, `completed`, `tags`, `labels`) belum mengambil data. `paths.todo(workspaceId, todoId)` tersedia di `route-paths.ts` agar tautan tidak dirakit manual.
 
 Judul dokumen diubah lewat `useDocumentTitle` menjadi `<halaman> · TodoIt`.
 

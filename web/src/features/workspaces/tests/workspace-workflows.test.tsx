@@ -97,7 +97,7 @@ describe('Workspace Workflows (Integration-style)', () => {
         { timeout: 4000 }
       )
     ).toBeInTheDocument();
-    expect(screen.getByText('Your workspace is ready!')).toBeInTheDocument();
+    expect(await screen.findByText('Belum ada tugas!')).toBeInTheDocument();
   }, 15000);
 
   test('Workflow B — Pembaruan Workspace dari Halaman Detail', async () => {

@@ -7,6 +7,7 @@ export function Checkbox({
   defaultChecked,
   indeterminate = false,
   disabled = false,
+  hideLabel = false,
   onChange
 }: {
   label: string;
@@ -14,6 +15,7 @@ export function Checkbox({
   defaultChecked?: boolean;
   indeterminate?: boolean;
   disabled?: boolean;
+  hideLabel?: boolean;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }) {
   const id = useId();
@@ -40,7 +42,7 @@ export function Checkbox({
         {...controlProps}
       />
       <span className="checkbox__box" aria-hidden="true" />
-      <span>{label}</span>
+      <span className={hideLabel ? 'visually-hidden' : undefined}>{label}</span>
     </label>
   );
 }

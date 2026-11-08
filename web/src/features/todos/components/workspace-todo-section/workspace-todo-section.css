@@ -1,0 +1,90 @@
+@layer components {
+  .todo-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    border: var(--border-default);
+    background: var(--color-surface);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-brutal);
+    min-width: 0;
+  }
+
+  .todo-workspace__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-default);
+  }
+
+  .todo-workspace__heading-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .todo-workspace__title {
+    margin: 0;
+    font-size: var(--text-h2);
+    line-height: var(--leading-tight);
+    font-weight: var(--font-bold);
+  }
+
+  .todo-workspace__description {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-body-sm);
+  }
+
+  .todo-workspace__feedback {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    border: var(--border-default);
+    padding: var(--space-3);
+    font-size: var(--text-body-sm);
+    font-weight: var(--font-medium);
+    box-shadow: var(--shadow-brutal-sm);
+  }
+
+  .todo-workspace__feedback--success {
+    background: var(--color-success);
+    color: var(--color-success-ink);
+  }
+
+  .todo-workspace__feedback--error {
+    background: var(--color-danger);
+    color: var(--color-danger-ink);
+  }
+
+  .todo-workspace__feedback-close {
+    border: var(--border-default);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    font-weight: var(--font-bold);
+    padding: var(--space-1) var(--space-2);
+    cursor: pointer;
+  }
+
+  .todo-workspace__feedback-close:focus-visible {
+    outline: var(--border-focus);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .todo-workspace {
+      padding: var(--space-4);
+    }
+
+    .todo-workspace__header .button {
+      width: 100%;
+    }
+  }
+}

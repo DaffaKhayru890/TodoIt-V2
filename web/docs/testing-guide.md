@@ -45,6 +45,22 @@ Fixture bersama berada di `src/test/fixtures/workspaces.ts`. File itu tidak bole
 
 Hasil akhir Phase 3: 40 file test, 129 test lulus, coverage 88,84% statements / 84,30% branches / 92,09% functions / 88,63% lines.
 
+## Komponen & Fitur Phase 4 (Todo)
+
+Pengujian Phase 4 menambahkan:
+
+- **Model, guard, mapper (`models/`):** Pemetaan DTO ke domain, validasi bentuk respons, helper status, dan normalisasi request.
+- **Schema (`schemas/todo-schemas.test.ts`):** Batas judul 200 dan deskripsi 5000 karakter.
+- **Validasi API (`utils/api-validation.test.ts`):** Pemetaan detail `VALIDATION_ERROR` ke field todo.
+- **API service (`api/todo.api.test.ts`):** List dengan `limit`/`cursor`, detail, create, update, complete, delete, error 404/403/422, respons rusak, dan error jaringan.
+- **Query & Mutation Hooks (`hooks/todo-hooks.test.tsx`):** List/detail, seluruh mutation, invalidasi list per workspace, pengisian/penghapusan cache detail, dan isolasi cache antar workspace.
+- **Component Tests:** `TodoFormFields`, `TodoItem`, `TodoEmptyState`, `TodoList`, `CreateTodoDialog`, `EditTodoDialog`, `DeleteTodoDialog`, `WorkspaceTodoSection`, dan `TodoDetailPage`.
+- **Integration Workflow Tests (`tests/todo-workflows.test.tsx`):** Workflow A (create), B (edit), C (complete + reopen), D (detail + delete + redirect), E (detail 404 + kembali).
+
+Fixture todo berada di `src/test/fixtures/todos.ts`. Handler default MSW menyediakan daftar todo kosong agar halaman workspace Phase 3 tetap dapat dirender; test yang membutuhkan data mendaftarkan handler sendiri.
+
+Hasil akhir Phase 4: 56 file test, 237 test lulus, coverage 90,98% statements / 86,30% branches / 93,46% functions / 90,96% lines. Detail ada di [todo-testing.md](todo-testing.md).
+
 `configure({ asyncUtilTimeout: 5000 })` dipasang di setup karena suite berjalan paralel; ini memberi ruang bagi query async sebelum assertion, tanpa mengubah perilaku aplikasi.
 
 ## Konvensi

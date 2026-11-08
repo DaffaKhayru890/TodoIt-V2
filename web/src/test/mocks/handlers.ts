@@ -19,5 +19,18 @@ export const defaultHandlers = [
         total: workspaceFixtures.length
       }
     });
+  }),
+
+  // Workspace detail secara default tidak memiliki todo. Test yang membutuhkan
+  // data todo mendaftarkan handler lebih spesifik lewat server.use().
+  http.get(`${baseUrl}/api/v1/workspaces/:workspaceId/todos`, () => {
+    return HttpResponse.json({
+      items: [],
+      pagination: {
+        limit: 100,
+        hasMore: false,
+        nextCursor: null
+      }
+    });
   })
 ];

@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AppLayout } from '@/components/layout/app-layout/app-layout';
+import { TodoDetailPage } from '@/features/todos/pages/TodoDetailPage';
 import { WorkspacePage } from '@/features/workspaces/pages/WorkspacePage';
 import {
   AccessPlaceholder,
@@ -44,6 +45,7 @@ export function AppRoutes() {
         <Route path="workspaces/new" element={<NewWorkspacePage />} />
         <Route path="workspace/:workspaceId">
           <Route index element={<WorkspacePage />} />
+          <Route path="todos/:todoId" element={<TodoDetailPage />} />
           <Route path="today" element={<TodayPage />} />
           <Route path="upcoming" element={<UpcomingPage />} />
           <Route path="completed" element={<CompletedPage />} />
