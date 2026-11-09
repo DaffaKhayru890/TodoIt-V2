@@ -42,12 +42,12 @@ Field `priority`, `dueAt`, `label`, dan `tags` tetap dipetakan dari respons back
 
 Nilai status mengikuti enum backend:
 
-| Status        | Arti di UI Phase 4             | Section     |
-| ------------- | ------------------------------ | ----------- |
-| `todo`        | Tugas aktif                    | Aktif       |
-| `in_progress` | Tugas aktif yang sedang dipakai | Aktif      |
-| `completed`   | Tugas selesai                  | Selesai     |
-| `cancelled`   | Dibatalkan                     | Tidak tampil |
+| Status        | Arti di UI Phase 4              | Section      |
+| ------------- | ------------------------------- | ------------ |
+| `todo`        | Tugas aktif                     | Aktif        |
+| `in_progress` | Tugas aktif yang sedang dipakai | Aktif        |
+| `completed`   | Tugas selesai                   | Selesai      |
+| `cancelled`   | Dibatalkan                      | Tidak tampil |
 
 `in_progress` diperlakukan sebagai aktif karena Phase 4 tidak menyediakan kontrol untuk mengubah status tersebut. Todo `cancelled` tidak dirender pada kedua section; keputusan ini didokumentasikan agar tidak terlihat seperti bug.
 
@@ -79,10 +79,10 @@ Tanggal diubah dari string ISO backend menjadi `Date` di mapper. Status dan prio
 
 ### Aturan validasi form
 
-| Field       | Aturan                                           |
-| ----------- | ------------------------------------------------ |
-| `title`     | Wajib, 1–200 karakter setelah trim               |
-| `description` | Opsional, maksimal 5000 karakter setelah trim  |
+| Field         | Aturan                                        |
+| ------------- | --------------------------------------------- |
+| `title`       | Wajib, 1–200 karakter setelah trim            |
+| `description` | Opsional, maksimal 5000 karakter setelah trim |
 
 Backend tetap menjadi validator utama. Detail `VALIDATION_ERROR` seperti `body.title` dipetakan kembali ke field form.
 
@@ -135,15 +135,15 @@ Backend tetap menjadi validator utama. Detail `VALIDATION_ERROR` seperti `body.t
 
 ## D. State Halaman
 
-| State             | Tampilan                                                          |
-| ----------------- | ----------------------------------------------------------------- |
-| Loading awal      | Skeleton daftar atau skeleton detail                              |
-| Empty             | Ilustrasi, judul “Belum ada tugas!”, dan tombol buat              |
-| Error             | Pesan error + tombol **Coba lagi**                                |
-| Error dengan data | Data lama tetap tampil, error ditampilkan inline                  |
-| Not found (404)   | “Tugas tidak ditemukan” + kembali ke workspace                    |
-| Access denied     | “Akses ditolak” untuk 403                                         |
-| Workspace mismatch | “Tugas tidak ditemukan” bila `todo.workspaceId` tidak cocok      |
+| State              | Tampilan                                                    |
+| ------------------ | ----------------------------------------------------------- |
+| Loading awal       | Skeleton daftar atau skeleton detail                        |
+| Empty              | Ilustrasi, judul “Belum ada tugas!”, dan tombol buat        |
+| Error              | Pesan error + tombol **Coba lagi**                          |
+| Error dengan data  | Data lama tetap tampil, error ditampilkan inline            |
+| Not found (404)    | “Tugas tidak ditemukan” + kembali ke workspace              |
+| Access denied      | “Akses ditolak” untuk 403                                   |
+| Workspace mismatch | “Tugas tidak ditemukan” bila `todo.workspaceId` tidak cocok |
 
 Query tidak melakukan retry untuk `401`, `403`, dan `404`. Error jaringan/5xx dicoba ulang satu kali.
 

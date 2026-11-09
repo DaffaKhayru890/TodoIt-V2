@@ -8,14 +8,14 @@ Sumber kebenaran adalah source code backend (`src/modules/todo/presentation/http
 
 ## A. Endpoint yang Dipakai
 
-| Method   | Endpoint                                            | Fungsi                     | Sukses |
-| -------- | --------------------------------------------------- | -------------------------- | ------ |
-| `GET`    | `/api/v1/workspaces/:workspaceId/todos`             | Daftar todo (cursor)       | 200    |
-| `GET`    | `/api/v1/workspaces/:workspaceId/todos/:todoId`     | Detail todo                | 200    |
-| `POST`   | `/api/v1/workspaces/:workspaceId/todos`             | Membuat todo               | 201    |
-| `PATCH`  | `/api/v1/workspaces/:workspaceId/todos/:todoId`     | Mengubah field tertentu    | 200    |
-| `PATCH`  | `/api/v1/workspaces/:workspaceId/todos/:todoId/complete` | Menandai selesai      | 200    |
-| `DELETE` | `/api/v1/workspaces/:workspaceId/todos/:todoId`     | Soft delete                | 204    |
+| Method   | Endpoint                                                 | Fungsi                  | Sukses |
+| -------- | -------------------------------------------------------- | ----------------------- | ------ |
+| `GET`    | `/api/v1/workspaces/:workspaceId/todos`                  | Daftar todo (cursor)    | 200    |
+| `GET`    | `/api/v1/workspaces/:workspaceId/todos/:todoId`          | Detail todo             | 200    |
+| `POST`   | `/api/v1/workspaces/:workspaceId/todos`                  | Membuat todo            | 201    |
+| `PATCH`  | `/api/v1/workspaces/:workspaceId/todos/:todoId`          | Mengubah field tertentu | 200    |
+| `PATCH`  | `/api/v1/workspaces/:workspaceId/todos/:todoId/complete` | Menandai selesai        | 200    |
+| `DELETE` | `/api/v1/workspaces/:workspaceId/todos/:todoId`          | Soft delete             | 204    |
 
 Seluruh endpoint memerlukan `Authorization: Bearer <accessToken>`.
 
@@ -200,18 +200,18 @@ todoKeys = {
   workspace: (workspaceId, params) => [...workspaceLists(workspaceId), params],
   details: () => [...all, 'detail'],
   detail: (workspaceId, todoId) => [...details(), workspaceId, todoId]
-}
+};
 ```
 
 ### Invalidasi
 
-| Mutation   | Cache detail                             | Cache list                          |
-| ---------- | ---------------------------------------- | ----------------------------------- |
-| Create     | `setQueryData(detail(workspaceId, id))`  | invalidate `workspaceLists(workspaceId)` |
-| Update     | `setQueryData(detail(...))`              | invalidate `workspaceLists(workspaceId)` |
-| Complete   | `setQueryData(detail(...))`              | invalidate `workspaceLists(workspaceId)` |
-| Reopen     | `setQueryData(detail(...))`              | invalidate `workspaceLists(workspaceId)` |
-| Delete     | `removeQueries(detail(...))`             | invalidate `workspaceLists(workspaceId)` |
+| Mutation | Cache detail                            | Cache list                               |
+| -------- | --------------------------------------- | ---------------------------------------- |
+| Create   | `setQueryData(detail(workspaceId, id))` | invalidate `workspaceLists(workspaceId)` |
+| Update   | `setQueryData(detail(...))`             | invalidate `workspaceLists(workspaceId)` |
+| Complete | `setQueryData(detail(...))`             | invalidate `workspaceLists(workspaceId)` |
+| Reopen   | `setQueryData(detail(...))`             | invalidate `workspaceLists(workspaceId)` |
+| Delete   | `removeQueries(detail(...))`            | invalidate `workspaceLists(workspaceId)` |
 
 Semua key membawa `workspaceId`, sehingga mutation di Workspace B tidak menyentuh cache Workspace A. Ini diuji secara eksplisit.
 
@@ -241,14 +241,14 @@ Envelope backend:
 
 Pemetaan di UI:
 
-| Kondisi                              | Tampilan                                  |
-| ------------------------------------ | ----------------------------------------- |
-| `VALIDATION_ERROR` dengan detail     | Pesan di field form terkait               |
-| `VALIDATION_ERROR` tanpa detail cocok| Pesan umum di atas form                   |
-| `TODO_NOT_FOUND` / 404               | State “Tugas tidak ditemukan”             |
-| `WORKSPACE_PERMISSION_DENIED` / 403  | State “Akses ditolak”                     |
-| `NETWORK_ERROR` / 5xx                | Pesan error + tombol coba lagi            |
-| Respons rusak                        | `INVALID_TODO_RESPONSE`, state error      |
+| Kondisi                               | Tampilan                             |
+| ------------------------------------- | ------------------------------------ |
+| `VALIDATION_ERROR` dengan detail      | Pesan di field form terkait          |
+| `VALIDATION_ERROR` tanpa detail cocok | Pesan umum di atas form              |
+| `TODO_NOT_FOUND` / 404                | State “Tugas tidak ditemukan”        |
+| `WORKSPACE_PERMISSION_DENIED` / 403   | State “Akses ditolak”                |
+| `NETWORK_ERROR` / 5xx                 | Pesan error + tombol coba lagi       |
+| Respons rusak                         | `INVALID_TODO_RESPONSE`, state error |
 
 UI tidak pernah menampilkan stack trace atau objek error mentah.
 

@@ -16,6 +16,10 @@ export default defineConfig({
   },
   test: {
     pool: 'threads',
+    // 56 file test dijalankan paralel dengan jsdom; membatasi worker mencegah
+    // kontensi CPU yang membuat test yang seharusnya cepat melewati 5 detik.
+    maxWorkers: 6,
+    testTimeout: 20_000,
     environment: 'jsdom',
     env: {
       VITE_API_BASE_URL: 'http://localhost:4000'

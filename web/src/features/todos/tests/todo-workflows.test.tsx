@@ -234,7 +234,130 @@ describe('Todo Workflows (Integration-style)', () => {
     expect(await screen.findByText('Belum ada tugas!')).toBeInTheDocument();
   }, 20000);
 
-  test('Workflow E — Detail tugas tidak ditemukan dan kembali ke workspace', async () => {
+  test('Workflow E — Isolasi data antar workspace', async () => {
+    const user = userEvent.setup();
+    const workspaceA = '11111111-1111-4111-8111-111111111111';
+    const workspaceB = '22222222-2222-4222-8222-222222222222';
+    const todoAId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    const todoBId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+    const storeA: TodoDto[] = [
+      makeTodoDto({
+        id: todoAId,
+        workspaceId: workspaceA,
+        title: 'Tugas milik Workspace A'
+      })
+    ];
+    const storeB: TodoDto[] = [
+      makeTodoDto({
+        id: todoBId,
+        workspaceId: workspaceB,
+        title: 'Tugas milik Workspace B'
+      })
+    ];
+
+    server.use(
+      http.get(`${baseUrl}/api/v1/workspaces`, () => {
+        return HttpResponse.json({
+          items: [
+            {
+              id: workspaceA,
+              name: 'Workspace A',
+              description: null,
+              role: 'owner',
+              createdAt: '2026-11-01T00:00:00.000Z'
+            },
+            {
+              id: workspaceB,
+              name: 'Workspace B',
+              description: null,
+              role: 'owner',
+              createdAt: '2026-11-01T00:00:00.000Z'
+            }
+          ],
+          pagination: { limit: 20, offset: 0, total: 2 }
+        });
+      }),
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceA}`, () => {
+        return HttpResponse.json({
+          workspace: {
+            id: workspaceA,
+            name: 'Workspace A',
+            description: null,
+            role: 'owner',
+            createdAt: '2026-11-01T00:00:00.000Z',
+            updatedAt: '2026-11-01T00:00:00.000Z',
+            archivedAt: null
+          }
+        });
+      }),
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceB}`, () => {
+        return HttpResponse.json({
+          workspace: {
+            id: workspaceB,
+            name: 'Workspace B',
+            description: null,
+            role: 'owner',
+            createdAt: '2026-11-01T00:00:00.000Z',
+            updatedAt: '2026-11-01T00:00:00.000Z',
+            archivedAt: null
+          }
+        });
+      }),
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceA}/todos`, () => {
+        return HttpResponse.json({
+          items: storeA,
+          pagination: { limit: 100, hasMore: false, nextCursor: null }
+        });
+      }),
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceB}/todos`, () => {
+        return HttpResponse.json({
+          items: storeB,
+          pagination: { limit: 100, hasMore: false, nextCursor: null }
+        });
+      }),
+      http.patch(`${baseUrl}/api/v1/workspaces/${workspaceB}/todos/${todoBId}/complete`, () => {
+        storeB[0] = {
+          ...storeB[0]!,
+          status: 'completed',
+          completedAt: '2026-11-07T12:00:00.000Z'
+        };
+
+        return HttpResponse.json({ todo: storeB[0] });
+      })
+    );
+
+    renderWithProviders(<AppRoutes />, `/workspace/${workspaceA}`);
+
+    const activeSectionA = await screen.findByLabelText('Daftar tugas aktif');
+    expect(within(activeSectionA).getByText('Tugas milik Workspace A')).toBeInTheDocument();
+    expect(screen.queryByText('Tugas milik Workspace B')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: 'Workspace B' }));
+
+    const activeSectionB = await screen.findByLabelText('Daftar tugas aktif');
+    expect(within(activeSectionB).getByText('Tugas milik Workspace B')).toBeInTheDocument();
+    expect(screen.queryByText('Tugas milik Workspace A')).not.toBeInTheDocument();
+
+    await user.click(
+      within(activeSectionB).getByRole('checkbox', {
+        name: /Tandai tugas Tugas milik Workspace B/i
+      })
+    );
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Tugas ditandai selesai.');
+
+    await user.click(screen.getByRole('link', { name: 'Workspace A' }));
+
+    const restoredActiveSectionA = await screen.findByLabelText('Daftar tugas aktif');
+    expect(within(restoredActiveSectionA).getByText('Tugas milik Workspace A')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: /Buka kembali tugas Tugas milik Workspace A/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Tugas milik Workspace B')).not.toBeInTheDocument();
+  }, 20000);
+
+  test('Workflow F — Detail tugas tidak ditemukan dan kembali ke workspace', async () => {
     const user = userEvent.setup();
     mockTodoStore([]);
     mockWorkspace();

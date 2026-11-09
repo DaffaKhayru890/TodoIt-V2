@@ -201,6 +201,28 @@ describe('todoApi', () => {
     });
   });
 
+  test('melempar ApiError 401 ketika pengguna belum terautentikasi', async () => {
+    server.use(
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos`, () => {
+        return HttpResponse.json(
+          {
+            error: {
+              code: 'UNAUTHORIZED',
+              message: 'Autentikasi diperlukan.',
+              requestId: 'req-401'
+            }
+          },
+          { status: 401 }
+        );
+      })
+    );
+
+    await expect(todoApi.getByWorkspace(workspaceId)).rejects.toMatchObject({
+      status: 401,
+      code: 'UNAUTHORIZED'
+    });
+  });
+
   test('mendeteksi respons todo yang tidak valid', async () => {
     server.use(
       http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}`, () => {

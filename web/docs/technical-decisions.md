@@ -2,7 +2,7 @@
 
 ## Feature-based architecture
 
-Folder `app`, `core`, `components`, `pages`, dan `styles` memisahkan inisialisasi, infrastruktur, dan tampilan. Domain seperti workspace dan todo akan menjadi folder di `src/features` ketika diimplementasikan. Membuat folder itu sekarang hanya menambah direktori kosong, jadi belum dibuat.
+Folder `app`, `core`, `components`, `pages`, dan `styles` memisahkan inisialisasi, infrastruktur, dan tampilan. Domain workspace dan todo berada di `src/features/workspaces` dan `src/features/todos`, masing-masing dengan model, API, hook, schema, komponen, halaman, dan test sendiri.
 
 ## TanStack Query
 

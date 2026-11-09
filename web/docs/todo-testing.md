@@ -77,7 +77,7 @@ Handler default MSW menyediakan daftar todo kosong agar halaman workspace lama t
 - Tanpa params tidak menambah query string.
 - Detail, create, update, complete, dan delete.
 - Payload create/update yang dinormalisasi.
-- Error 404, 403, 422 beserta detail validasi.
+- Error 401, 404, 403, 422 beserta detail validasi.
 - Respons tidak valid (`INVALID_TODO_RESPONSE`).
 - Kegagalan jaringan (`NETWORK_ERROR`).
 
@@ -95,31 +95,32 @@ Handler default MSW menyediakan daftar todo kosong agar halaman workspace lama t
 
 ## D. Cakupan Komponen
 
-| File test                            | Fokus                                                              |
-| ------------------------------------ | ------------------------------------------------------------------ |
-| `TodoFormFields.test.tsx`            | Batas panjang, hint, error per field, disabled state               |
-| `TodoItem.test.tsx`                  | Judul/deskripsi/tautan, status selesai, checkbox, menu aksi        |
-| `TodoEmptyState.test.tsx`            | Ilustrasi, judul, deskripsi, aksi, disabled                        |
-| `TodoList.test.tsx`                  | Skeleton, empty, error + retry, pemisahan section, collapse, aksi  |
-| `CreateTodoDialog.test.tsx`          | Render, validasi, sukses, error backend/jaringan, double submit, discard |
-| `EditTodoDialog.test.tsx`            | Nilai awal, payload parsial, error, spasi saja, discard            |
-| `DeleteTodoDialog.test.tsx`          | Konfirmasi, batal, sukses, error                                   |
-| `WorkspaceTodoSection.test.tsx`      | Loading, empty, error + retry, complete/reopen, create/edit/delete, feedback |
-| `TodoDetailPage.test.tsx`            | Loading, sukses, 404, 403, workspace mismatch, toggle, edit, delete + redirect, retry |
+| File test                       | Fokus                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------- |
+| `TodoFormFields.test.tsx`       | Batas panjang, hint, error per field, disabled state                                  |
+| `TodoItem.test.tsx`             | Judul/deskripsi/tautan, status selesai, checkbox, menu aksi                           |
+| `TodoEmptyState.test.tsx`       | Ilustrasi, judul, deskripsi, aksi, disabled                                           |
+| `TodoList.test.tsx`             | Skeleton, empty, error + retry, pemisahan section, collapse, aksi                     |
+| `CreateTodoDialog.test.tsx`     | Render, validasi, sukses, error backend/jaringan, double submit, discard              |
+| `EditTodoDialog.test.tsx`       | Nilai awal, payload parsial, error, spasi saja, discard                               |
+| `DeleteTodoDialog.test.tsx`     | Konfirmasi, batal, sukses, error                                                      |
+| `WorkspaceTodoSection.test.tsx` | Loading, empty, error + retry, complete/reopen, create/edit/delete, feedback          |
+| `TodoDetailPage.test.tsx`       | Loading, sukses, 404, 403, workspace mismatch, toggle, edit, delete + redirect, retry |
 
 ---
 
-## E. Workflow Integrasi A–E
+## E. Workflow Integrasi A–F
 
 File: `src/features/todos/tests/todo-workflows.test.tsx`.
 
-| Workflow | Skenario                                                                 | Assertion utama                                             |
-| -------- | ------------------------------------------------------------------------ | ----------------------------------------------------------- |
-| A        | Empty state → buat tugas                                                | Dialog tertutup, feedback sukses, item muncul di section aktif |
-| B        | Ubah judul dan deskripsi dari menu aksi                                 | Feedback sukses, judul/deskripsi baru tampil                 |
-| C        | Selesaikan tugas → pindah ke Selesai → buka kembali                     | Item berpindah section dan kembali aktif                     |
-| D        | Buka detail → hapus → kembali ke workspace                              | Redirect ke workspace, empty state tampil                    |
-| E        | Detail 404 → kembali ke workspace                                       | State “Tugas tidak ditemukan” dan navigasi berhasil          |
+| Workflow | Skenario                                            | Assertion utama                                                |
+| -------- | --------------------------------------------------- | -------------------------------------------------------------- |
+| A        | Empty state → buat tugas                            | Dialog tertutup, feedback sukses, item muncul di section aktif |
+| B        | Ubah judul dan deskripsi dari menu aksi             | Feedback sukses, judul/deskripsi baru tampil                   |
+| C        | Selesaikan tugas → pindah ke Selesai → buka kembali | Item berpindah section dan kembali aktif                       |
+| D        | Buka detail → hapus → kembali ke workspace          | Redirect ke workspace, empty state tampil                      |
+| E        | Workspace A → Workspace B → mutasi di B             | Daftar A tidak tampil di B dan cache A tidak berubah           |
+| F        | Detail 404 → kembali ke workspace                   | State “Tugas tidak ditemukan” dan navigasi berhasil            |
 
 Workflow memakai `AppRoutes` dan handler MSW stateful sehingga invalidasi cache benar-benar memuat data terbaru, menyerupai backend nyata.
 
@@ -129,14 +130,14 @@ Workflow memakai `AppRoutes` dan handler MSW stateful sehingga invalidasi cache 
 
 Perintah dan hasil akhir:
 
-| Pemeriksaan       | Hasil                                              |
-| ----------------- | -------------------------------------------------- |
-| `bun run typecheck` | Lulus                                             |
-| `bun run lint`      | Lulus                                             |
-| `bun run format:check` | Lulus                                          |
-| `bun run test:run`  | 56 file, 237 test lulus                           |
+| Pemeriksaan             | Hasil                                                              |
+| ----------------------- | ------------------------------------------------------------------ |
+| `bun run typecheck`     | Lulus                                                              |
+| `bun run lint`          | Lulus                                                              |
+| `bun run format:check`  | Lulus                                                              |
+| `bun run test:run`      | 56 file, 239 test lulus                                            |
 | `bun run test:coverage` | 90,98% statements, 86,30% branches, 93,46% functions, 90,96% lines |
-| `bun run build`     | Lulus, bundle produksi terbentuk                  |
+| `bun run build`         | Lulus, bundle produksi terbentuk                                   |
 
 Coverage fitur todo berada pada kisaran 84–100% per file. File komponen presentasional dan validasi mapping memiliki coverage tinggi; beberapa cabang defensive (misalnya guard untuk bentuk respons yang sangat rusak) tetap diuji pada level service.
 
