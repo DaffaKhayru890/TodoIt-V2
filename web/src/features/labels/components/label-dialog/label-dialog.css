@@ -1,0 +1,45 @@
+@layer components {
+  .label-dialog {
+    @apply flex flex-col gap-4;
+  }
+
+  .label-dialog__error {
+    @apply border-2 border-black bg-red-200 px-3 py-2 text-sm font-semibold text-black;
+  }
+
+  .label-dialog__color-field {
+    @apply m-0 border-2 border-black bg-white p-3;
+  }
+
+  .label-dialog__legend {
+    @apply px-1 text-sm font-black uppercase tracking-wide text-black;
+  }
+
+  .label-dialog__swatches {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .label-dialog__swatch {
+    @apply h-9 w-9 cursor-pointer border-2 border-black;
+  }
+
+  .label-dialog__swatch[aria-pressed='true'] {
+    @apply outline-2 outline-offset-2 outline-black;
+  }
+
+  .label-dialog__color-input {
+    @apply h-9 w-12 cursor-pointer border-2 border-black bg-white p-0;
+  }
+
+  .label-dialog__color-value {
+    @apply text-xs font-bold text-black;
+  }
+
+  .label-dialog__error-text {
+    @apply mb-0 mt-2 text-sm font-semibold text-red-700;
+  }
+
+  .label-dialog__actions {
+    @apply flex flex-wrap justify-end gap-3;
+  }
+}

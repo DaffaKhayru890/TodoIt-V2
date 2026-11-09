@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FiArrowLeft, FiCheck, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { Link, useNavigate, useParams } from 'react-router';
 import { paths } from '@/app/router/route-paths';
@@ -8,13 +8,20 @@ import { Button } from '@/components/ui/button/button';
 import { Skeleton } from '@/components/ui/skeleton/skeleton';
 import { ApiError } from '@/core/errors/api-error';
 import { useDocumentTitle } from '@/hooks/use-document-title';
+import { LabelBadge } from '@/features/labels/components/label-badge/LabelBadge';
+import { useTodoReminders } from '@/features/reminders/hooks/use-todo-reminders';
+import { formatReminderOffset } from '@/features/reminders/models/reminder.model';
+import { TagBadge } from '@/features/tags/components/tag-badge/TagBadge';
 import { useWorkspace } from '@/features/workspaces/hooks/use-workspace';
 import { DeleteTodoDialog } from '../components/delete-todo-dialog/DeleteTodoDialog';
 import { EditTodoDialog } from '../components/edit-todo-dialog/EditTodoDialog';
+import { PriorityBadge } from '../components/priority-badge/PriorityBadge';
 import { useCompleteTodo } from '../hooks/use-complete-todo';
 import { useReopenTodo } from '../hooks/use-reopen-todo';
 import { useTodo } from '../hooks/use-todo';
 import { getTodoStatusLabel, isTodoCompleted, type Todo } from '../models/todo.model';
+import { formatDateTime } from '../utils/date-format';
+import { getDueDateStatus } from '../utils/due-date';
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat('id-ID', {
@@ -54,8 +61,12 @@ export function TodoDetailPage() {
 
   const todoQuery = useTodo(workspaceId, todoId);
   const workspaceQuery = useWorkspace(workspaceId);
+  const remindersQuery = useTodoReminders(workspaceId, todoId);
   const completeMutation = useCompleteTodo();
   const reopenMutation = useReopenTodo();
+
+  // Clock stabil per mount untuk status tenggat yang deterministik.
+  const now = useMemo(() => new Date(), []);
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -135,6 +146,8 @@ export function TodoDetailPage() {
   }
 
   const completed = isTodoCompleted(todo);
+  const dueStatus = getDueDateStatus(todo.dueAt, now, completed);
+  const scheduledReminders = remindersQuery.data?.items ?? [];
 
   const handleToggle = async () => {
     setActionError(null);
@@ -246,6 +259,107 @@ export function TodoDetailPage() {
         </p>
       </section>
 
+      <section className="todo-detail__panel" aria-labelledby="todo-organization-title">
+        <h2 className="todo-detail__panel-title" id="todo-organization-title">
+          Organisasi
+        </h2>
+        <dl className="todo-detail__meta-list">
+          <div>
+            <dt>Label</dt>
+            <dd>
+              {todo.label ? (
+                <LabelBadge name={todo.label.name} color={todo.label.color} />
+              ) : (
+                'Tanpa label'
+              )}
+            </dd>
+          </div>
+          <div>
+            <dt>Tag</dt>
+            <dd>
+              {todo.tags.length > 0 ? (
+                <span className="todo-detail__badges">
+                  {todo.tags.map((tag) => (
+                    <TagBadge key={tag.id} name={tag.name} />
+                  ))}
+                </span>
+              ) : (
+                'Tanpa tag'
+              )}
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="todo-detail__panel" aria-labelledby="todo-priority-title">
+        <h2 className="todo-detail__panel-title" id="todo-priority-title">
+          Prioritas
+        </h2>
+        <PriorityBadge priority={todo.priority} />
+      </section>
+
+      <section className="todo-detail__panel" aria-labelledby="todo-due-title">
+        <h2 className="todo-detail__panel-title" id="todo-due-title">
+          Tenggat Waktu
+        </h2>
+        {todo.dueAt ? (
+          <p className="todo-detail__description">
+            <strong>{formatDateTime(todo.dueAt)}</strong>{' '}
+            <span
+              className={
+                dueStatus === 'overdue'
+                  ? 'todo-detail__due todo-detail__due--overdue'
+                  : dueStatus === 'today'
+                    ? 'todo-detail__due todo-detail__due--today'
+                    : 'todo-detail__due'
+              }
+            >
+              {dueStatus === 'overdue'
+                ? 'Terlambat'
+                : dueStatus === 'today'
+                  ? 'Jatuh tempo hari ini'
+                  : dueStatus === 'completed'
+                    ? 'Tugas selesai'
+                    : 'Akan datang'}
+            </span>
+          </p>
+        ) : (
+          <p className="todo-detail__description">Tidak ada tenggat waktu.</p>
+        )}
+      </section>
+
+      <section className="todo-detail__panel" aria-labelledby="todo-reminder-title">
+        <h2 className="todo-detail__panel-title" id="todo-reminder-title">
+          Pengingat
+        </h2>
+        {remindersQuery.isLoading ? (
+          <p className="todo-detail__description">Memuat pengingat...</p>
+        ) : null}
+        {remindersQuery.isError ? (
+          <p className="todo-detail__description" role="alert">
+            Gagal memuat pengingat. Coba muat ulang halaman.
+          </p>
+        ) : null}
+        {!remindersQuery.isLoading && !remindersQuery.isError && scheduledReminders.length === 0 ? (
+          <p className="todo-detail__description">
+            Tidak ada pengingat aktif. Pengingat hanya menyimpan jadwal; pengiriman notifikasi
+            bergantung pada Notification Engine backend.
+          </p>
+        ) : null}
+        {scheduledReminders.length > 0 ? (
+          <ul className="todo-detail__reminders">
+            {scheduledReminders.map((reminder) => (
+              <li key={reminder.id}>
+                {reminder.triggerType === 'before_due'
+                  ? formatReminderOffset(reminder.offsetMinutes)
+                  : 'Waktu absolut'}
+                {reminder.effectiveAt ? ` · ${formatDateTime(reminder.effectiveAt)}` : ''}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
+
       <section className="todo-detail__panel" aria-labelledby="todo-status-title">
         <h2 className="todo-detail__panel-title" id="todo-status-title">
           Status Penyelesaian
@@ -287,7 +401,12 @@ export function TodoDetailPage() {
           open
           todo={todo}
           onClose={() => setEditOpen(false)}
-          onSuccess={(updated: Todo) => {
+          onSuccess={(updated: Todo, warning?: string) => {
+            if (warning) {
+              setActionError(warning);
+              return;
+            }
+
             setSuccessMessage(`Perubahan "${updated.title}" berhasil disimpan.`);
           }}
         />

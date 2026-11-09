@@ -1,0 +1,21 @@
+@layer components {
+  .delete-tag-dialog {
+    @apply flex flex-col gap-4;
+  }
+
+  .delete-tag-dialog__question {
+    @apply m-0 text-lg font-black text-black;
+  }
+
+  .delete-tag-dialog__description {
+    @apply m-0 text-sm font-medium text-neutral-700;
+  }
+
+  .delete-tag-dialog__error {
+    @apply border-2 border-black bg-red-200 px-3 py-2 text-sm font-semibold text-black;
+  }
+
+  .delete-tag-dialog__actions {
+    @apply flex flex-wrap justify-end gap-3;
+  }
+}

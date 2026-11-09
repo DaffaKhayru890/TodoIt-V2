@@ -1,0 +1,38 @@
+@layer components {
+  .reminder-selector {
+    @apply m-0 flex flex-col gap-2 border-2 border-black bg-white p-3;
+  }
+
+  .reminder-selector__legend {
+    @apply px-1 text-sm font-black uppercase tracking-wide text-black;
+  }
+
+  .reminder-selector__hint {
+    @apply m-0 text-xs font-medium text-neutral-700;
+  }
+
+  .reminder-selector__state {
+    @apply m-0 text-sm font-medium text-neutral-700;
+  }
+
+  .reminder-selector__control {
+    @apply flex flex-col gap-1;
+  }
+
+  .reminder-selector__label {
+    @apply text-sm font-bold text-black;
+  }
+
+  .reminder-selector__select {
+    @apply w-full border-2 border-black bg-white px-3 py-2 text-sm font-medium text-black;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black;
+  }
+
+  .reminder-selector__summary {
+    @apply m-0 text-xs font-bold text-neutral-800;
+  }
+
+  .reminder-selector__error {
+    @apply m-0 text-sm font-semibold text-red-700;
+  }
+}

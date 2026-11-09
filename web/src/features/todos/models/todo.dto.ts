@@ -50,10 +50,15 @@ export interface TodoResponseDto {
 export interface CreateTodoRequestDto {
   readonly title: string;
   readonly description?: string | null;
+  readonly priority?: string;
+  readonly dueAt?: string | null;
 }
 
 export interface UpdateTodoRequestDto {
   readonly title?: string;
   readonly description?: string | null;
   readonly status?: string;
+  readonly priority?: string;
+  readonly dueAt?: string | null;
+  readonly labelId?: string | null;
 }

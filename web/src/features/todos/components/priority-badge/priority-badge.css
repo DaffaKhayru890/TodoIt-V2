@@ -1,0 +1,22 @@
+@layer components {
+  .priority-badge {
+    @apply inline-flex items-center gap-1 border-2 border-black px-2 py-0.5;
+    @apply text-xs font-black uppercase tracking-wide text-black;
+  }
+
+  .priority-badge--low {
+    @apply bg-neutral-200;
+  }
+
+  .priority-badge--medium {
+    @apply bg-yellow-200;
+  }
+
+  .priority-badge--high {
+    @apply bg-orange-300;
+  }
+
+  .priority-badge--urgent {
+    @apply bg-red-300;
+  }
+}

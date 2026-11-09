@@ -1,0 +1,6 @@
+@layer components {
+  .label-badge {
+    @apply inline-flex max-w-48 items-center border-2 border-black px-2 py-0.5;
+    @apply text-xs font-black uppercase tracking-wide;
+  }
+}

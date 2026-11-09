@@ -204,11 +204,13 @@ describe('Todo query & mutation hooks', () => {
     const { wrapper } = createWrapper();
     const { result } = renderHook(() => useReopenTodo(), { wrapper });
 
+    let returned: Awaited<ReturnType<typeof result.current.mutateAsync>> | undefined;
+
     await act(async () => {
-      await result.current.mutateAsync({ workspaceId, todoId });
+      returned = await result.current.mutateAsync({ workspaceId, todoId });
     });
 
-    expect(result.current.data?.status).toBe('todo');
+    expect(returned?.status).toBe('todo');
   });
 
   test('useDeleteTodo menghapus detail cache dan menginvalidasi list', async () => {

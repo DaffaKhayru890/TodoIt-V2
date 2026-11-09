@@ -46,6 +46,11 @@ function parseNullableDate(value: string | null): Date | null {
   return value === null ? null : parseDate(value);
 }
 
+/** Serialisasi instant ke ISO 8601 UTC dengan timezone eksplisit. */
+export function toIsoInstant(value: Date): string {
+  return value.toISOString();
+}
+
 export function toTodo(dto: TodoDto): Todo {
   return {
     id: dto.id,
@@ -78,20 +83,27 @@ export function toTodoListResult(dto: TodoListResponseDto): TodoListResult {
 export function toCreateTodoRequestDto(input: CreateTodoInput): CreateTodoRequestDto {
   return {
     title: input.title.trim(),
-    description: input.description?.trim() || null
+    description: input.description?.trim() || null,
+    ...(input.priority !== undefined ? { priority: input.priority } : {}),
+    ...(input.dueAt !== undefined
+      ? { dueAt: input.dueAt === null ? null : toIsoInstant(input.dueAt) }
+      : {})
   };
 }
 
 /**
  * Hanya mengirim field yang benar-benar berubah. Backend memakai PATCH dengan
  * `additionalProperties: false`, sehingga field undefined tidak boleh ikut
- * diserialkan.
+ * diserialkan. `dueAt: null` dan `labelId: null` berarti menghapus nilai.
  */
 export function toUpdateTodoRequestDto(input: UpdateTodoInput): UpdateTodoRequestDto {
   const result: {
     title?: string;
     description?: string | null;
     status?: string;
+    priority?: string;
+    dueAt?: string | null;
+    labelId?: string | null;
   } = {};
 
   if (input.title !== undefined) {
@@ -104,6 +116,18 @@ export function toUpdateTodoRequestDto(input: UpdateTodoInput): UpdateTodoReques
 
   if (input.status !== undefined) {
     result.status = input.status;
+  }
+
+  if (input.priority !== undefined) {
+    result.priority = input.priority;
+  }
+
+  if (input.dueAt !== undefined) {
+    result.dueAt = input.dueAt === null ? null : toIsoInstant(input.dueAt);
+  }
+
+  if (input.labelId !== undefined) {
+    result.labelId = input.labelId;
   }
 
   return result;

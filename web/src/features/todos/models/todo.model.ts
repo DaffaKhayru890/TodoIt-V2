@@ -1,9 +1,9 @@
 /**
- * Domain model Todo untuk kebutuhan UI Phase 4.
+ * Domain model Todo.
  *
- * Nilai status dan priority mengikuti enum backend apa adanya. Phase 4 hanya
- * mengoperasikan status `todo`, `in_progress`, dan `completed`; `cancelled`
- * tetap dikenali agar data backend tidak salah dipetakan.
+ * Nilai status dan priority mengikuti enum backend apa adanya. `cancelled`
+ * tetap dikenali agar data backend tidak salah dipetakan, tetapi tidak
+ * dirender pada daftar aktif.
  */
 export const TODO_STATUSES = ['todo', 'in_progress', 'completed', 'cancelled'] as const;
 
@@ -54,12 +54,61 @@ export interface TodoListResult {
 export interface CreateTodoInput {
   readonly title: string;
   readonly description: string | null;
+  readonly priority?: TodoPriority;
+  readonly dueAt?: Date | null;
 }
 
 export interface UpdateTodoInput {
   readonly title?: string;
   readonly description?: string | null;
   readonly status?: TodoStatus;
+  readonly priority?: TodoPriority;
+  readonly dueAt?: Date | null;
+  readonly labelId?: string | null;
+}
+
+/** Parameter listing utama (`GET /todos`). */
+export interface TodoListParams {
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly status?: TodoStatus;
+  readonly priority?: TodoPriority;
+  readonly dueFrom?: Date;
+  readonly dueTo?: Date;
+  readonly createdFrom?: Date;
+  readonly createdTo?: Date;
+  readonly q?: string;
+  readonly tagIds?: readonly string[];
+  readonly labelId?: string;
+}
+
+/** Parameter endpoint Today. */
+export interface TodayTodosParams {
+  readonly timezone?: string;
+  readonly includeCompleted?: boolean;
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly tagIds?: readonly string[];
+  readonly labelId?: string;
+}
+
+/** Parameter endpoint Upcoming. */
+export interface UpcomingTodosParams {
+  readonly timezone?: string;
+  readonly days?: number;
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly tagIds?: readonly string[];
+  readonly labelId?: string;
+}
+
+/** Parameter endpoint Overdue. */
+export interface OverdueTodosParams {
+  readonly timezone?: string;
+  readonly limit?: number;
+  readonly cursor?: string;
+  readonly tagIds?: readonly string[];
+  readonly labelId?: string;
 }
 
 export function isTodoStatus(value: string): value is TodoStatus {
@@ -99,7 +148,7 @@ export function getTodoStatusLabel(status: TodoStatus): string {
 
 /**
  * Memisahkan item untuk section Active dan Completed. Todo `cancelled` tidak
- * ditampilkan pada Phase 4 karena pembatalan belum menjadi bagian fitur.
+ * ditampilkan karena pembatalan belum menjadi bagian fitur.
  */
 export function splitTodosByStatus(todos: readonly Todo[]): {
   readonly active: readonly Todo[];

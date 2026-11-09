@@ -40,6 +40,18 @@
     font-size: var(--text-body-sm);
   }
 
+  .todo-workspace__tools {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    border: var(--border-default);
+    background: color-mix(in srgb, var(--color-secondary) 55%, var(--color-surface));
+    padding: var(--space-3);
+    box-shadow: var(--shadow-brutal-sm);
+  }
+
   .todo-workspace__feedback {
     display: flex;
     align-items: center;

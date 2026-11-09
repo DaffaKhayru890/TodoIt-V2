@@ -80,7 +80,10 @@ describe('CreateTodoDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Buat Tugas' }));
 
     await waitFor(() => {
-      expect(handleSuccess).toHaveBeenCalledWith(expect.objectContaining({ id: created.id }));
+      expect(handleSuccess).toHaveBeenCalledWith(
+        expect.objectContaining({ id: created.id }),
+        undefined
+      );
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
   });

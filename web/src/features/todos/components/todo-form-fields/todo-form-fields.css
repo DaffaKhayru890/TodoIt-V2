@@ -11,6 +11,22 @@
     gap: var(--space-4);
   }
 
+  .todo-form__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    border-top: var(--border-default);
+    padding-top: var(--space-4);
+  }
+
+  .todo-form__section-title {
+    margin: 0;
+    font-size: var(--text-label);
+    font-weight: var(--font-bold);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+
   .todo-form__error {
     border: var(--border-default);
     background: var(--color-danger);

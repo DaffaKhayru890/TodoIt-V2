@@ -1,0 +1,89 @@
+@layer components {
+  .todo-filter {
+    @apply flex flex-col gap-3;
+  }
+
+  .todo-filter__toolbar {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .todo-filter__toolbar-note {
+    @apply text-xs font-medium text-neutral-700;
+  }
+
+  .todo-filter__panel {
+    @apply flex w-[min(22rem,calc(100vw-3rem))] flex-col gap-4 p-1;
+    @apply max-h-[70vh] overflow-y-auto;
+  }
+
+  .todo-filter__panel-header {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2;
+  }
+
+  .todo-filter__panel-title {
+    @apply inline-flex items-center gap-2 text-sm font-black uppercase tracking-wide text-black;
+  }
+
+  .todo-filter__clear-all {
+    @apply cursor-pointer border-0 bg-transparent p-0 text-xs font-bold text-red-700 underline;
+  }
+
+  .todo-filter__clear-all:focus-visible {
+    @apply outline-2 outline-offset-2 outline-black;
+  }
+
+  .todo-filter__section {
+    @apply flex flex-col gap-2;
+  }
+
+  .todo-filter__section-title {
+    @apply m-0 text-xs font-black uppercase tracking-wide text-neutral-800;
+  }
+
+  .todo-filter__select {
+    @apply w-full border-2 border-black bg-white px-2 py-1.5 text-sm font-medium text-black;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black;
+  }
+
+  .todo-filter__date-range {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .todo-filter__date-field {
+    @apply flex min-w-0 flex-1 flex-col gap-1 text-xs font-bold text-black;
+  }
+
+  .todo-filter__date-input {
+    @apply w-full border-2 border-black bg-white px-2 py-1 text-sm text-black;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black;
+  }
+
+  .todo-filter__options {
+    @apply flex max-h-40 flex-col gap-1 overflow-y-auto;
+  }
+
+  .todo-filter__state {
+    @apply m-0 text-xs font-medium text-neutral-700;
+  }
+
+  .todo-filter__chips {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .todo-filter__chip {
+    @apply inline-flex items-center gap-1 border-2 border-black bg-yellow-200 px-2 py-0.5;
+    @apply text-xs font-bold text-black;
+  }
+
+  .todo-filter__chip-label {
+    @apply max-w-52 truncate;
+  }
+
+  .todo-filter__chip-remove {
+    @apply inline-flex h-4 w-4 cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-black;
+  }
+
+  .todo-filter__chip-remove:focus-visible {
+    @apply outline-2 outline-offset-2 outline-black;
+  }
+}

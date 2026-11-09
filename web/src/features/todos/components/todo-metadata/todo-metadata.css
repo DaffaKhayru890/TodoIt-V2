@@ -1,0 +1,34 @@
+@layer components {
+  .todo-metadata {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .todo-metadata__group {
+    @apply flex flex-wrap items-center gap-1;
+  }
+
+  .todo-metadata__due {
+    @apply inline-flex flex-wrap items-center gap-1 border-2 border-black px-2 py-0.5;
+    @apply text-xs font-bold text-black;
+  }
+
+  .todo-metadata__due--upcoming {
+    @apply bg-neutral-100;
+  }
+
+  .todo-metadata__due--today {
+    @apply bg-yellow-200;
+  }
+
+  .todo-metadata__due--overdue {
+    @apply bg-red-200;
+  }
+
+  .todo-metadata__due--completed {
+    @apply bg-green-100;
+  }
+
+  .todo-metadata__due-time {
+    @apply font-medium text-neutral-800;
+  }
+}

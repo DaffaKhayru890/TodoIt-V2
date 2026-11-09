@@ -14,6 +14,9 @@ export interface TodoListProps {
   readonly error?: unknown;
   readonly hasMore?: boolean;
   readonly updatingTodoId?: string | null;
+  readonly now?: Date | undefined;
+  readonly isFiltered?: boolean;
+  readonly onClearFilters?: () => void;
   readonly onRetry: () => void;
   readonly onCreate: () => void;
   readonly onEdit: (todo: Todo) => void;
@@ -53,6 +56,9 @@ export function TodoList({
   error,
   hasMore = false,
   updatingTodoId,
+  now,
+  isFiltered = false,
+  onClearFilters,
   onRetry,
   onCreate,
   onEdit,
@@ -84,6 +90,22 @@ export function TodoList({
   const { active, completed } = splitTodosByStatus(items);
 
   if (items.length === 0 && !isError) {
+    if (isFiltered) {
+      return (
+        <div className="todo-list__filtered-empty">
+          <h2 className="todo-list__filtered-title">Tidak ada tugas yang cocok</h2>
+          <p className="todo-list__filtered-description">
+            Tidak ada tugas pada halaman pertama yang sesuai dengan kombinasi filter aktif.
+          </p>
+          {onClearFilters ? (
+            <Button type="button" variant="outline" onClick={onClearFilters}>
+              Hapus semua filter
+            </Button>
+          ) : null}
+        </div>
+      );
+    }
+
     return <TodoEmptyState onCreate={onCreate} />;
   }
 
@@ -117,6 +139,7 @@ export function TodoList({
                 <TodoItem
                   workspaceId={workspaceId}
                   todo={todo}
+                  now={now}
                   isUpdating={updatingTodoId === todo.id}
                   onToggleComplete={onToggleComplete}
                   onEdit={onEdit}
@@ -153,6 +176,7 @@ export function TodoList({
                   <TodoItem
                     workspaceId={workspaceId}
                     todo={todo}
+                    now={now}
                     isUpdating={updatingTodoId === todo.id}
                     onToggleComplete={onToggleComplete}
                     onEdit={onEdit}

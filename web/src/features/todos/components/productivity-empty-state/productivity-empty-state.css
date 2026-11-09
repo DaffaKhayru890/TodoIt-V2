@@ -1,0 +1,26 @@
+@layer components {
+  .productivity-empty {
+    @apply flex flex-wrap items-center gap-5 border-2 border-black bg-white p-5;
+    @apply shadow-[5px_5px_0_0_#000000];
+  }
+
+  .productivity-empty__illustration {
+    @apply w-40 shrink-0;
+  }
+
+  .productivity-empty__illustration svg {
+    @apply block h-auto w-full;
+  }
+
+  .productivity-empty__copy {
+    @apply flex min-w-0 flex-col gap-1;
+  }
+
+  .productivity-empty__title {
+    @apply m-0 text-2xl font-black uppercase tracking-tight text-black;
+  }
+
+  .productivity-empty__description {
+    @apply m-0 text-sm font-medium text-neutral-700;
+  }
+}

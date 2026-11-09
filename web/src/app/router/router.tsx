@@ -1,18 +1,18 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AppLayout } from '@/components/layout/app-layout/app-layout';
+import { LabelsPage } from '@/features/labels/pages/LabelsPage';
+import { TagsPage } from '@/features/tags/pages/TagsPage';
+import { TodayPage } from '@/features/todos/pages/TodayPage';
 import { TodoDetailPage } from '@/features/todos/pages/TodoDetailPage';
+import { UpcomingPage } from '@/features/todos/pages/UpcomingPage';
 import { WorkspacePage } from '@/features/workspaces/pages/WorkspacePage';
 import {
   AccessPlaceholder,
   CompletedPage,
   InboxPage,
-  LabelsPage,
   NewWorkspacePage,
   SearchPage,
-  SettingsPage,
-  TagsPage,
-  TodayPage,
-  UpcomingPage
+  SettingsPage
 } from '@/pages/placeholder-pages';
 import { NotFoundPage } from '@/pages/not-found-page';
 

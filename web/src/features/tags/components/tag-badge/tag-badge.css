@@ -1,0 +1,23 @@
+@layer components {
+  .tag-badge {
+    @apply inline-flex items-center gap-1 border-2 border-black bg-[#ddd6fe] px-2 py-0.5;
+    @apply text-xs font-bold text-black;
+  }
+
+  .tag-badge__hash {
+    @apply font-black;
+  }
+
+  .tag-badge__name {
+    @apply max-w-40 truncate;
+  }
+
+  .tag-badge__remove {
+    @apply ml-1 inline-flex h-4 w-4 items-center justify-center border-0 bg-transparent p-0;
+    @apply cursor-pointer text-black;
+  }
+
+  .tag-badge__remove:focus-visible {
+    @apply outline-2 outline-offset-2 outline-black;
+  }
+}

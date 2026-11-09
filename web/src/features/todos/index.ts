@@ -5,7 +5,6 @@ export * from './api/todo.api';
 export * from './api/todo.query-keys';
 export * from './hooks';
 export * from './schemas/create-todo.schema';
-export * from './schemas/update-todo.schema';
 export * from './utils/api-validation';
 export * from './components/todo-form-fields';
 export * from './components/todo-item';

@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox/checkbox';
 import { Dropdown, DropdownItem } from '@/components/ui/dropdown/dropdown';
 import { joinClasses } from '@/core/utils/join-classes';
 import { getTodoStatusLabel, isTodoCompleted, type Todo } from '../../models/todo.model';
+import { TodoMetadata } from '../todo-metadata/TodoMetadata';
 
 export interface TodoItemProps {
   readonly workspaceId: string;
@@ -14,6 +15,8 @@ export interface TodoItemProps {
   readonly onEdit: (todo: Todo) => void;
   readonly onDelete: (todo: Todo) => void;
   readonly isUpdating?: boolean;
+  /** Injected clock agar indikator tenggat deterministik di test. */
+  readonly now?: Date | undefined;
 }
 
 export function TodoItem({
@@ -22,8 +25,10 @@ export function TodoItem({
   onToggleComplete,
   onEdit,
   onDelete,
-  isUpdating = false
+  isUpdating = false,
+  now
 }: TodoItemProps) {
+  const currentTime = now ?? new Date();
   const completed = isTodoCompleted(todo);
   const toggleLabel = completed
     ? `Buka kembali tugas ${todo.title}`
@@ -52,6 +57,8 @@ export function TodoItem({
         <h3 className="todo-item__title">{todo.title}</h3>
 
         {todo.description ? <p className="todo-item__description">{todo.description}</p> : null}
+
+        <TodoMetadata todo={todo} now={currentTime} />
 
         {todo.status !== 'todo' ? (
           <span className="todo-item__status">

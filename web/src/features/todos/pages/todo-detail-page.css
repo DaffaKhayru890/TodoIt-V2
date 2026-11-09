@@ -162,6 +162,41 @@
     overflow-wrap: anywhere;
   }
 
+  .todo-detail__badges {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .todo-detail__due {
+    display: inline-block;
+    border: var(--border-default);
+    background: var(--color-surface-alt, var(--color-secondary));
+    padding: 0 var(--space-2);
+    font-size: var(--text-body-sm);
+    font-weight: var(--font-bold);
+  }
+
+  .todo-detail__due--today {
+    background: color-mix(in srgb, var(--color-warning, #facc15) 60%, var(--color-surface));
+  }
+
+  .todo-detail__due--overdue {
+    background: var(--color-danger);
+    color: var(--color-danger-ink);
+  }
+
+  .todo-detail__reminders {
+    margin: 0;
+    padding-left: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--text-body-sm);
+  }
+
   @media (max-width: 640px) {
     .todo-detail__header {
       padding: var(--space-4);
