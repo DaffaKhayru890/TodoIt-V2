@@ -28,6 +28,17 @@
     min-height: 0;
   }
 
+  .secondary-sidebar__actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-1);
+  }
+
+  .secondary-sidebar--collapsed .secondary-sidebar__actions {
+    flex-direction: column;
+  }
+
   .secondary-sidebar--collapsed .secondary-sidebar__header {
     flex-direction: column;
     align-items: center;

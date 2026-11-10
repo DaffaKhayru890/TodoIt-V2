@@ -1,6 +1,8 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { AppLayout } from '@/components/layout/app-layout/app-layout';
 import { LabelsPage } from '@/features/labels/pages/LabelsPage';
+import { NotificationSettingsPage } from '@/features/notifications/pages/NotificationSettingsPage';
+import { SearchPage } from '@/features/search/pages/SearchPage';
 import { TagsPage } from '@/features/tags/pages/TagsPage';
 import { TodayPage } from '@/features/todos/pages/TodayPage';
 import { TodoDetailPage } from '@/features/todos/pages/TodoDetailPage';
@@ -10,9 +12,7 @@ import {
   AccessPlaceholder,
   CompletedPage,
   InboxPage,
-  NewWorkspacePage,
-  SearchPage,
-  SettingsPage
+  NewWorkspacePage
 } from '@/pages/placeholder-pages';
 import { NotFoundPage } from '@/pages/not-found-page';
 
@@ -41,7 +41,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to="/inbox" replace />} />
         <Route path="inbox" element={<InboxPage />} />
         <Route path="search" element={<SearchPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings" element={<NotificationSettingsPage />} />
         <Route path="workspaces/new" element={<NewWorkspacePage />} />
         <Route path="workspace/:workspaceId">
           <Route index element={<WorkspacePage />} />

@@ -11,15 +11,6 @@ export function InboxPage() {
   return <PageHeader title="Inbox" description={`Kotak masuk lintas workspace. ${pending}`} />;
 }
 
-export function SearchPage() {
-  return (
-    <PageHeader
-      title="Cari"
-      description={`Pencarian todo akan tersedia pada phase berikutnya. ${pending}`}
-    />
-  );
-}
-
 export function TodayPage() {
   return <PageHeader title="Today" description={`Daftar tugas hari ini. ${pending}`} />;
 }
@@ -49,10 +40,6 @@ export function TagsPage() {
 
 export function LabelsPage() {
   return <PageHeader title="Labels" description={`Pengelolaan label. ${pending}`} />;
-}
-
-export function SettingsPage() {
-  return <PageHeader title="Settings" description={`Preferensi aplikasi. ${pending}`} />;
 }
 
 export function NewWorkspacePage() {

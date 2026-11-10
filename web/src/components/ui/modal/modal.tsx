@@ -8,7 +8,8 @@ export function Modal({
   children,
   onClose,
   showClose = true,
-  showBackdrop = true
+  showBackdrop = true,
+  className
 }: {
   open: boolean;
   title: string;
@@ -16,6 +17,7 @@ export function Modal({
   onClose: () => void;
   showClose?: boolean;
   showBackdrop?: boolean;
+  className?: string;
 }) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -37,7 +39,7 @@ export function Modal({
       ) : null}
       <div
         ref={dialogRef}
-        className="modal"
+        className={className ? `modal ${className}` : 'modal'}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

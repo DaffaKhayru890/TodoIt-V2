@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FiMenu } from 'react-icons/fi';
+import { FiMenu, FiSearch } from 'react-icons/fi';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { buildNavigation } from '@/app/navigation/navigation';
 import { paths } from '@/app/router/route-paths';
@@ -10,6 +10,11 @@ import { PrimarySidebar } from '@/components/layout/primary-sidebar/primary-side
 import { SecondarySidebar } from '@/components/layout/secondary-sidebar/secondary-sidebar';
 import { IconButton } from '@/components/ui/icon-button/icon-button';
 import { joinClasses } from '@/core/utils/join-classes';
+import { NotificationBell } from '@/features/notifications/components/notification-bell/NotificationBell';
+import { NotificationCenter } from '@/features/notifications/components/notification-center/NotificationCenter';
+import { useNotificationUpdates } from '@/features/notifications/hooks/use-notification-updates';
+import { SearchPopup } from '@/features/search/components/search-popup/SearchPopup';
+import { useSearchShortcut } from '@/features/search/hooks/use-search-shortcut';
 import { CreateWorkspaceDialog } from '@/features/workspaces/components/create-workspace-dialog/CreateWorkspaceDialog';
 import { useWorkspaces } from '@/features/workspaces/hooks/use-workspaces';
 import { useDialogBehavior } from '@/hooks/use-dialog-behavior';
@@ -21,9 +26,15 @@ export function AppLayout() {
   const compact = useMediaQuery(compactQuery);
   const preference = readSidebarPreference();
   const [drawer, setDrawer] = useState<'none' | 'primary' | 'secondary'>('none');
-  const [trackedCompact, setTrackedCompact] = useState(compact);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const navigate = useNavigate();
+
+  useSearchShortcut(() => setSearchOpen(true), !searchOpen && !notificationsOpen);
+  useNotificationUpdates();
+
+  const [trackedCompact, setTrackedCompact] = useState(compact);
 
   if (compact !== trackedCompact) {
     setTrackedCompact(compact);

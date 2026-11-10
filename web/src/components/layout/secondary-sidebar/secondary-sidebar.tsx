@@ -1,4 +1,5 @@
 import { FiChevronsLeft, FiX } from 'react-icons/fi';
+import type { ReactNode } from 'react';
 import {
   buildNavigation,
   searchNavigation,
@@ -8,6 +9,7 @@ import { NavigationItem } from '@/components/layout/navigation-item/navigation-i
 import { NavigationSection } from '@/components/layout/navigation-section/navigation-section';
 import { IconButton } from '@/components/ui/icon-button/icon-button';
 import { joinClasses } from '@/core/utils/join-classes';
+import { SearchTrigger } from '@/features/search/components/search-trigger/SearchTrigger';
 
 export function SecondarySidebar({
   workspaceId,
@@ -15,7 +17,9 @@ export function SecondarySidebar({
   showCollapse,
   onToggleCollapse,
   onClose,
-  sections
+  sections,
+  onSearch,
+  notificationSlot
 }: {
   workspaceId?: string | undefined;
   collapsed: boolean;
@@ -23,6 +27,8 @@ export function SecondarySidebar({
   onToggleCollapse?: () => void;
   onClose?: () => void;
   sections?: readonly NavigationSectionConfig[];
+  onSearch?: () => void;
+  notificationSlot?: ReactNode;
 }) {
   const navigation = sections ?? buildNavigation(workspaceId);
   const search = searchNavigation();
@@ -32,9 +38,16 @@ export function SecondarySidebar({
       <header className="secondary-sidebar__header">
         <nav aria-label="Pencarian">
           <ul className="nav-section__list">
-            <NavigationItem item={search} collapsed={collapsed} />
+            {onSearch ? (
+              <SearchTrigger collapsed={collapsed} onOpen={onSearch} />
+            ) : (
+              <NavigationItem item={search} collapsed={collapsed} />
+            )}
           </ul>
         </nav>
+        {notificationSlot ? (
+          <div className="secondary-sidebar__actions">{notificationSlot}</div>
+        ) : null}
         {onClose ? (
           <IconButton label="Tutup navigasi" onClick={onClose}>
             <FiX />
