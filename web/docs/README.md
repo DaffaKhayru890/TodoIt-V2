@@ -2,7 +2,7 @@
 
 Frontend TodoIt-v2. Backend tetap berada di root repository dan tidak dipindahkan. Folder `web/` adalah aplikasi React terpisah yang berbicara ke API tersebut.
 
-Phase 1 menyiapkan tooling dan fondasi API. Phase 2 menambahkan design system Neo Brutalism, komponen UI, dan application shell dengan dua sidebar. Phase 3 mengimplementasikan Workspace Management dengan integrasi API backend, TanStack Query, dialog create/edit, konfirmasi archive, detail page, dan penanganan permission. Phase 4 mengimplementasikan Todo Management di dalam workspace: daftar tugas aktif/selesai, create/edit/delete, completion/reopen, halaman detail todo, serta seluruh state loading, empty, error, not found, dan access denied. Hard delete workspace dan fitur di luar todo dasar belum tersedia.
+Phase 1 menyiapkan tooling dan fondasi API. Phase 2 menambahkan design system Neo Brutalism, komponen UI, dan application shell dengan dua sidebar. Phase 3 mengimplementasikan Workspace Management dengan integrasi API backend, TanStack Query, dialog create/edit, konfirmasi archive, detail page, dan penanganan permission. Phase 4 mengimplementasikan Todo Management di dalam workspace: daftar tugas aktif/selesai, create/edit/delete, completion/reopen, halaman detail todo, serta seluruh state loading, empty, error, not found, dan access denied. Phase 5 menambahkan productivity features: tag dan label workspace, assignment metadata, priority, due date, reminder, Today, Upcoming, overdue indicator, filter gabungan berbasis URL, dan sorting client-side. Hard delete workspace, sorting server-side, pagination lanjutan, dan fitur kolaborasi/notifikasi belum tersedia.
 
 Dokumentasi fitur:
 
@@ -11,6 +11,13 @@ Dokumentasi fitur:
 - [Integrasi API todo](todo-api-integration.md)
 - [Komponen todo](todo-components.md)
 - [Testing todo](todo-testing.md)
+- [Productivity features](productivity-features.md)
+- [Tag dan label](tags-and-labels.md)
+- [Priority](priority-management.md)
+- [Due date dan reminder](date-and-reminder.md)
+- [Today dan Upcoming](today-and-upcoming.md)
+- [Filtering dan sorting](filtering-and-sorting.md)
+- [Testing productivity](productivity-testing.md)
 
 ## Teknologi
 
@@ -71,7 +78,7 @@ web/
 │   ├── app/          inisialisasi, provider, router
 │   ├── components/   komponen UI dan layout bersama
 │   ├── core/         HTTP client, env, error
-│   ├── features/     domain bisnis (workspace, todo)
+│   ├── features/     domain bisnis (workspace, todo, tag, label, reminder)
 │   ├── hooks/        hook UI bersama
 │   ├── pages/        halaman placeholder
 │   ├── styles/       token, global, komponen, utility
@@ -86,6 +93,13 @@ web/
 - [Integrasi API todo](todo-api-integration.md)
 - [Komponen todo](todo-components.md)
 - [Testing todo](todo-testing.md)
+- [Productivity features](productivity-features.md)
+- [Tag dan label](tags-and-labels.md)
+- [Priority](priority-management.md)
+- [Due date dan reminder](date-and-reminder.md)
+- [Today dan Upcoming](today-and-upcoming.md)
+- [Filtering dan sorting](filtering-and-sorting.md)
+- [Testing productivity](productivity-testing.md)
 - [Arsitektur](architecture.md)
 - [Audit backend](backend-audit.md)
 - [Kontrak API](api-contract.md)

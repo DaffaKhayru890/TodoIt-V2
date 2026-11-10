@@ -16,12 +16,7 @@ function Harness({
   const [value, setValue] = useState<number | null>(initial);
 
   return (
-    <ReminderSelector
-      value={value}
-      onChange={setValue}
-      hasDueDate={hasDueDate}
-      error={error}
-    />
+    <ReminderSelector value={value} onChange={setValue} hasDueDate={hasDueDate} error={error} />
   );
 }
 

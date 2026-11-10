@@ -184,9 +184,7 @@ describe('toTodoListQueryPlan', () => {
   test('overdue memakai batas atas awal hari ini dan filter client-side', () => {
     const plan = toTodoListQueryPlan(filter({ due: 'overdue' }), now);
 
-    expect(plan.params.dueTo).toEqual(
-      new Date(new Date(2026, 10, 9, 0, 0, 0, 0).getTime() - 1)
-    );
+    expect(plan.params.dueTo).toEqual(new Date(new Date(2026, 10, 9, 0, 0, 0, 0).getTime() - 1));
     expect(plan.clientFilter).toBe('active-not-overdue');
   });
 
@@ -231,9 +229,7 @@ describe('applyClientTodoFilter', () => {
   const overdue = toTodo(
     makeTodoDto({ id: 'overdue', status: 'todo', dueAt: '2026-11-08T09:00:00.000Z' })
   );
-  const withDue = toTodo(
-    makeTodoDto({ id: 'with-due', dueAt: '2026-11-10T09:00:00.000Z' })
-  );
+  const withDue = toTodo(makeTodoDto({ id: 'with-due', dueAt: '2026-11-10T09:00:00.000Z' }));
   const all = [activeTodo, inProgress, completed, cancelled, overdue, withDue];
 
   test('none mengembalikan input apa adanya', () => {

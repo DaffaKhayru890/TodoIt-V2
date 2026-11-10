@@ -7,12 +7,7 @@ import { todoKeys } from '@/features/todos/api/todo.query-keys';
 import { makeTagDto } from '@/test/fixtures/tags';
 import { server } from '@/test/mocks/server';
 import { tagKeys } from '../api/tag.query-keys';
-import {
-  useCreateTag,
-  useDeleteTag,
-  useReplaceTodoTags,
-  useUpdateTag
-} from './use-tag-mutations';
+import { useCreateTag, useDeleteTag, useReplaceTodoTags, useUpdateTag } from './use-tag-mutations';
 import { useTags } from './use-tags';
 
 const baseUrl = 'http://localhost:4000';

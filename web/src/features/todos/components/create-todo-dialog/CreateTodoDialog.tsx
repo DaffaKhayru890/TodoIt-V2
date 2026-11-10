@@ -232,11 +232,7 @@ export function CreateTodoDialog({
             <h3 className="todo-form__section-title" id="create-todo-basic">
               Informasi Dasar
             </h3>
-            <TodoFormFields
-              register={register}
-              errors={errors}
-              disabled={isSubmitting || isBusy}
-            />
+            <TodoFormFields register={register} errors={errors} disabled={isSubmitting || isBusy} />
           </section>
 
           <section className="todo-form__section" aria-labelledby="create-todo-organization">

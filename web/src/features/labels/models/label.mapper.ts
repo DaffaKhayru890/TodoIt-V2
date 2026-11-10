@@ -5,12 +5,7 @@ import type {
   ListLabelsResponseDto,
   UpdateLabelRequestDto
 } from './label.dto';
-import type {
-  CreateLabelInput,
-  Label,
-  LabelListResult,
-  UpdateLabelInput
-} from './label.model';
+import type { CreateLabelInput, Label, LabelListResult, UpdateLabelInput } from './label.model';
 
 function parseDate(value: string): Date {
   const date = new Date(value);

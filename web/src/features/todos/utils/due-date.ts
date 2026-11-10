@@ -50,11 +50,7 @@ export function isSameLocalDay(left: Date, right: Date): boolean {
   );
 }
 
-export function getDueDateStatus(
-  dueAt: Date | null,
-  now: Date,
-  completed: boolean
-): DueDateStatus {
+export function getDueDateStatus(dueAt: Date | null, now: Date, completed: boolean): DueDateStatus {
   if (!dueAt) {
     return 'none';
   }

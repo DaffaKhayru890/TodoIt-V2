@@ -33,9 +33,7 @@ export function UpcomingPage() {
   const workspaceQuery = useWorkspace(workspaceId);
   const timezone = useMemo(() => getTimezone(), []);
   const now = useMemo(() => new Date(), []);
-  const upcomingParams = timezone
-    ? { days: UPCOMING_DAYS, timezone }
-    : { days: UPCOMING_DAYS };
+  const upcomingParams = timezone ? { days: UPCOMING_DAYS, timezone } : { days: UPCOMING_DAYS };
   const todosQuery = useUpcomingTodos(workspaceId, upcomingParams);
   const completeMutation = useCompleteTodo();
   const reopenMutation = useReopenTodo();
@@ -112,19 +110,29 @@ export function UpcomingPage() {
       </p>
 
       {successMessage ? (
-        <div className="productivity-page__feedback productivity-page__feedback--success" role="status">
+        <div
+          className="productivity-page__feedback productivity-page__feedback--success"
+          role="status"
+        >
           {successMessage}
         </div>
       ) : null}
 
       {errorMessage ? (
-        <div className="productivity-page__feedback productivity-page__feedback--error" role="alert">
+        <div
+          className="productivity-page__feedback productivity-page__feedback--error"
+          role="alert"
+        >
           {errorMessage}
         </div>
       ) : null}
 
       {todosQuery.isLoading ? (
-        <div className="productivity-page__skeleton" aria-busy="true" aria-label="Memuat tugas mendatang">
+        <div
+          className="productivity-page__skeleton"
+          aria-busy="true"
+          aria-label="Memuat tugas mendatang"
+        >
           <Skeleton variant="card" />
           <Skeleton variant="card" />
           <Skeleton variant="card" />
@@ -164,10 +172,7 @@ export function UpcomingPage() {
               aria-labelledby={`upcoming-group-${group.key}`}
             >
               <div className="productivity-page__section-header">
-                <h2
-                  className="productivity-page__section-title"
-                  id={`upcoming-group-${group.key}`}
-                >
+                <h2 className="productivity-page__section-title" id={`upcoming-group-${group.key}`}>
                   {group.label}
                 </h2>
                 <span className="productivity-page__group-count">{group.todos.length}</span>

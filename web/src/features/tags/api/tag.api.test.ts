@@ -59,10 +59,13 @@ describe('tagApi', () => {
 
   test('update mengirim PATCH nama', async () => {
     server.use(
-      http.patch(`${baseUrl}/api/v1/workspaces/${workspaceId}/tags/${tagId}`, async ({ request }) => {
-        expect(await request.json()).toEqual({ name: 'Backend API' });
-        return HttpResponse.json({ tag: makeTagDto({ name: 'Backend API' }) });
-      })
+      http.patch(
+        `${baseUrl}/api/v1/workspaces/${workspaceId}/tags/${tagId}`,
+        async ({ request }) => {
+          expect(await request.json()).toEqual({ name: 'Backend API' });
+          return HttpResponse.json({ tag: makeTagDto({ name: 'Backend API' }) });
+        }
+      )
     );
 
     await expect(
@@ -92,20 +95,18 @@ describe('tagApi', () => {
       )
     );
 
-    await expect(
-      tagApi.replaceTodoTags(workspaceId, todoId, [tagId])
-    ).resolves.toEqual([{ id: tagId, name: 'backend' }]);
+    await expect(tagApi.replaceTodoTags(workspaceId, todoId, [tagId])).resolves.toEqual([
+      { id: tagId, name: 'backend' }
+    ]);
   });
 
   test('addTodoTag dan removeTodoTag memakai endpoint per tag', async () => {
     server.use(
-      http.post(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/tags/${tagId}`,
-        () => HttpResponse.json({ tags: [{ id: tagId, name: 'backend' }] })
+      http.post(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/tags/${tagId}`, () =>
+        HttpResponse.json({ tags: [{ id: tagId, name: 'backend' }] })
       ),
-      http.delete(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/tags/${tagId}`,
-        () => HttpResponse.json({ tags: [] })
+      http.delete(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/tags/${tagId}`, () =>
+        HttpResponse.json({ tags: [] })
       )
     );
 

@@ -81,9 +81,9 @@ describe('tag.mapper', () => {
   });
 
   test('toTodoTagSummaries hanya mempertahankan id dan name', () => {
-    expect(
-      toTodoTagSummaries({ tags: [{ id: 'tag-1', name: 'backend' }] })
-    ).toEqual([{ id: 'tag-1', name: 'backend' }]);
+    expect(toTodoTagSummaries({ tags: [{ id: 'tag-1', name: 'backend' }] })).toEqual([
+      { id: 'tag-1', name: 'backend' }
+    ]);
   });
 
   test('request DTO melakukan trim nama', () => {

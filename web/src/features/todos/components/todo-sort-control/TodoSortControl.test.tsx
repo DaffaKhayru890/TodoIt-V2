@@ -5,9 +5,7 @@ import { TodoSortControl } from './TodoSortControl';
 
 describe('TodoSortControl', () => {
   test('merender field sorting dan arah saat ini', () => {
-    render(
-      <TodoSortControl sort={{ field: 'createdAt', direction: 'desc' }} onChange={vi.fn()} />
-    );
+    render(<TodoSortControl sort={{ field: 'createdAt', direction: 'desc' }} onChange={vi.fn()} />);
 
     expect(screen.getByLabelText('Urutkan')).toHaveValue('createdAt');
     expect(
@@ -31,9 +29,7 @@ describe('TodoSortControl', () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
 
-    render(
-      <TodoSortControl sort={{ field: 'title', direction: 'asc' }} onChange={onChange} />
-    );
+    render(<TodoSortControl sort={{ field: 'title', direction: 'asc' }} onChange={onChange} />);
 
     await user.click(
       screen.getByRole('button', { name: 'Arah pengurutan: Naik. Klik untuk mengubah.' })
@@ -43,11 +39,7 @@ describe('TodoSortControl', () => {
 
   test('menonaktifkan kontrol ketika disabled', () => {
     render(
-      <TodoSortControl
-        sort={{ field: 'title', direction: 'asc' }}
-        onChange={vi.fn()}
-        disabled
-      />
+      <TodoSortControl sort={{ field: 'title', direction: 'asc' }} onChange={vi.fn()} disabled />
     );
 
     expect(screen.getByLabelText('Urutkan')).toBeDisabled();

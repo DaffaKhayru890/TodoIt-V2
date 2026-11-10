@@ -142,7 +142,9 @@ export function LabelDialog({ open, workspaceId, label, onClose, onSuccess }: La
                 style={{ backgroundColor: preset }}
                 aria-label={`Pilih warna ${preset}`}
                 aria-pressed={color.toUpperCase() === preset}
-                onClick={() => setValue('color', preset, { shouldDirty: true, shouldValidate: true })}
+                onClick={() =>
+                  setValue('color', preset, { shouldDirty: true, shouldValidate: true })
+                }
               />
             ))}
             <input

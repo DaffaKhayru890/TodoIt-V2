@@ -50,13 +50,7 @@ describe('LabelSelector', () => {
     const onRetry = vi.fn();
 
     render(
-      <LabelSelector
-        labels={[]}
-        selectedId={null}
-        onChange={vi.fn()}
-        isError
-        onRetry={onRetry}
-      />
+      <LabelSelector labels={[]} selectedId={null} onChange={vi.fn()} isError onRetry={onRetry} />
     );
 
     await user.click(screen.getByRole('button', { name: 'Coba lagi' }));

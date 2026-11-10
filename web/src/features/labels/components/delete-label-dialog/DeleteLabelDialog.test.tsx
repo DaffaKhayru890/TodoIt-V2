@@ -28,12 +28,7 @@ describe('DeleteLabelDialog', () => {
     const handleClose = vi.fn();
 
     renderWithProviders(
-      <DeleteLabelDialog
-        open
-        workspaceId={workspaceId}
-        label={label}
-        onClose={handleClose}
-      />
+      <DeleteLabelDialog open workspaceId={workspaceId} label={label} onClose={handleClose} />
     );
 
     await user.click(screen.getByRole('button', { name: 'Batal' }));
@@ -90,12 +85,7 @@ describe('DeleteLabelDialog', () => {
     );
 
     renderWithProviders(
-      <DeleteLabelDialog
-        open
-        workspaceId={workspaceId}
-        label={label}
-        onClose={handleClose}
-      />
+      <DeleteLabelDialog open workspaceId={workspaceId} label={label} onClose={handleClose} />
     );
 
     await user.click(screen.getByRole('button', { name: 'Hapus Label' }));

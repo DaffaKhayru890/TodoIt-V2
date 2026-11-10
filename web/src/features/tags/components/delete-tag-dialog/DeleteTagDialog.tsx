@@ -32,9 +32,7 @@ export function DeleteTagDialog({
       onSuccess?.();
     } catch (caught) {
       setError(
-        caught instanceof ApiError
-          ? caught.message
-          : 'Gagal menghapus tag. Periksa koneksi Anda.'
+        caught instanceof ApiError ? caught.message : 'Gagal menghapus tag. Periksa koneksi Anda.'
       );
     }
   };
@@ -56,7 +54,12 @@ export function DeleteTagDialog({
         ) : null}
 
         <div className="delete-tag-dialog__actions">
-          <Button type="button" variant="outline" onClick={onClose} disabled={deleteMutation.isPending}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={deleteMutation.isPending}
+          >
             Batal
           </Button>
           <Button

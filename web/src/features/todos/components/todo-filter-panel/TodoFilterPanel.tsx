@@ -162,9 +162,7 @@ export function TodoFilterPanel({
                 onChange={(event) =>
                   patch({
                     due: event.target.value as TodoFilterState['due'],
-                    ...(event.target.value === 'custom'
-                      ? {}
-                      : { customFrom: null, customTo: null })
+                    ...(event.target.value === 'custom' ? {} : { customFrom: null, customTo: null })
                   })
                 }
               >
@@ -184,9 +182,7 @@ export function TodoFilterPanel({
                       className="todo-filter__date-input"
                       value={filter.customFrom ?? ''}
                       disabled={disabled}
-                      onChange={(event) =>
-                        patch({ customFrom: event.target.value || null })
-                      }
+                      onChange={(event) => patch({ customFrom: event.target.value || null })}
                     />
                   </label>
                   <label className="todo-filter__date-field">

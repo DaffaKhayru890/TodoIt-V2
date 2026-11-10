@@ -258,3 +258,202 @@ describe('todoApi', () => {
     });
   });
 });
+
+describe('todoApi Phase 5', () => {
+  test('getByWorkspace mengirim seluruh filter yang didukung backend', async () => {
+    server.use(
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos`, ({ request }) => {
+        const url = new URL(request.url);
+        const params = url.searchParams;
+
+        expect(params.get('status')).toBe('completed');
+        expect(params.get('priority')).toBe('urgent');
+        expect(params.get('dueFrom')).toBe('2026-11-01T00:00:00.000Z');
+        expect(params.get('dueTo')).toBe('2026-11-30T23:59:59.999Z');
+        expect(params.get('createdFrom')).toBe('2026-10-01T00:00:00.000Z');
+        expect(params.get('createdTo')).toBe('2026-10-31T23:59:59.999Z');
+        expect(params.get('q')).toBe('laporan');
+        expect(params.getAll('tagIds')).toEqual(['tag-1', 'tag-2']);
+        expect(params.get('labelId')).toBe('label-1');
+
+        return HttpResponse.json({
+          items: [makeTodoDto()],
+          pagination: { limit: 100, hasMore: false, nextCursor: null }
+        });
+      })
+    );
+
+    await todoApi.getByWorkspace(workspaceId, {
+      status: 'completed',
+      priority: 'urgent',
+      dueFrom: new Date('2026-11-01T00:00:00.000Z'),
+      dueTo: new Date('2026-11-30T23:59:59.999Z'),
+      createdFrom: new Date('2026-10-01T00:00:00.000Z'),
+      createdTo: new Date('2026-10-31T23:59:59.999Z'),
+      q: 'laporan',
+      tagIds: ['tag-1', 'tag-2'],
+      labelId: 'label-1'
+    });
+  });
+
+  test('getToday mengirim timezone, includeCompleted, pagination, dan metadata filter', async () => {
+    server.use(
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/today`, ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        expect(params.get('timezone')).toBe('Asia/Jakarta');
+        expect(params.get('includeCompleted')).toBe('true');
+        expect(params.get('limit')).toBe('100');
+        expect(params.get('cursor')).toBe('cursor-1');
+        expect(params.getAll('tagIds')).toEqual(['tag-1']);
+        expect(params.get('labelId')).toBe('label-1');
+
+        return HttpResponse.json({
+          items: [makeTodoDto()],
+          pagination: { limit: 100, hasMore: false, nextCursor: null }
+        });
+      })
+    );
+
+    const result = await todoApi.getToday(workspaceId, {
+      timezone: 'Asia/Jakarta',
+      includeCompleted: true,
+      limit: 100,
+      cursor: 'cursor-1',
+      tagIds: ['tag-1'],
+      labelId: 'label-1'
+    });
+
+    expect(result.items).toHaveLength(1);
+  });
+
+  test('getUpcoming mengirim days dan filter metadata', async () => {
+    server.use(
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/upcoming`, ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        expect(params.get('timezone')).toBe('Asia/Jakarta');
+        expect(params.get('days')).toBe('30');
+        expect(params.getAll('tagIds')).toEqual(['tag-1', 'tag-2']);
+        expect(params.get('labelId')).toBe('label-1');
+
+        return HttpResponse.json({
+          items: [],
+          pagination: { limit: 100, hasMore: false, nextCursor: null }
+        });
+      })
+    );
+
+    await todoApi.getUpcoming(workspaceId, {
+      timezone: 'Asia/Jakarta',
+      days: 30,
+      tagIds: ['tag-1', 'tag-2'],
+      labelId: 'label-1'
+    });
+  });
+
+  test('getOverdue mengirim timezone dan filter metadata tanpa days', async () => {
+    server.use(
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/overdue`, ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        expect(params.get('timezone')).toBe('Asia/Jakarta');
+        expect(params.get('days')).toBeNull();
+        expect(params.getAll('tagIds')).toEqual(['tag-1']);
+        expect(params.get('labelId')).toBe('label-1');
+
+        return HttpResponse.json({
+          items: [],
+          pagination: { limit: 100, hasMore: false, nextCursor: null }
+        });
+      })
+    );
+
+    await todoApi.getOverdue(workspaceId, {
+      timezone: 'Asia/Jakarta',
+      tagIds: ['tag-1'],
+      labelId: 'label-1'
+    });
+  });
+
+  test('create mengirim priority dan dueAt sebagai ISO instant', async () => {
+    server.use(
+      http.post(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos`, async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+
+        expect(body).toEqual({
+          title: 'Rilis Phase 5',
+          description: null,
+          priority: 'high',
+          dueAt: '2026-11-12T02:00:00.000Z'
+        });
+
+        return HttpResponse.json(
+          {
+            todo: makeTodoDto({
+              title: 'Rilis Phase 5',
+              priority: 'high',
+              dueAt: '2026-11-12T02:00:00.000Z'
+            })
+          },
+          { status: 201 }
+        );
+      })
+    );
+
+    const created = await todoApi.create(workspaceId, {
+      title: 'Rilis Phase 5',
+      description: null,
+      priority: 'high',
+      dueAt: new Date('2026-11-12T02:00:00.000Z')
+    });
+
+    expect(created.priority).toBe('high');
+    expect(created.dueAt).toEqual(new Date('2026-11-12T02:00:00.000Z'));
+  });
+
+  test('create mempertahankan dueAt null untuk todo tanpa tenggat', async () => {
+    server.use(
+      http.post(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos`, async ({ request }) => {
+        const body = (await request.json()) as Record<string, unknown>;
+        expect(body).toEqual({ title: 'Tanpa tenggat', description: null, dueAt: null });
+        return HttpResponse.json(
+          { todo: makeTodoDto({ title: 'Tanpa tenggat', dueAt: null }) },
+          { status: 201 }
+        );
+      })
+    );
+
+    await todoApi.create(workspaceId, {
+      title: 'Tanpa tenggat',
+      description: null,
+      dueAt: null
+    });
+  });
+
+  test('update mengirim priority, dueAt, dan labelId nullable', async () => {
+    server.use(
+      http.patch(
+        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}`,
+        async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          expect(body).toEqual({
+            priority: 'urgent',
+            dueAt: null,
+            labelId: null
+          });
+          return HttpResponse.json({
+            todo: makeTodoDto({ priority: 'urgent', dueAt: null, label: null })
+          });
+        }
+      )
+    );
+
+    const updated = await todoApi.update(workspaceId, todoId, {
+      priority: 'urgent',
+      dueAt: null,
+      labelId: null
+    });
+
+    expect(updated.priority).toBe('urgent');
+    expect(updated.dueAt).toBeNull();
+    expect(updated.label).toBeNull();
+  });
+});

@@ -36,12 +36,7 @@ export function TodoMetadata({ todo, now, className }: TodoMetadataProps) {
       <PriorityBadge priority={todo.priority} />
 
       {todo.dueAt ? (
-        <span
-          className={joinClasses(
-            'todo-metadata__due',
-            `todo-metadata__due--${dueStatus}`
-          )}
-        >
+        <span className={joinClasses('todo-metadata__due', `todo-metadata__due--${dueStatus}`)}>
           {dueStatus === 'overdue' ? (
             <FiAlertTriangle aria-hidden="true" />
           ) : (

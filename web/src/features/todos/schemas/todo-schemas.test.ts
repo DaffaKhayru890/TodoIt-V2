@@ -13,12 +13,10 @@ const BASE_VALUES = {
 
 describe('Todo form schemas', () => {
   test('create menerima title valid dan description opsional', () => {
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, description: '' }).success
-    ).toBe(true);
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, description: 'Catatan' }).success
-    ).toBe(true);
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, description: '' }).success).toBe(true);
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, description: 'Catatan' }).success).toBe(
+      true
+    );
     expect(createTodoSchema.safeParse(BASE_VALUES).success).toBe(true);
   });
 
@@ -49,8 +47,7 @@ describe('Todo form schemas', () => {
 
   test('update menggunakan aturan field yang sama dengan create', () => {
     expect(
-      updateTodoSchema.safeParse({ ...BASE_VALUES, title: 'Judul baru', description: null })
-        .success
+      updateTodoSchema.safeParse({ ...BASE_VALUES, title: 'Judul baru', description: null }).success
     ).toBe(false);
     expect(
       updateTodoSchema.safeParse({ ...BASE_VALUES, title: 'Judul baru', description: '' }).success
@@ -58,27 +55,23 @@ describe('Todo form schemas', () => {
   });
 
   test('menolak prioritas di luar enum backend', () => {
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, priority: 'critical' }).success
-    ).toBe(false);
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, priority: 'urgent' }).success
-    ).toBe(true);
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, priority: 'critical' }).success).toBe(
+      false
+    );
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, priority: 'urgent' }).success).toBe(true);
   });
 
   test('menolak format tenggat waktu yang tidak valid', () => {
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, dueAt: '2026-13-99T99:99' }).success
-    ).toBe(false);
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, dueAt: '2026-11-10T09:00' }).success
-    ).toBe(true);
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, dueAt: '2026-13-99T99:99' }).success).toBe(
+      false
+    );
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, dueAt: '2026-11-10T09:00' }).success).toBe(
+      true
+    );
   });
 
   test('pengingat memerlukan tenggat waktu', () => {
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, reminderOffset: 15 }).success
-    ).toBe(false);
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, reminderOffset: 15 }).success).toBe(false);
     expect(
       createTodoSchema.safeParse({
         ...BASE_VALUES,
@@ -91,9 +84,9 @@ describe('Todo form schemas', () => {
   test('offset pengingat harus berada pada rentang backend 1-43200 menit', () => {
     const dueAt = '2026-11-10T09:00';
 
-    expect(
-      createTodoSchema.safeParse({ ...BASE_VALUES, dueAt, reminderOffset: 0 }).success
-    ).toBe(false);
+    expect(createTodoSchema.safeParse({ ...BASE_VALUES, dueAt, reminderOffset: 0 }).success).toBe(
+      false
+    );
     expect(
       createTodoSchema.safeParse({ ...BASE_VALUES, dueAt, reminderOffset: 43_201 }).success
     ).toBe(false);

@@ -2,12 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { makeTodoDto } from '@/test/fixtures/todos';
 import { toTodo } from '../models/todo.mapper';
 import type { Todo, TodoPriority } from '../models/todo.model';
-import {
-  DEFAULT_TODO_SORT,
-  isSortDirection,
-  isTodoSortField,
-  sortTodos
-} from './sort-todos';
+import { DEFAULT_TODO_SORT, isSortDirection, isTodoSortField, sortTodos } from './sort-todos';
 
 function todo(
   id: string,

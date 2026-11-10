@@ -59,7 +59,12 @@ describe('DueDateField', () => {
 
   test('menampilkan error dan menandai input tidak valid', () => {
     render(
-      <DueDateField value="2026-11-12T14:30" onChange={vi.fn()} now={now} error="Tanggal tidak valid." />
+      <DueDateField
+        value="2026-11-12T14:30"
+        onChange={vi.fn()}
+        now={now}
+        error="Tanggal tidak valid."
+      />
     );
 
     expect(screen.getByRole('alert')).toHaveTextContent('Tanggal tidak valid.');

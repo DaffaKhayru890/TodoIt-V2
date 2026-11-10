@@ -112,9 +112,8 @@ describe('labelApi', () => {
 
   test('clearTodoLabel mengirim DELETE dan memetakan todo tanpa label', async () => {
     server.use(
-      http.delete(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/label`,
-        () => HttpResponse.json({ todo: makeTodoDto({ label: null }) })
+      http.delete(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/label`, () =>
+        HttpResponse.json({ todo: makeTodoDto({ label: null }) })
       )
     );
 

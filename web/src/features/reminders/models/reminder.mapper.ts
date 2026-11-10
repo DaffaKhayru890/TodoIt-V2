@@ -58,9 +58,7 @@ export function toReminderListResult(dto: ListRemindersResponseDto): ReminderLis
   };
 }
 
-export function toCreateReminderRequestDto(
-  input: CreateReminderInput
-): CreateReminderRequestDto {
+export function toCreateReminderRequestDto(input: CreateReminderInput): CreateReminderRequestDto {
   return {
     triggerType: input.triggerType,
     ...(input.remindAt !== undefined
@@ -70,9 +68,7 @@ export function toCreateReminderRequestDto(
   };
 }
 
-export function toUpdateReminderRequestDto(
-  input: UpdateReminderInput
-): UpdateReminderRequestDto {
+export function toUpdateReminderRequestDto(input: UpdateReminderInput): UpdateReminderRequestDto {
   return {
     ...(input.remindAt !== undefined ? { remindAt: input.remindAt.toISOString() } : {}),
     ...(input.offsetMinutes !== undefined ? { offsetMinutes: input.offsetMinutes } : {})

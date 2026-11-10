@@ -37,8 +37,8 @@ export function ReminderSelector({
     <fieldset className="reminder-selector" aria-describedby={hintId}>
       <legend className="reminder-selector__legend">Pengingat</legend>
       <p className="reminder-selector__hint" id={hintId}>
-        Frontend hanya menyimpan jadwal ke backend. Pengiriman notifikasi dijalankan oleh Notification
-        Engine, bukan timer browser.
+        Frontend hanya menyimpan jadwal ke backend. Pengiriman notifikasi dijalankan oleh
+        Notification Engine, bukan timer browser.
       </p>
 
       <Checkbox

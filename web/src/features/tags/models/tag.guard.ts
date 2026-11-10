@@ -1,10 +1,5 @@
 import { ApiError } from '@/core/errors/api-error';
-import type {
-  ListTagsResponseDto,
-  TagDto,
-  TagResponseDto,
-  TodoTagsResponseDto
-} from './tag.dto';
+import type { ListTagsResponseDto, TagDto, TagResponseDto, TodoTagsResponseDto } from './tag.dto';
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -57,8 +52,7 @@ export function assertTodoTagsResponseDto(value: unknown): asserts value is Todo
     !isObject(value) ||
     !Array.isArray(value.tags) ||
     !value.tags.every(
-      (tag) =>
-        isObject(tag) && typeof tag.id === 'string' && typeof tag.name === 'string'
+      (tag) => isObject(tag) && typeof tag.id === 'string' && typeof tag.name === 'string'
     )
   ) {
     invalidResponse();

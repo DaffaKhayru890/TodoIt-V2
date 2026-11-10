@@ -46,9 +46,7 @@ function renderPanel(
 function Harness({ initial }: { readonly initial?: TodoFilterState }) {
   const [current, setCurrent] = useState(initial ?? EMPTY_TODO_FILTER);
 
-  return (
-    <TodoFilterPanel filter={current} onChange={setCurrent} tags={tags} labels={labels} />
-  );
+  return <TodoFilterPanel filter={current} onChange={setCurrent} tags={tags} labels={labels} />;
 }
 
 describe('TodoFilterPanel', () => {
@@ -92,40 +90,22 @@ describe('TodoFilterPanel', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ priority: 'urgent' }));
   });
 
-  test('memilih tenggat custom menampilkan rentang tanggal', async () => {
+  test('memilih tenggat custom menampilkan dan mengisi rentang tanggal', async () => {
     const user = userEvent.setup();
-    const { onChange } = renderPanel();
+
+    render(<Harness />);
 
     await user.click(screen.getByRole('button', { name: 'Filter' }));
     const panel = screen.getByLabelText('Panel filter tugas');
 
     await user.selectOptions(within(panel).getByLabelText('Filter tenggat'), 'custom');
 
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ due: 'custom' })
-    );
-
-    const { rerender } = render(
-      <TodoFilterPanel
-        filter={filter({ due: 'custom' })}
-        onChange={onChange}
-        tags={tags}
-        labels={labels}
-      />
-    );
-
     expect(screen.getByLabelText('Dari')).toBeInTheDocument();
     expect(screen.getByLabelText('Sampai')).toBeInTheDocument();
 
-    rerender(
-      <TodoFilterPanel
-        filter={filter({ due: 'custom', customFrom: '2026-11-01' })}
-        onChange={onChange}
-        tags={tags}
-        labels={labels}
-      />
-    );
+    await user.type(screen.getByLabelText('Dari'), '2026-11-01');
     expect(screen.getByLabelText('Dari')).toHaveValue('2026-11-01');
+    expect(screen.getByLabelText('Sampai')).toHaveValue('');
   });
 
   test('mencentang tag menambah tagIds dan label dapat dipilih', async () => {
@@ -136,29 +116,21 @@ describe('TodoFilterPanel', () => {
     const panel = screen.getByLabelText('Panel filter tugas');
 
     await user.click(within(panel).getByRole('checkbox', { name: 'backend' }));
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ tagIds: [tags[0]!.id] })
-    );
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ tagIds: [tags[0]!.id] }));
 
     await user.selectOptions(within(panel).getByLabelText('Filter label'), labels[1]!.id);
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ labelId: labels[1]!.id })
-    );
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ labelId: labels[1]!.id }));
   });
 
   test('melepas tag melalui chip', async () => {
     const user = userEvent.setup();
-    const { onChange } = renderPanel(
-      filter({ tagIds: [tags[0]!.id, tags[1]!.id] })
-    );
+    const { onChange } = renderPanel(filter({ tagIds: [tags[0]!.id, tags[1]!.id] }));
 
     expect(screen.getByText('Tag: backend')).toBeInTheDocument();
     expect(screen.getByText('Tag: design')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Hapus filter Tag: backend' }));
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ tagIds: [tags[1]!.id] })
-    );
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ tagIds: [tags[1]!.id] }));
   });
 
   test('Hapus semua mengosongkan seluruh filter', async () => {

@@ -32,9 +32,7 @@ export function DeleteLabelDialog({
       onSuccess?.();
     } catch (caught) {
       setError(
-        caught instanceof ApiError
-          ? caught.message
-          : 'Gagal menghapus label. Periksa koneksi Anda.'
+        caught instanceof ApiError ? caught.message : 'Gagal menghapus label. Periksa koneksi Anda.'
       );
     }
   };

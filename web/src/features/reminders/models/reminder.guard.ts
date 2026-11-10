@@ -1,9 +1,5 @@
 import { ApiError } from '@/core/errors/api-error';
-import type {
-  ListRemindersResponseDto,
-  ReminderDto,
-  ReminderResponseDto
-} from './reminder.dto';
+import type { ListRemindersResponseDto, ReminderDto, ReminderResponseDto } from './reminder.dto';
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;

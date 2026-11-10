@@ -33,7 +33,11 @@ export interface TagApiService {
     todoId: string,
     tagIds: readonly string[]
   ): Promise<readonly TodoTagSummary[]>;
-  addTodoTag(workspaceId: string, todoId: string, tagId: string): Promise<readonly TodoTagSummary[]>;
+  addTodoTag(
+    workspaceId: string,
+    todoId: string,
+    tagId: string
+  ): Promise<readonly TodoTagSummary[]>;
   removeTodoTag(
     workspaceId: string,
     todoId: string,

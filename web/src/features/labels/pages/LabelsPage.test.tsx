@@ -84,9 +84,7 @@ describe('LabelsPage', () => {
 
     renderPage();
 
-    expect(
-      await screen.findByText('Hanya owner/admin dapat mengelola label')
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Hanya owner/admin dapat mengelola label')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Buat Label' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ubah label Bug' })).not.toBeInTheDocument();
   });
@@ -140,10 +138,7 @@ describe('LabelsPage', () => {
 
     server.use(
       http.post(`${baseUrl}/api/v1/workspaces/${workspaceId}/labels`, () =>
-        HttpResponse.json(
-          { label: makeLabelDto({ name: 'Frontend' }) },
-          { status: 201 }
-        )
+        HttpResponse.json({ label: makeLabelDto({ name: 'Frontend' }) }, { status: 201 })
       )
     );
 
@@ -151,11 +146,13 @@ describe('LabelsPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Buat label pertama' }));
     await user.type(screen.getByLabelText('Nama Label'), 'Frontend');
-    await user.click(screen.getByRole('button', { name: 'Buat Label' }));
+    await user.click(
+      within(screen.getByRole('dialog', { name: 'Buat Label Baru' })).getByRole('button', {
+        name: 'Buat Label'
+      })
+    );
 
-    expect(
-      await screen.findByText('Label Frontend berhasil dibuat.')
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Label Frontend berhasil dibuat.')).toBeInTheDocument();
   });
 
   test('menghapus label melalui dialog konfirmasi dan menampilkan feedback', async () => {

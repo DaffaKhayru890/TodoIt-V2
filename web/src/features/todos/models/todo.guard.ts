@@ -16,8 +16,13 @@ function isNullableString(value: unknown): value is string | null {
   return value === null || typeof value === 'string';
 }
 
+const ISO_INSTANT_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+
 function isIsoDate(value: unknown): value is string {
-  return typeof value === 'string' && !Number.isNaN(Date.parse(value));
+  return (
+    typeof value === 'string' && ISO_INSTANT_PATTERN.test(value) && !Number.isNaN(Date.parse(value))
+  );
 }
 
 function isNullableIsoDate(value: unknown): value is string | null {

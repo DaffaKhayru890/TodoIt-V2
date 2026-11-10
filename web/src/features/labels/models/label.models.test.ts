@@ -80,13 +80,16 @@ describe('label.mapper', () => {
       })
     ).toEqual({ name: 'Bug', color: '#E74C3C', description: 'Masalah produksi' });
 
-    expect(
-      toCreateLabelRequestDto({ name: 'Bug', color: '#E74C3C', description: '   ' })
-    ).toEqual({ name: 'Bug', color: '#E74C3C', description: null });
+    expect(toCreateLabelRequestDto({ name: 'Bug', color: '#E74C3C', description: '   ' })).toEqual({
+      name: 'Bug',
+      color: '#E74C3C',
+      description: null
+    });
 
-    expect(
-      toCreateLabelRequestDto({ name: 'Bug', color: '#E74C3C', description: null })
-    ).toEqual({ name: 'Bug', color: '#E74C3C' });
+    expect(toCreateLabelRequestDto({ name: 'Bug', color: '#E74C3C', description: null })).toEqual({
+      name: 'Bug',
+      color: '#E74C3C'
+    });
   });
 
   test('toUpdateLabelRequestDto hanya mengirim field yang didefinisikan', () => {

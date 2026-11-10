@@ -77,7 +77,10 @@ describe('reminderApi', () => {
             triggerType: 'before_due',
             offsetMinutes: 30
           });
-          return HttpResponse.json({ reminder: makeReminderDto({ offsetMinutes: 30 }) }, { status: 201 });
+          return HttpResponse.json(
+            { reminder: makeReminderDto({ offsetMinutes: 30 }) },
+            { status: 201 }
+          );
         }
       )
     );
@@ -139,16 +142,13 @@ describe('reminderApi', () => {
       )
     );
 
-    await expect(
-      reminderApi.cancel(workspaceId, todoId, reminderId)
-    ).resolves.toBeUndefined();
+    await expect(reminderApi.cancel(workspaceId, todoId, reminderId)).resolves.toBeUndefined();
   });
 
   test('melempar ApiError ketika response reminder rusak', async () => {
     server.use(
-      http.get(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`,
-        () => HttpResponse.json({ items: [{ id: 'rusak' }], pagination: {} })
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`, () =>
+        HttpResponse.json({ items: [{ id: 'rusak' }], pagination: {} })
       )
     );
 
@@ -157,9 +157,8 @@ describe('reminderApi', () => {
 
   test('menerjemahkan kegagalan jaringan', async () => {
     server.use(
-      http.get(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`,
-        () => HttpResponse.error()
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`, () =>
+        HttpResponse.error()
       )
     );
 

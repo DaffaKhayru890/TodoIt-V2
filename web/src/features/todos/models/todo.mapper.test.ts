@@ -100,6 +100,85 @@ describe('todo.mapper', () => {
   });
 });
 
+describe('todo.mapper Phase 5', () => {
+  test('toTodo memetakan priority dan dueAt nullable', () => {
+    const withDue = toTodo(makeTodoDto({ priority: 'urgent', dueAt: '2026-11-12T02:00:00.000Z' }));
+    const withoutDue = toTodo(makeTodoDto({ priority: 'low', dueAt: null }));
+
+    expect(withDue.priority).toBe('urgent');
+    expect(withDue.dueAt).toEqual(new Date('2026-11-12T02:00:00.000Z'));
+    expect(withoutDue.priority).toBe('low');
+    expect(withoutDue.dueAt).toBeNull();
+  });
+
+  test('toTodo menolak priority di luar enum backend', () => {
+    expect(() => toTodo(makeTodoDto({ priority: 'critical' }))).toThrow(ApiError);
+  });
+
+  test('toTodo menolak dueAt yang tidak dapat diparse', () => {
+    expect(() => toTodo(makeTodoDto({ dueAt: 'bukan-tanggal' }))).toThrow(ApiError);
+  });
+
+  test('toCreateTodoRequestDto mengirim priority dan dueAt ISO', () => {
+    expect(
+      toCreateTodoRequestDto({
+        title: 'Rilis',
+        description: null,
+        priority: 'high',
+        dueAt: new Date('2026-11-12T02:00:00.000Z')
+      })
+    ).toEqual({
+      title: 'Rilis',
+      description: null,
+      priority: 'high',
+      dueAt: '2026-11-12T02:00:00.000Z'
+    });
+  });
+
+  test('toCreateTodoRequestDto mempertahankan dueAt null dan mengomit field undefined', () => {
+    expect(
+      toCreateTodoRequestDto({ title: 'Tanpa tenggat', description: null, dueAt: null })
+    ).toEqual({
+      title: 'Tanpa tenggat',
+      description: null,
+      dueAt: null
+    });
+
+    const minimal = toCreateTodoRequestDto({ title: 'Minimal', description: null });
+    expect(minimal).toEqual({ title: 'Minimal', description: null });
+    expect('priority' in minimal).toBe(false);
+    expect('dueAt' in minimal).toBe(false);
+  });
+
+  test('toUpdateTodoRequestDto mengirim priority, dueAt ISO, dan labelId null', () => {
+    expect(
+      toUpdateTodoRequestDto({
+        priority: 'urgent',
+        dueAt: new Date('2026-11-12T02:00:00.000Z'),
+        labelId: 'label-1'
+      })
+    ).toEqual({
+      priority: 'urgent',
+      dueAt: '2026-11-12T02:00:00.000Z',
+      labelId: 'label-1'
+    });
+
+    expect(toUpdateTodoRequestDto({ dueAt: null, labelId: null })).toEqual({
+      dueAt: null,
+      labelId: null
+    });
+  });
+
+  test('toUpdateTodoRequestDto tidak menyerialkan field yang tidak diberikan', () => {
+    const input = toUpdateTodoRequestDto({ title: 'Hanya judul' });
+
+    expect(input).toEqual({ title: 'Hanya judul' });
+    expect('priority' in input).toBe(false);
+    expect('dueAt' in input).toBe(false);
+    expect('labelId' in input).toBe(false);
+  });
+});
+
 describe('todo.model helpers', () => {
   test('isTodoCompleted hanya benar untuk status completed', () => {
     expect(isTodoCompleted({ status: 'completed' })).toBe(true);

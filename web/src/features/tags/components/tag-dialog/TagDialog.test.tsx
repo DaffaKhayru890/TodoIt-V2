@@ -14,9 +14,7 @@ const tag = toTag(makeTagDto());
 
 describe('TagDialog', () => {
   test('merender mode buat dengan field nama tag', () => {
-    renderWithProviders(
-      <TagDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<TagDialog open workspaceId={workspaceId} onClose={vi.fn()} />);
 
     expect(screen.getByRole('dialog', { name: 'Buat Tag Baru' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nama Tag')).toHaveValue('');
@@ -26,9 +24,7 @@ describe('TagDialog', () => {
   test('merender mode ubah dengan nilai awal dan tombol nonaktif sampai berubah', async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(
-      <TagDialog open workspaceId={workspaceId} tag={tag} onClose={vi.fn()} />
-    );
+    renderWithProviders(<TagDialog open workspaceId={workspaceId} tag={tag} onClose={vi.fn()} />);
 
     expect(screen.getByRole('dialog', { name: 'Ubah Tag' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nama Tag')).toHaveValue('backend');
@@ -41,9 +37,7 @@ describe('TagDialog', () => {
   test('menolak nama kosong tanpa memanggil API', async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(
-      <TagDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<TagDialog open workspaceId={workspaceId} onClose={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: 'Buat Tag' }));
 
@@ -58,29 +52,19 @@ describe('TagDialog', () => {
     server.use(
       http.post(`${baseUrl}/api/v1/workspaces/${workspaceId}/tags`, async ({ request }) => {
         expect(await request.json()).toEqual({ name: 'Frontend' });
-        return HttpResponse.json(
-          { tag: makeTagDto({ name: 'Frontend' }) },
-          { status: 201 }
-        );
+        return HttpResponse.json({ tag: makeTagDto({ name: 'Frontend' }) }, { status: 201 });
       })
     );
 
     renderWithProviders(
-      <TagDialog
-        open
-        workspaceId={workspaceId}
-        onClose={handleClose}
-        onSuccess={handleSuccess}
-      />
+      <TagDialog open workspaceId={workspaceId} onClose={handleClose} onSuccess={handleSuccess} />
     );
 
     await user.type(screen.getByLabelText('Nama Tag'), 'Frontend');
     await user.click(screen.getByRole('button', { name: 'Buat Tag' }));
 
     await waitFor(() => {
-      expect(handleSuccess).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Frontend' })
-      );
+      expect(handleSuccess).toHaveBeenCalledWith(expect.objectContaining({ name: 'Frontend' }));
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
   });
@@ -114,9 +98,7 @@ describe('TagDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Simpan Perubahan' }));
 
     await waitFor(() =>
-      expect(handleSuccess).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Backend API' })
-      )
+      expect(handleSuccess).toHaveBeenCalledWith(expect.objectContaining({ name: 'Backend API' }))
     );
   });
 
@@ -139,9 +121,7 @@ describe('TagDialog', () => {
       })
     );
 
-    renderWithProviders(
-      <TagDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<TagDialog open workspaceId={workspaceId} onClose={vi.fn()} />);
 
     await user.type(screen.getByLabelText('Nama Tag'), 'backend');
     await user.click(screen.getByRole('button', { name: 'Buat Tag' }));
@@ -168,9 +148,7 @@ describe('TagDialog', () => {
       })
     );
 
-    renderWithProviders(
-      <TagDialog open workspaceId={workspaceId} onClose={handleClose} />
-    );
+    renderWithProviders(<TagDialog open workspaceId={workspaceId} onClose={handleClose} />);
 
     await user.type(screen.getByLabelText('Nama Tag'), 'backend');
     await user.click(screen.getByRole('button', { name: 'Buat Tag' }));
@@ -185,9 +163,7 @@ describe('TagDialog', () => {
     const user = userEvent.setup();
     const handleClose = vi.fn();
 
-    renderWithProviders(
-      <TagDialog open workspaceId={workspaceId} onClose={handleClose} />
-    );
+    renderWithProviders(<TagDialog open workspaceId={workspaceId} onClose={handleClose} />);
 
     await user.type(screen.getByLabelText('Nama Tag'), 'Frontend');
     await user.click(screen.getByRole('button', { name: 'Batal' }));

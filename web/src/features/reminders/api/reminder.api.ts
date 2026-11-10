@@ -1,8 +1,5 @@
 import { httpClient, type HttpClient } from '@/core/api/http-client';
-import {
-  assertReminderListResponseDto,
-  assertReminderResponseDto
-} from '../models/reminder.guard';
+import { assertReminderListResponseDto, assertReminderResponseDto } from '../models/reminder.guard';
 import {
   toCreateReminderRequestDto,
   toReminder,
@@ -44,11 +41,7 @@ function reminderPath(workspaceId: string, todoId: string, reminderId: string): 
   return `${remindersPath(workspaceId, todoId)}/${encodeURIComponent(reminderId)}`;
 }
 
-function buildListPath(
-  workspaceId: string,
-  todoId: string,
-  params?: ListRemindersParams
-): string {
+function buildListPath(workspaceId: string, todoId: string, params?: ListRemindersParams): string {
   const searchParams = new URLSearchParams();
 
   if (params?.status !== undefined) searchParams.set('status', params.status);

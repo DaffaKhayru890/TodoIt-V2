@@ -1,6 +1,6 @@
 # Arsitektur frontend
 
-Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/features/`), dan style. Domain bisnis Workspace diimplementasikan pada Phase 3, lalu Todo Management ditambahkan pada Phase 4 dalam modul terpisah `src/features/todos/`.
+Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/features/`), dan style. Domain bisnis Workspace diimplementasikan pada Phase 3, Todo Management pada Phase 4, lalu productivity features pada Phase 5 dalam modul `src/features/tags/`, `src/features/labels/`, dan `src/features/reminders/`.
 
 ## App
 
@@ -8,7 +8,7 @@ Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/feat
 
 `AppProviders` membungkus `QueryProvider`. `QueryClient` dibuat lewat initializer `useState`, jadi tidak dibuat ulang setiap render.
 
-`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Rute `/workspace/:workspaceId` terhubung ke `WorkspacePage`, dan rute anak `/workspace/:workspaceId/todos/:todoId` terhubung ke `TodoDetailPage`.
+`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Rute `/workspace/:workspaceId` terhubung ke `WorkspacePage`, rute anak `/workspace/:workspaceId/todos/:todoId` terhubung ke `TodoDetailPage`, serta `/workspace/:workspaceId/today` dan `/workspace/:workspaceId/upcoming` terhubung ke halaman productivity. Rute tag dan label memakai `/workspace/:workspaceId/tags` dan `/workspace/:workspaceId/labels`.
 
 ## Features (`src/features/`)
 
@@ -38,6 +38,25 @@ Modul todo terpisah di `src/features/todos/`:
 
 `WorkspacePage` hanya merender `WorkspaceTodoSection`; seluruh state query, dialog, dan feedback todo tetap berada di fitur todos. Detail arsitektur ada di [todo-management.md](todo-management.md) dan [todo-components.md](todo-components.md).
 
+### Productivity metadata (Phase 5)
+
+- `tags/`: DTO, domain model, guard, mapper, `tagApi`, query keys, hook query/mutation, schema Zod, `TagBadge`, `TagSelector`, `TagDialog`, `DeleteTagDialog`, dan `TagsPage`.
+- `labels/`: struktur yang sama dengan field `color` dan `description`, plus `LabelSelector` dan `LabelsPage`.
+- `reminders/`: DTO/model/guard/mapper, `reminderApi`, query keys, `useTodoReminders`, mutation create/update/cancel, dan `ReminderSelector`.
+
+Modul todo diperluas tanpa merombak Phase 4:
+
+- `models/todo-priority.ts` — konfigurasi enum, label, bobot sorting.
+- `models/todo-filter.ts` — state filter type-safe.
+- `utils/date-format.ts`, `due-date.ts` — parsing/format lokal, status due date, rentang, grouping.
+- `utils/sort-todos.ts` — sorting immutable dan natural numeric.
+- `utils/filter-url.ts` — parser/serializer URL dan query plan.
+- `utils/invalidate-todo-cache.ts` — invalidasi cache metadata per workspace.
+- Komponen `PriorityBadge`, `PrioritySelector`, `DueDateField`, `TodoMetadata`, `TodoFilterPanel`, `TodoSortControl`, `ProductivityEmptyState`.
+- Halaman `TodayPage`, `UpcomingPage`, serta perluasan `TodoDetailPage`.
+
+Detail ada di [productivity-features.md](productivity-features.md).
+
 Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime produksi.
 
 ## Core
@@ -52,7 +71,7 @@ Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime 
 
 `src/components/ui` berisi komponen design system. `src/components/layout` berisi shell dua sidebar. JSX memakai class semantik. Aturan visual ada di stylesheet komponen dan diimpor dari `globals.css`.
 
-`src/pages` berisi halaman placeholder untuk domain yang belum dikerjakan (tag, label, pengaturan, dan sejenisnya). Halaman tersebut belum mengambil data server. Khusus workspace, `src/features/workspaces/pages/WorkspacePage.tsx` sudah mengambil detail dari API. Daftar workspace di Primary Sidebar berasal dari `GET /api/v1/workspaces`, bukan fixture. Daftar tugas dan detail todo berasal dari endpoint todo backend melalui `src/features/todos/`.
+`src/pages` berisi halaman placeholder untuk domain yang belum dikerjakan. Khusus workspace, `src/features/workspaces/pages/WorkspacePage.tsx` sudah mengambil detail dari API. Daftar workspace di Primary Sidebar berasal dari `GET /api/v1/workspaces`, bukan fixture. Daftar tugas dan detail todo berasal dari endpoint todo backend melalui `src/features/todos/`. Halaman tag dan label berasal dari `src/features/tags/` dan `src/features/labels/`.
 
 ## Alur data
 
@@ -65,7 +84,9 @@ Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime 
 Query key workspace memisahkan `lists()` dan `detail(id)`. Mutation menginvalidasi
 `lists()` dan memperbarui atau menghapus cache detail sesuai operasi.
 
-Query key todo selalu membawa `workspaceId`: `workspaceLists(workspaceId)` untuk daftar dan `detail(workspaceId, todoId)` untuk detail. Mutation todo hanya menginvalidasi daftar workspace terkait dan memperbarui/menghapus cache detail todo. Ini mencegah cache Workspace A tersentuh oleh operasi Workspace B. Detail ada di [todo-api-integration.md](todo-api-integration.md).
+Query key todo selalu membawa `workspaceId`: `workspaceLists(workspaceId)` untuk daftar, `workspace(workspaceId, params)` untuk kombinasi filter, `today/upcoming/overdue(workspaceId, params)` untuk view, dan `detail(workspaceId, todoId)` untuk detail. Mutation todo hanya menginvalidasi daftar workspace terkait dan memperbarui/menghapus cache detail todo. Ini mencegah cache Workspace A tersentuh oleh operasi Workspace B.
+
+Mutation tag/label menginvalidasi daftar metadata workspace dan cache todo workspace karena nama metadata tertanam pada representasi todo. Mutation reminder menginvalidasi daftar reminder todo serta cache todo terkait. Detail ada di [todo-api-integration.md](todo-api-integration.md) dan [productivity-features.md](productivity-features.md).
 
 Login, penyimpanan access token, dan pemanggilan `/api/v1/auth/refresh` belum diimplementasikan. `getAccessToken` adalah titik integrasi untuk phase autentikasi. Tanpa phase tersebut, request ke backend nyata akan ditolak 401; handler MSW dipakai untuk pengujian.
 
@@ -80,4 +101,4 @@ Tailwind 4 dimuat dari `src/styles/globals.css` lewat `@import "tailwindcss"` da
 
 ## Testing
 
-Vitest memakai environment jsdom. `renderWithProviders` memasang `QueryClientProvider` dan `MemoryRouter`. Tes HTTP memakai handler MSW. Detail ada di [testing-guide.md](testing-guide.md).
+Vitest memakai environment jsdom. `renderWithProviders` memasang `QueryClientProvider` dan `MemoryRouter`. Tes HTTP memakai handler MSW. Detail ada di [testing-guide.md](testing-guide.md) dan [productivity-testing.md](productivity-testing.md).

@@ -104,21 +104,23 @@ describe('reminder.mapper', () => {
       remindAt: '2026-11-12T09:00:00.000Z'
     });
 
-    expect(
-      toCreateReminderRequestDto({ triggerType: 'before_due', offsetMinutes: 15 })
-    ).toEqual({ triggerType: 'before_due', offsetMinutes: 15 });
+    expect(toCreateReminderRequestDto({ triggerType: 'before_due', offsetMinutes: 15 })).toEqual({
+      triggerType: 'before_due',
+      offsetMinutes: 15
+    });
 
-    expect(
-      toCreateReminderRequestDto({ triggerType: 'absolute', remindAt: null })
-    ).toEqual({ triggerType: 'absolute', remindAt: null });
+    expect(toCreateReminderRequestDto({ triggerType: 'absolute', remindAt: null })).toEqual({
+      triggerType: 'absolute',
+      remindAt: null
+    });
   });
 
   test('toUpdateReminderRequestDto hanya mengirim field yang diberikan', () => {
     expect(toUpdateReminderRequestDto({})).toEqual({});
     expect(toUpdateReminderRequestDto({ offsetMinutes: 30 })).toEqual({ offsetMinutes: 30 });
-    expect(
-      toUpdateReminderRequestDto({ remindAt: new Date('2026-11-12T09:00:00.000Z') })
-    ).toEqual({ remindAt: '2026-11-12T09:00:00.000Z' });
+    expect(toUpdateReminderRequestDto({ remindAt: new Date('2026-11-12T09:00:00.000Z') })).toEqual({
+      remindAt: '2026-11-12T09:00:00.000Z'
+    });
   });
 });
 

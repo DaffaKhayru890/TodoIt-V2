@@ -16,9 +16,9 @@ describe('labelFormSchema', () => {
 
   test('menolak nama kosong dan lebih dari 50 karakter', () => {
     expect(labelFormSchema.safeParse({ name: ' ', color: '#E74C3C' }).success).toBe(false);
-    expect(
-      labelFormSchema.safeParse({ name: 'a'.repeat(51), color: '#E74C3C' }).success
-    ).toBe(false);
+    expect(labelFormSchema.safeParse({ name: 'a'.repeat(51), color: '#E74C3C' }).success).toBe(
+      false
+    );
   });
 
   test('menerima warna presets dan menolak format lain', () => {

@@ -44,11 +44,7 @@ function compareTitle(left: Todo, right: Todo): number {
   return collator.compare(left.title, right.title);
 }
 
-function compareDate(
-  left: Date | null,
-  right: Date | null,
-  direction: SortDirection
-): number {
+function compareDate(left: Date | null, right: Date | null, direction: SortDirection): number {
   // Tanggal kosong selalu di akhir, terlepas dari arah sorting.
   if (left === null && right === null) {
     return 0;

@@ -34,16 +34,13 @@ function listResponse() {
 describe('todo view hooks', () => {
   test('useTodayTodos mengirim timezone, includeCompleted, dan limit default', async () => {
     server.use(
-      http.get(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/today`,
-        ({ request }) => {
-          const url = new URL(request.url);
-          expect(url.searchParams.get('timezone')).toBe('Asia/Jakarta');
-          expect(url.searchParams.get('includeCompleted')).toBe('true');
-          expect(url.searchParams.get('limit')).toBe('100');
-          return HttpResponse.json(listResponse());
-        }
-      )
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/today`, ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get('timezone')).toBe('Asia/Jakarta');
+        expect(url.searchParams.get('includeCompleted')).toBe('true');
+        expect(url.searchParams.get('limit')).toBe('100');
+        return HttpResponse.json(listResponse());
+      })
     );
 
     const { result } = renderHook(
@@ -57,17 +54,14 @@ describe('todo view hooks', () => {
 
   test('useUpcomingTodos mengirim days dan filter metadata', async () => {
     server.use(
-      http.get(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/upcoming`,
-        ({ request }) => {
-          const url = new URL(request.url);
-          expect(url.searchParams.get('days')).toBe('30');
-          expect(url.searchParams.get('limit')).toBe('100');
-          expect(url.searchParams.getAll('tagIds')).toEqual(['tag-1', 'tag-2']);
-          expect(url.searchParams.get('labelId')).toBe('label-1');
-          return HttpResponse.json(listResponse());
-        }
-      )
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/upcoming`, ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get('days')).toBe('30');
+        expect(url.searchParams.get('limit')).toBe('100');
+        expect(url.searchParams.getAll('tagIds')).toEqual(['tag-1', 'tag-2']);
+        expect(url.searchParams.get('labelId')).toBe('label-1');
+        return HttpResponse.json(listResponse());
+      })
     );
 
     const { result } = renderHook(
@@ -85,15 +79,12 @@ describe('todo view hooks', () => {
 
   test('useOverdueTodos mengirim timezone dan limit default', async () => {
     server.use(
-      http.get(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/overdue`,
-        ({ request }) => {
-          const url = new URL(request.url);
-          expect(url.searchParams.get('timezone')).toBe('Asia/Jakarta');
-          expect(url.searchParams.get('limit')).toBe('100');
-          return HttpResponse.json(listResponse());
-        }
-      )
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/overdue`, ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get('timezone')).toBe('Asia/Jakarta');
+        expect(url.searchParams.get('limit')).toBe('100');
+        return HttpResponse.json(listResponse());
+      })
     );
 
     const { result } = renderHook(

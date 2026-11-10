@@ -9,7 +9,15 @@ function EmptyIllustration({ variant }: { readonly variant: 'today' | 'upcoming'
 
   return (
     <svg viewBox="0 0 200 140" role="img" aria-label="Ilustrasi tidak ada tugas">
-      <rect x="18" y="12" width="164" height="116" fill="#ffffff" stroke="#171717" strokeWidth="3" />
+      <rect
+        x="18"
+        y="12"
+        width="164"
+        height="116"
+        fill="#ffffff"
+        stroke="#171717"
+        strokeWidth="3"
+      />
       <rect x="34" y="28" width="92" height="16" fill={accent} stroke="#171717" strokeWidth="3" />
       <rect x="34" y="58" width="22" height="22" fill="#ffffff" stroke="#171717" strokeWidth="3" />
       <path d="M39 69 45 75 57 60" fill="none" stroke="#171717" strokeWidth="3" />

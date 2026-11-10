@@ -84,9 +84,7 @@ describe('TagsPage', () => {
 
     renderPage();
 
-    expect(
-      await screen.findByText('Hanya owner/admin dapat mengelola tag')
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Hanya owner/admin dapat mengelola tag')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Buat Tag' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ubah tag backend' })).not.toBeInTheDocument();
   });
@@ -148,11 +146,13 @@ describe('TagsPage', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Buat tag pertama' }));
     await user.type(screen.getByLabelText('Nama Tag'), 'Frontend');
-    await user.click(screen.getByRole('button', { name: 'Buat Tag' }));
+    await user.click(
+      within(screen.getByRole('dialog', { name: 'Buat Tag Baru' })).getByRole('button', {
+        name: 'Buat Tag'
+      })
+    );
 
-    expect(
-      await screen.findByText('Tag #Frontend berhasil dibuat.')
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Tag #Frontend berhasil dibuat.')).toBeInTheDocument();
   });
 
   test('menghapus tag melalui dialog konfirmasi dan menampilkan feedback', async () => {

@@ -30,9 +30,7 @@ export function TodayPage() {
   const workspaceQuery = useWorkspace(workspaceId);
   const timezone = useMemo(() => getTimezone(), []);
   const now = useMemo(() => new Date(), []);
-  const todayParams = timezone
-    ? { includeCompleted: true, timezone }
-    : { includeCompleted: true };
+  const todayParams = timezone ? { includeCompleted: true, timezone } : { includeCompleted: true };
   const todosQuery = useTodayTodos(workspaceId, todayParams);
   const completeMutation = useCompleteTodo();
   const reopenMutation = useReopenTodo();
@@ -107,19 +105,29 @@ export function TodayPage() {
       </p>
 
       {successMessage ? (
-        <div className="productivity-page__feedback productivity-page__feedback--success" role="status">
+        <div
+          className="productivity-page__feedback productivity-page__feedback--success"
+          role="status"
+        >
           {successMessage}
         </div>
       ) : null}
 
       {errorMessage ? (
-        <div className="productivity-page__feedback productivity-page__feedback--error" role="alert">
+        <div
+          className="productivity-page__feedback productivity-page__feedback--error"
+          role="alert"
+        >
           {errorMessage}
         </div>
       ) : null}
 
       {todosQuery.isLoading ? (
-        <div className="productivity-page__skeleton" aria-busy="true" aria-label="Memuat tugas hari ini">
+        <div
+          className="productivity-page__skeleton"
+          aria-busy="true"
+          aria-label="Memuat tugas hari ini"
+        >
           <Skeleton variant="card" />
           <Skeleton variant="card" />
           <Skeleton variant="card" />

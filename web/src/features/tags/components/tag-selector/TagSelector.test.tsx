@@ -18,13 +18,7 @@ describe('TagSelector', () => {
     expect(screen.getByText('Belum ada tag di workspace ini.')).toBeInTheDocument();
 
     rerender(
-      <TagSelector
-        tags={[]}
-        selectedIds={[]}
-        onChange={vi.fn()}
-        isError
-        onRetry={vi.fn()}
-      />
+      <TagSelector tags={[]} selectedIds={[]} onChange={vi.fn()} isError onRetry={vi.fn()} />
     );
     expect(screen.getByRole('alert')).toHaveTextContent('Gagal memuat tag.');
     expect(screen.getByRole('button', { name: 'Coba lagi' })).toBeInTheDocument();
@@ -44,13 +38,7 @@ describe('TagSelector', () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
 
-    render(
-      <TagSelector
-        tags={tags}
-        selectedIds={[tags[0]!.id]}
-        onChange={onChange}
-      />
-    );
+    render(<TagSelector tags={tags} selectedIds={[tags[0]!.id]} onChange={onChange} />);
 
     expect(screen.getByRole('checkbox', { name: 'backend' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'design' })).not.toBeChecked();
@@ -64,11 +52,7 @@ describe('TagSelector', () => {
     const onChange = vi.fn();
 
     render(
-      <TagSelector
-        tags={tags}
-        selectedIds={[tags[0]!.id, tags[1]!.id]}
-        onChange={onChange}
-      />
+      <TagSelector tags={tags} selectedIds={[tags[0]!.id, tags[1]!.id]} onChange={onChange} />
     );
 
     await user.click(screen.getByRole('checkbox', { name: 'backend' }));

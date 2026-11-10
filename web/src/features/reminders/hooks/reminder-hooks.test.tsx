@@ -7,11 +7,7 @@ import { todoKeys } from '@/features/todos/api/todo.query-keys';
 import { makeReminderDto } from '@/test/fixtures/reminders';
 import { server } from '@/test/mocks/server';
 import { reminderKeys } from '../api/reminder.query-keys';
-import {
-  useCancelReminder,
-  useCreateReminder,
-  useUpdateReminder
-} from './use-reminder-mutations';
+import { useCancelReminder, useCreateReminder, useUpdateReminder } from './use-reminder-mutations';
 import { useTodoReminders } from './use-todo-reminders';
 
 const baseUrl = 'http://localhost:4000';
@@ -63,22 +59,19 @@ describe('reminder hooks', () => {
   test('useTodoReminders tidak retry pada 404', async () => {
     let calls = 0;
     server.use(
-      http.get(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`,
-        () => {
-          calls += 1;
-          return HttpResponse.json(
-            {
-              error: {
-                code: 'TODO_NOT_FOUND',
-                message: 'Todo tidak ditemukan.',
-                requestId: 'req-404'
-              }
-            },
-            { status: 404 }
-          );
-        }
-      )
+      http.get(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`, () => {
+        calls += 1;
+        return HttpResponse.json(
+          {
+            error: {
+              code: 'TODO_NOT_FOUND',
+              message: 'Todo tidak ditemukan.',
+              requestId: 'req-404'
+            }
+          },
+          { status: 404 }
+        );
+      })
     );
 
     const { wrapper } = createWrapper();
@@ -91,9 +84,8 @@ describe('reminder hooks', () => {
   test('useCreateReminder mengisi cache detail dan menginvalidasi reminder/todo', async () => {
     const created = makeReminderDto({ offsetMinutes: 30 });
     server.use(
-      http.post(
-        `${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`,
-        () => HttpResponse.json({ reminder: created }, { status: 201 })
+      http.post(`${baseUrl}/api/v1/workspaces/${workspaceId}/todos/${todoId}/reminders`, () =>
+        HttpResponse.json({ reminder: created }, { status: 201 })
       )
     );
 

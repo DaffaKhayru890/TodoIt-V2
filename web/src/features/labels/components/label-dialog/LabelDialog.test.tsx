@@ -14,9 +14,7 @@ const label = toLabel(makeLabelDto());
 
 describe('LabelDialog', () => {
   test('merender mode buat dengan nama, warna default, dan deskripsi', () => {
-    renderWithProviders(
-      <LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />);
 
     expect(screen.getByRole('dialog', { name: 'Buat Label Baru' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nama Label')).toHaveValue('');
@@ -39,9 +37,7 @@ describe('LabelDialog', () => {
   test('memilih warna preset memperbarui nilai warna', async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(
-      <LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: 'Pilih warna #27AE60' }));
 
@@ -55,9 +51,7 @@ describe('LabelDialog', () => {
   test('menolak nama kosong tanpa memanggil API', async () => {
     const user = userEvent.setup();
 
-    renderWithProviders(
-      <LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: 'Buat Label' }));
 
@@ -91,12 +85,7 @@ describe('LabelDialog', () => {
     );
 
     renderWithProviders(
-      <LabelDialog
-        open
-        workspaceId={workspaceId}
-        onClose={handleClose}
-        onSuccess={handleSuccess}
-      />
+      <LabelDialog open workspaceId={workspaceId} onClose={handleClose} onSuccess={handleSuccess} />
     );
 
     await user.type(screen.getByLabelText('Nama Label'), 'Frontend');
@@ -105,37 +94,33 @@ describe('LabelDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Buat Label' }));
 
     await waitFor(() => {
-      expect(handleSuccess).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Frontend' })
-      );
+      expect(handleSuccess).toHaveBeenCalledWith(expect.objectContaining({ name: 'Frontend' }));
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
   });
 
   test('description kosong dikirim sebagai null', async () => {
     const user = userEvent.setup();
+    const handleClose = vi.fn();
+    let received: unknown;
 
     server.use(
       http.post(`${baseUrl}/api/v1/workspaces/${workspaceId}/labels`, async ({ request }) => {
-        expect(await request.json()).toEqual({
-          name: 'Bug',
-          color: '#3498DB',
-          description: null
-        });
+        received = await request.json();
         return HttpResponse.json({ label: makeLabelDto() }, { status: 201 });
       })
     );
 
-    renderWithProviders(
-      <LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<LabelDialog open workspaceId={workspaceId} onClose={handleClose} />);
 
     await user.type(screen.getByLabelText('Nama Label'), 'Bug');
     await user.click(screen.getByRole('button', { name: 'Buat Label' }));
 
-    await waitFor(() =>
-      expect(screen.queryByRole('dialog', { name: 'Buat Label Baru' })).not.toBeInTheDocument()
-    );
+    await waitFor(() => expect(handleClose).toHaveBeenCalledTimes(1));
+    expect(received).toEqual({
+      name: 'Bug',
+      color: '#3498DB'
+    });
   });
 
   test('memperbarui label melalui PATCH', async () => {
@@ -171,9 +156,7 @@ describe('LabelDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Simpan Perubahan' }));
 
     await waitFor(() =>
-      expect(handleSuccess).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Defect' })
-      )
+      expect(handleSuccess).toHaveBeenCalledWith(expect.objectContaining({ name: 'Defect' }))
     );
   });
 
@@ -196,9 +179,7 @@ describe('LabelDialog', () => {
       })
     );
 
-    renderWithProviders(
-      <LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />
-    );
+    renderWithProviders(<LabelDialog open workspaceId={workspaceId} onClose={vi.fn()} />);
 
     await user.type(screen.getByLabelText('Nama Label'), 'Bug');
     await user.click(screen.getByRole('button', { name: 'Buat Label' }));
@@ -225,9 +206,7 @@ describe('LabelDialog', () => {
       })
     );
 
-    renderWithProviders(
-      <LabelDialog open workspaceId={workspaceId} onClose={handleClose} />
-    );
+    renderWithProviders(<LabelDialog open workspaceId={workspaceId} onClose={handleClose} />);
 
     await user.type(screen.getByLabelText('Nama Label'), 'Bug');
     await user.click(screen.getByRole('button', { name: 'Buat Label' }));

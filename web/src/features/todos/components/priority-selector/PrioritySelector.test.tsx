@@ -28,9 +28,7 @@ describe('PrioritySelector', () => {
   });
 
   test('menampilkan error dan menandai input tidak valid', () => {
-    render(
-      <PrioritySelector value="low" onChange={vi.fn()} error="Prioritas tidak valid." />
-    );
+    render(<PrioritySelector value="low" onChange={vi.fn()} error="Prioritas tidak valid." />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Prioritas tidak valid.');
     expect(screen.getByLabelText('Prioritas')).toHaveAttribute('aria-invalid', 'true');

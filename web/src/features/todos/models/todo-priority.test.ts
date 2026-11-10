@@ -1,15 +1,15 @@
 import { describe, expect, test } from 'vitest';
 import type { TodoPriority } from './todo.model';
-import { PRIORITY_CONFIG, getPriorityConfig, getPriorityLabel, getPriorityWeight } from './todo-priority';
+import {
+  PRIORITY_CONFIG,
+  getPriorityConfig,
+  getPriorityLabel,
+  getPriorityWeight
+} from './todo-priority';
 
 describe('todo-priority', () => {
   test('menyediakan konfigurasi lengkap untuk seluruh enum backend', () => {
-    expect(PRIORITY_CONFIG.map((item) => item.value)).toEqual([
-      'low',
-      'medium',
-      'high',
-      'urgent'
-    ]);
+    expect(PRIORITY_CONFIG.map((item) => item.value)).toEqual(['low', 'medium', 'high', 'urgent']);
     expect(new Set(PRIORITY_CONFIG.map((item) => item.cssModifier)).size).toBe(4);
   });
 

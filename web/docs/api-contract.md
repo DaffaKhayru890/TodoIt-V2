@@ -14,7 +14,23 @@ Error untuk endpoint di bawah memakai sampul:
 }
 ```
 
-Autentikasi Bearer berarti header `Authorization: Bearer <accessToken>`.
+Autentikasi Bearer berarti header `Authorization: Bearer <token>`.
+
+## Ringkasan status integrasi Phase 5
+
+| Kebutuhan              | Status              | Keterangan                                     |
+| ---------------------- | ------------------- | ---------------------------------------------- |
+| CRUD tag               | Available           | Workspace-scoped, owner/admin                  |
+| Assignment tag         | Available           | Replace all atau tambah/lepas satu             |
+| CRUD label             | Available           | Workspace-scoped, owner/admin                  |
+| Assignment label       | Available           | Satu label utama per todo                      |
+| Priority               | Available           | Field enum todo                                |
+| Due date               | Available           | Instant ISO dengan timezone eksplisit          |
+| Reminder               | Available           | Resource anak todo; delivery bergantung worker |
+| Filter todo            | Partially supported | `active` dan `no-date` client-side             |
+| Today/Upcoming/Overdue | Available           | Endpoint khusus dengan `timezone`              |
+| Sorting                | Not available       | Client-side pada halaman pertama               |
+| Pagination lanjutan    | Not available di UI | Backend cursor tersedia                        |
 
 ## Authentication API
 
@@ -273,7 +289,18 @@ Seluruh anggota workspace (`owner`, `admin`, `member`) boleh melihat, membuat, m
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos`
 
-Query: `limit` (1–100, default 20), `cursor`, serta filter status/priority/label dan rentang tanggal. Pagination adalah keyset, bukan total count. Phase 4 frontend hanya memakai `limit=100` dan satu halaman pertama.
+Query: `limit` (1–100, default 20), `cursor`, serta filter `status`, `priority`, `dueFrom`, `dueTo`, `createdFrom`, `createdTo`, `q`, `tagIds`, dan `labelId`. Pagination adalah keyset, bukan total count. Phase 5 frontend memakai `limit=100` dan satu halaman pertama.
+
+Detail filter:
+
+- `status`: `todo`, `in_progress`, `completed`, `cancelled`.
+- `priority`: `low`, `medium`, `high`, `urgent`.
+- `dueFrom` / `dueTo`: ISO 8601 dengan timezone eksplisit, inklusif.
+- `createdFrom` / `createdTo`: ISO 8601 dengan timezone eksplisit, inklusif.
+- `q`: pencarian case-insensitive pada `title` dan `description`, maksimal 200 karakter.
+- `tagIds`: UUID, boleh diulang (`?tagIds=a&tagIds=b`), semantics **ANY**.
+- `labelId`: UUID satu label.
+- Tidak ada parameter sorting. Sorting dilakukan frontend pada halaman yang dimuat.
 
 **Response 200**
 
@@ -306,9 +333,11 @@ Query: `limit` (1–100, default 20), `cursor`, serta filter status/priority/lab
 
 Juga tersedia:
 
-- `GET /:workspaceId/todos/today`
-- `GET /:workspaceId/todos/upcoming`
-- `GET /:workspaceId/todos/overdue`
+- `GET /:workspaceId/todos/today` — `timezone`, `includeCompleted` (default false), `limit`, `cursor`, `tagIds`, `labelId`. Rentang `[awal hari ini, awal hari besok)`; `cancelled` selalu dikecualikan.
+- `GET /:workspaceId/todos/upcoming` — `timezone`, `days` (1–30, default 7), `limit`, `cursor`, `tagIds`, `labelId`. Rentang mulai besok; `completed` dan `cancelled` dikecualikan.
+- `GET /:workspaceId/todos/overdue` — `timezone`, `limit`, `cursor`, `tagIds`, `labelId`. `dueAt` sebelum awal hari ini; `completed` dan `cancelled` dikecualikan.
+
+Ketiga endpoint memakai kursor dan tidak mengirim total count. `timezone` adalah IANA timezone; jika kosong backend memakai `APP_DEFAULT_TIMEZONE`.
 
 ### Get todo detail
 
@@ -339,7 +368,7 @@ Juga tersedia:
 }
 ```
 
-`title` wajib 1–200 karakter. `description` opsional maksimal 5000 karakter. `priority` opsional dan default-nya `low`. Status tidak boleh dikirim klien. Phase 4 hanya mengirim `title` dan `description`.
+`title` wajib 1–200 karakter. `description` opsional maksimal 5000 karakter. `priority` opsional dan default-nya `low`. `dueAt` opsional: ISO 8601 dengan timezone eksplisit atau `null`. Status tidak boleh dikirim klien. Create tidak menerima `tagIds` atau `labelId`; metadata tersebut disimpan setelah todo dibuat. Phase 5 mengirim `title`, `description`, `priority` (jika bukan default), dan `dueAt` (jika diisi).
 
 ### Response
 
@@ -353,7 +382,7 @@ Status 201. Objek todo memuat id, workspaceId, title, description, status, prior
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos/:todoId`
 
-Body parsial: `title`, `description`, `status`, `priority`, `dueAt`, `labelId`, `tagIds`. Schema memakai `additionalProperties: false`, jadi field `undefined` tidak boleh ikut dikirim. Reopen di frontend memakai `{ "status": "todo" }` karena tidak ada endpoint reopen khusus.
+Body parsial: `title`, `description`, `status`, `priority`, `dueAt`, `labelId`. Schema memakai `additionalProperties: false` dan `minProperties: 1`, jadi field `undefined` tidak boleh ikut dikirim. `labelId: null` menghapus label. `tagIds` **tidak** diterima di PATCH; tag diganti melalui `PUT /todos/:todoId/tags`. Reopen di frontend memakai `{ "status": "todo" }` karena tidak ada endpoint reopen khusus.
 
 ### Complete todo
 
@@ -380,58 +409,70 @@ Soft delete, idempoten, respons `204 No Content`. Field `deletedAt` tidak dikiri
 - Status: `todo`, `in_progress`, `completed`, `cancelled`.
 - Priority: `low`, `medium`, `high`, `urgent`.
 
-Phase 4 menampilkan `todo`/`in_progress` sebagai aktif dan `completed` sebagai selesai. `cancelled` tidak dirender.
+Frontend menampilkan `todo`/`in_progress` sebagai aktif dan `completed` sebagai selesai. `cancelled` tidak dirender sebagai item aktif dan tidak dihitung overdue.
 
 ## Metadata API
 
 ### Tags
 
-**Status:** Available
+**Status:** Available.
 
-- `POST /api/v1/workspaces/:workspaceId/tags`
-- `GET /api/v1/workspaces/:workspaceId/tags`
+- `POST /api/v1/workspaces/:workspaceId/tags` — body `{ "name": "backend" }`, `name` 1–50 karakter, unik case-insensitive per workspace.
+- `GET /api/v1/workspaces/:workspaceId/tags?limit&cursor&q` — list dengan cursor pagination.
 - `GET /api/v1/workspaces/:workspaceId/tags/:tagId`
-- `PATCH /api/v1/workspaces/:workspaceId/tags/:tagId`
-- `DELETE /api/v1/workspaces/:workspaceId/tags/:tagId`
-- `PUT /api/v1/workspaces/:workspaceId/todos/:todoId/tags` mengganti seluruh tag. Array kosong melepas semua tag.
+- `PATCH /api/v1/workspaces/:workspaceId/tags/:tagId` — body `{ "name": "..." }`.
+- `DELETE /api/v1/workspaces/:workspaceId/tags/:tagId` — `204`.
+- `PUT /api/v1/workspaces/:workspaceId/todos/:todoId/tags` — body `{ "tagIds": ["uuid"] }`, mengganti seluruh tag. Array kosong melepas semua tag.
 - `POST /api/v1/workspaces/:workspaceId/todos/:todoId/tags/:tagId`
 - `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/tags/:tagId`
 
-Maksimal 20 tag per todo.
+CRUD tag hanya untuk `owner` dan `admin` (`MANAGE_METADATA`). Assignment tag boleh dilakukan semua member. Maksimal 20 tag per todo.
 
 ### Labels
 
-**Status:** Available
+**Status:** Available.
 
-- `POST /api/v1/workspaces/:workspaceId/labels`
-- `GET /api/v1/workspaces/:workspaceId/labels`
+- `POST /api/v1/workspaces/:workspaceId/labels` — body `{ "name": "...", "color": "#3498DB", "description": null }`.
+- `GET /api/v1/workspaces/:workspaceId/labels?limit&cursor&q`
 - `GET /api/v1/workspaces/:workspaceId/labels/:labelId`
-- `PATCH /api/v1/workspaces/:workspaceId/labels/:labelId`
-- `DELETE /api/v1/workspaces/:workspaceId/labels/:labelId`
-- `PUT /api/v1/workspaces/:workspaceId/todos/:todoId/label` dengan body `labelId`
-- `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/label`
+- `PATCH /api/v1/workspaces/:workspaceId/labels/:labelId` — body parsial `name`, `color`, `description`.
+- `DELETE /api/v1/workspaces/:workspaceId/labels/:labelId` — `204`.
+- `PUT /api/v1/workspaces/:workspaceId/todos/:todoId/label` — body `{ "labelId": "uuid" }`, mengganti label utama.
+- `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/label` — melepas label.
 
-Satu todo punya satu label utama.
+`name` 1–50 karakter, unik case-insensitive per workspace. `color` wajib `#RRGGBB` (disimpan uppercase). `description` opsional maksimal 300 karakter dan dapat `null`. Satu todo punya satu label utama. CRUD hanya `owner`/`admin`; assign/clear boleh semua member.
 
 ### Priority
 
 **Status:** Available sebagai field todo, bukan resource.
 
-Nilai: `low`, `medium`, `high`, `urgent`.
+Nilai: `low`, `medium`, `high`, `urgent`. Default create `low`. Tidak ada endpoint priority terpisah dan tidak ada sorting priority server-side.
 
 ### Due date
 
 **Status:** Available sebagai field `dueAt` pada create dan update todo. Tidak ada endpoint due date terpisah.
 
+`dueAt` adalah instant ISO 8601 dengan timezone eksplisit atau `null`. Backend menolak string tanpa timezone eksplisit. Tidak ada date-only.
+
 ### Reminders
 
-**Status:** Available
+**Status:** Available.
 
-- `POST /api/v1/workspaces/:workspaceId/todos/:todoId/reminders`
-- `GET /api/v1/workspaces/:workspaceId/todos/:todoId/reminders`
+- `POST /api/v1/workspaces/:workspaceId/todos/:todoId/reminders` — body `{ "triggerType": "before_due", "offsetMinutes": 15 }` atau `{ "triggerType": "absolute", "remindAt": "..." }`.
+- `GET /api/v1/workspaces/:workspaceId/todos/:todoId/reminders?status&limit&cursor` — `status` default `scheduled`; nilai `scheduled`, `cancelled`, atau `all`.
 - `GET /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId`
-- `PATCH /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId`
-- `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId`
+- `PATCH /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId` — `triggerType` immutable; `before_due` hanya `offsetMinutes`, `absolute` hanya `remindAt`.
+- `DELETE /api/v1/workspaces/:workspaceId/todos/:todoId/reminders/:reminderId` — membatalkan reminder (`status=cancelled`), bukan hard delete.
+
+`triggerType`: `absolute` atau `before_due`. `offsetMinutes` 1–43.200 dan hanya untuk `before_due`; reminder `before_due` memerlukan todo dengan `dueAt`. `remindAt` harus di masa depan untuk `absolute`. `status`: `scheduled` atau `cancelled`. `effectiveAt` dihitung backend (`remindAt` atau `dueAt - offsetMinutes`).
+
+Backend memiliki Notification Engine/worker untuk memproses job reminder. Pengiriman aktual bergantung pada konfigurasi deployment (`notificationWorkerEnabled`, database, email). Frontend hanya menyimpan konfigurasi dan tidak memakai timer browser.
+
+### Sorting
+
+**Status:** Not available.
+
+Tidak ada parameter `sort`, `sortBy`, `order`, atau sejenis pada endpoint todo. Frontend mengurutkan halaman pertama secara client-side. Dokumentasi lengkap ada di [filtering-and-sorting.md](filtering-and-sorting.md).
 
 ## Collaboration API
 

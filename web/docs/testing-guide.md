@@ -61,9 +61,24 @@ Fixture todo berada di `src/test/fixtures/todos.ts`. Handler default MSW menyedi
 
 Hasil akhir Phase 4: 56 file test, 239 test lulus, coverage 90,98% statements / 86,30% branches / 93,46% functions / 90,96% lines. Detail ada di [todo-testing.md](todo-testing.md).
 
+## Komponen & Fitur Phase 5 (Productivity)
+
+Phase 5 menambahkan:
+
+- **Tag dan label:** model/mapper/guard, API service, hook query/mutation, schema Zod, badge, selector, dialog create/edit/delete, dan halaman manajemen beserta test permission.
+- **Priority:** konfigurasi enum, badge, selector, bobot sorting, dan integrasi form.
+- **Due date dan timezone:** parsing `datetime-local`, round-trip tanggal kalender, format lokal, status due date, rentang hari, grouping, dan test dengan waktu injeksi.
+- **Reminder:** model/guard/mapper, API, hook, selector, serta validasi reminder memerlukan due date.
+- **Filter:** model state, parser/serializer URL, query plan, client filter, panel filter, chip, dan hapus semua.
+- **Sorting:** utility immutable, natural numeric via `Intl.Collator`, prioritas berbobot, null due date di akhir, dan kontrol sorting.
+- **Halaman:** `TodayPage`, `UpcomingPage`, perluasan `TodoDetailPage`, dan `WorkspaceTodoSection` berbasis URL.
+- **Workflow A–F:** create dengan metadata, edit metadata, Today, Upcoming, filter gabungan, dan sorting.
+
+Hasil akhir Phase 5: 96 file test, 523 test lulus, coverage 91,80% statements / 87,67% branches / 92,74% functions / 91,65% lines. Detail ada di [productivity-testing.md](productivity-testing.md).
+
 `configure({ asyncUtilTimeout: 5000 })` dipasang di setup karena suite berjalan paralel; ini memberi ruang bagi query async sebelum assertion, tanpa mengubah perilaku aplikasi.
 
-`vite.config.ts` membatasi `maxWorkers: 6` dan memasang `testTimeout: 20_000`. Dengan 56 file jsdom, menjalankan semua worker sekaligus membuat kontensi CPU dan memicu timeout palsu pada test yang sebenarnya cepat. Batas ini hanya mengatur eksekusi test, bukan menonaktifkan pemeriksaan.
+`vite.config.ts` membatasi `maxWorkers: 6` dan memasang `testTimeout: 20_000`. Dengan puluhan file jsdom, menjalankan semua worker sekaligus membuat kontensi CPU dan memicu timeout palsu pada test yang sebenarnya cepat. Batas ini hanya mengatur eksekusi test, bukan menonaktifkan pemeriksaan.
 
 ## Konvensi
 

@@ -6,12 +6,7 @@ import {
   type TodoDueFilter
 } from '../models/todo-filter';
 import { isTodoPriority, isTodoStatus, type Todo, type TodoListParams } from '../models/todo.model';
-import {
-  DEFAULT_TODO_SORT,
-  isSortDirection,
-  isTodoSortField,
-  type TodoSort
-} from './sort-todos';
+import { DEFAULT_TODO_SORT, isSortDirection, isTodoSortField, type TodoSort } from './sort-todos';
 import {
   getCustomRange,
   getNextSevenDaysRange,
@@ -35,9 +30,7 @@ export function parseTodoFilter(searchParams: URLSearchParams): TodoFilterState 
   const priority = searchParams.get('priority');
   const due = searchParams.get('due');
   const labelId = searchParams.get('labelId');
-  const tagIds = searchParams
-    .getAll('tagIds')
-    .filter((value) => UUID_PATTERN.test(value));
+  const tagIds = searchParams.getAll('tagIds').filter((value) => UUID_PATTERN.test(value));
 
   return {
     status: status && isTodoStatusFilter(status) ? status : EMPTY_TODO_FILTER.status,
@@ -56,15 +49,7 @@ export function serializeTodoFilter(
 ): URLSearchParams {
   const next = new URLSearchParams(current);
 
-  for (const key of [
-    'status',
-    'priority',
-    'tagIds',
-    'labelId',
-    'due',
-    'customFrom',
-    'customTo'
-  ]) {
+  for (const key of ['status', 'priority', 'tagIds', 'labelId', 'due', 'customFrom', 'customTo']) {
     next.delete(key);
   }
 
@@ -88,8 +73,7 @@ export function parseTodoSort(searchParams: URLSearchParams): TodoSort {
 
   return {
     field: field && isTodoSortField(field) ? field : DEFAULT_TODO_SORT.field,
-    direction:
-      direction && isSortDirection(direction) ? direction : DEFAULT_TODO_SORT.direction
+    direction: direction && isSortDirection(direction) ? direction : DEFAULT_TODO_SORT.direction
   };
 }
 
@@ -168,10 +152,7 @@ export function toTodoListQueryPlan(filter: TodoFilterState, now: Date): TodoLis
   return { params, clientFilter };
 }
 
-function resolveDueRange(
-  filter: TodoFilterState,
-  now: Date
-): { from: Date; to: Date } | null {
+function resolveDueRange(filter: TodoFilterState, now: Date): { from: Date; to: Date } | null {
   switch (filter.due) {
     case 'today':
       return getTodayRange(now);

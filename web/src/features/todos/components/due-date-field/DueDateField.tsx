@@ -35,13 +35,7 @@ const SHORTCUTS: readonly Shortcut[] = [
  * waktu lokal perangkat lalu diserialkan ke UTC oleh mapper, sehingga tidak
  * ada pergeseran tanggal yang tidak disengaja.
  */
-export function DueDateField({
-  value,
-  onChange,
-  disabled = false,
-  error,
-  now
-}: DueDateFieldProps) {
+export function DueDateField({ value, onChange, disabled = false, error, now }: DueDateFieldProps) {
   const id = useId();
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;

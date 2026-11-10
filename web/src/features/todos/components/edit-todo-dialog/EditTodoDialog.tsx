@@ -221,7 +221,12 @@ export function EditTodoDialog({ open, todo, onClose, onSuccess }: EditTodoDialo
 
     const failedMetadata: string[] = [];
 
-    if (!sameIdSet(values.tagIds, todo.tags.map((tag) => tag.id))) {
+    if (
+      !sameIdSet(
+        values.tagIds,
+        todo.tags.map((tag) => tag.id)
+      )
+    ) {
       try {
         await replaceTagsMutation.mutateAsync({
           workspaceId: todo.workspaceId,
@@ -306,11 +311,7 @@ export function EditTodoDialog({ open, todo, onClose, onSuccess }: EditTodoDialo
             <h3 className="todo-form__section-title" id="edit-todo-basic">
               Informasi Dasar
             </h3>
-            <TodoFormFields
-              register={register}
-              errors={errors}
-              disabled={isSubmitting || isBusy}
-            />
+            <TodoFormFields register={register} errors={errors} disabled={isSubmitting || isBusy} />
           </section>
 
           <section className="todo-form__section" aria-labelledby="edit-todo-organization">
