@@ -81,40 +81,37 @@ export function useBrowserNotifications(): BrowserNotificationsController {
     }
   }, []);
 
-  const showNotification = useCallback(
-    (input: BrowserNotificationInput): boolean => {
-      if (!supportsNotifications() || Notification.permission !== 'granted') {
-        return false;
-      }
+  const showNotification = useCallback((input: BrowserNotificationInput): boolean => {
+    if (!supportsNotifications() || Notification.permission !== 'granted') {
+      return false;
+    }
 
-      if (shownNotificationIds.has(input.id)) {
-        return false;
-      }
+    if (shownNotificationIds.has(input.id)) {
+      return false;
+    }
 
-      shownNotificationIds.add(input.id);
+    shownNotificationIds.add(input.id);
 
-      try {
-        const notification = new Notification(input.title, {
-          body: input.body,
-          tag: input.id
-        });
+    try {
+      const notification = new Notification(input.title, {
+        body: input.body,
+        tag: input.id
+      });
 
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
 
-          if (input.href) {
-            window.location.assign(input.href);
-          }
-        };
+        if (input.href) {
+          window.location.assign(input.href);
+        }
+      };
 
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    []
-  );
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
 
   return { isSupported, permission, requestPermission, showNotification };
 }

@@ -2,13 +2,7 @@ import { FiSearch } from 'react-icons/fi';
 import { Tooltip } from '@/components/ui/tooltip/tooltip';
 import { joinClasses } from '@/core/utils/join-classes';
 
-export function SearchTrigger({
-  collapsed,
-  onOpen
-}: {
-  collapsed: boolean;
-  onOpen: () => void;
-}) {
+export function SearchTrigger({ collapsed, onOpen }: { collapsed: boolean; onOpen: () => void }) {
   const button = (
     <button
       type="button"
@@ -20,9 +14,7 @@ export function SearchTrigger({
       <span className="nav-item__icon" aria-hidden="true">
         <FiSearch />
       </span>
-      <span className={joinClasses('nav-item__label', collapsed && 'visually-hidden')}>
-        Cari
-      </span>
+      <span className={joinClasses('nav-item__label', collapsed && 'visually-hidden')}>Cari</span>
       {!collapsed ? (
         <kbd className="search-trigger__shortcut" aria-hidden="true">
           Ctrl K

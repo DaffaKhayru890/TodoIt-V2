@@ -20,7 +20,11 @@ export function NotificationList({
   return (
     <div className="notification-list">
       {groups.map((group) => (
-        <section className="notification-list__group" key={group.key} aria-labelledby={`${group.key}-heading`}>
+        <section
+          className="notification-list__group"
+          key={group.key}
+          aria-labelledby={`${group.key}-heading`}
+        >
           <h3 id={`${group.key}-heading`} className="notification-list__heading">
             {group.label}
           </h3>

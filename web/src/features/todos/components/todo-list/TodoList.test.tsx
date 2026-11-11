@@ -113,10 +113,46 @@ describe('TodoList', () => {
     ).toBeInTheDocument();
   });
 
-  test('menampilkan catatan pagination ketika masih ada halaman berikutnya', () => {
-    renderList({ todos: [toTodo(makeTodoDto())], hasMore: true });
+  test('menampilkan tombol Muat lebih banyak ketika masih ada halaman berikutnya', async () => {
+    const user = userEvent.setup();
+    const handleLoadMore = vi.fn();
 
-    expect(screen.getByText(/Menampilkan tugas terbaru pada halaman pertama/i)).toBeInTheDocument();
+    renderList({
+      todos: [toTodo(makeTodoDto())],
+      hasMore: true,
+      onLoadMore: handleLoadMore
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Muat lebih banyak' }));
+    expect(handleLoadMore).toHaveBeenCalledTimes(1);
+  });
+
+  test('menampilkan indikator akhir daftar setelah beberapa halaman dimuat', () => {
+    renderList({
+      todos: [toTodo(makeTodoDto())],
+      hasMore: false,
+      loadedPageCount: 2
+    });
+
+    expect(screen.getByText('Semua tugas sudah dimuat.')).toBeInTheDocument();
+  });
+
+  test('mempertahankan item dan menampilkan error halaman berikutnya dengan retry', async () => {
+    const user = userEvent.setup();
+    const handleLoadMore = vi.fn();
+
+    renderList({
+      todos: [toTodo(makeTodoDto({ title: 'Tetap tampil' }))],
+      hasMore: true,
+      isFetchNextPageError: true,
+      onLoadMore: handleLoadMore
+    });
+
+    expect(screen.getByText('Tetap tampil')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Gagal memuat tugas berikutnya.');
+
+    await user.click(screen.getByRole('button', { name: 'Coba lagi' }));
+    expect(handleLoadMore).toHaveBeenCalledTimes(1);
   });
 
   test('meneruskan aksi item ke handler', async () => {

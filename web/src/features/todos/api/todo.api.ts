@@ -23,12 +23,36 @@ export const TODO_LIST_PAGE_SIZE = 100;
 
 export type ListTodosParams = TodoListParams;
 
+/**
+ * Opsi request untuk query yang dapat dibatalkan. TanStack Query meneruskan
+ * AbortSignal saat query key berubah atau komponen unmount.
+ */
+export interface TodoRequestOptions {
+  readonly signal?: AbortSignal;
+}
+
 export interface TodoApiService {
-  getByWorkspace(workspaceId: string, params?: TodoListParams): Promise<TodoListResult>;
+  getByWorkspace(
+    workspaceId: string,
+    params?: TodoListParams,
+    options?: TodoRequestOptions
+  ): Promise<TodoListResult>;
   getById(workspaceId: string, todoId: string): Promise<Todo>;
-  getToday(workspaceId: string, params?: TodayTodosParams): Promise<TodoListResult>;
-  getUpcoming(workspaceId: string, params?: UpcomingTodosParams): Promise<TodoListResult>;
-  getOverdue(workspaceId: string, params?: OverdueTodosParams): Promise<TodoListResult>;
+  getToday(
+    workspaceId: string,
+    params?: TodayTodosParams,
+    options?: TodoRequestOptions
+  ): Promise<TodoListResult>;
+  getUpcoming(
+    workspaceId: string,
+    params?: UpcomingTodosParams,
+    options?: TodoRequestOptions
+  ): Promise<TodoListResult>;
+  getOverdue(
+    workspaceId: string,
+    params?: OverdueTodosParams,
+    options?: TodoRequestOptions
+  ): Promise<TodoListResult>;
   create(workspaceId: string, input: CreateTodoInput): Promise<Todo>;
   update(workspaceId: string, todoId: string, input: UpdateTodoInput): Promise<Todo>;
   complete(workspaceId: string, todoId: string): Promise<Todo>;
@@ -126,16 +150,23 @@ function buildOverduePath(workspaceId: string, params?: OverdueTodosParams): str
   return withQuery(`${workspaceTodosPath(workspaceId)}/overdue`, searchParams);
 }
 
-async function requestList(client: HttpClient, path: string): Promise<TodoListResult> {
-  const response = await client.request<unknown>(path, { method: 'GET' });
+async function requestList(
+  client: HttpClient,
+  path: string,
+  options?: TodoRequestOptions
+): Promise<TodoListResult> {
+  const response = await client.request<unknown>(path, {
+    method: 'GET',
+    ...(options?.signal ? { signal: options.signal } : {})
+  });
   assertTodoListResponseDto(response);
   return toTodoListResult(response);
 }
 
 export function createTodoApi(client: HttpClient = httpClient): TodoApiService {
   return {
-    async getByWorkspace(workspaceId, params) {
-      return requestList(client, buildListPath(workspaceId, params));
+    async getByWorkspace(workspaceId, params, options) {
+      return requestList(client, buildListPath(workspaceId, params), options);
     },
 
     async getById(workspaceId, todoId) {
@@ -148,16 +179,16 @@ export function createTodoApi(client: HttpClient = httpClient): TodoApiService {
       return toTodo(response.todo);
     },
 
-    async getToday(workspaceId, params) {
-      return requestList(client, buildTodayPath(workspaceId, params));
+    async getToday(workspaceId, params, options) {
+      return requestList(client, buildTodayPath(workspaceId, params), options);
     },
 
-    async getUpcoming(workspaceId, params) {
-      return requestList(client, buildUpcomingPath(workspaceId, params));
+    async getUpcoming(workspaceId, params, options) {
+      return requestList(client, buildUpcomingPath(workspaceId, params), options);
     },
 
-    async getOverdue(workspaceId, params) {
-      return requestList(client, buildOverduePath(workspaceId, params));
+    async getOverdue(workspaceId, params, options) {
+      return requestList(client, buildOverduePath(workspaceId, params), options);
     },
 
     async create(workspaceId, input) {

@@ -16,21 +16,27 @@ Error untuk endpoint di bawah memakai sampul:
 
 Autentikasi Bearer berarti header `Authorization: Bearer <token>`.
 
-## Ringkasan status integrasi Phase 5
+## Ringkasan status integrasi Phase 6
 
-| Kebutuhan              | Status              | Keterangan                                     |
-| ---------------------- | ------------------- | ---------------------------------------------- |
-| CRUD tag               | Available           | Workspace-scoped, owner/admin                  |
-| Assignment tag         | Available           | Replace all atau tambah/lepas satu             |
-| CRUD label             | Available           | Workspace-scoped, owner/admin                  |
-| Assignment label       | Available           | Satu label utama per todo                      |
-| Priority               | Available           | Field enum todo                                |
-| Due date               | Available           | Instant ISO dengan timezone eksplisit          |
-| Reminder               | Available           | Resource anak todo; delivery bergantung worker |
-| Filter todo            | Partially supported | `active` dan `no-date` client-side             |
-| Today/Upcoming/Overdue | Available           | Endpoint khusus dengan `timezone`              |
-| Sorting                | Not available       | Client-side pada halaman pertama               |
-| Pagination lanjutan    | Not available di UI | Backend cursor tersedia                        |
+| Kebutuhan                | Status              | Keterangan                                      |
+| ------------------------ | ------------------- | ----------------------------------------------- |
+| CRUD tag                 | Available           | Workspace-scoped, owner/admin                   |
+| Assignment tag           | Available           | Replace all atau tambah/lepas satu              |
+| CRUD label               | Available           | Workspace-scoped, owner/admin                   |
+| Assignment label         | Available           | Satu label utama per todo                       |
+| Priority                 | Available           | Field enum todo                                 |
+| Due date                 | Available           | Instant ISO dengan timezone eksplisit           |
+| Reminder                 | Available           | Resource anak todo; delivery bergantung worker  |
+| Filter todo              | Partially supported | `active` dan `no-date` client-side              |
+| Today/Upcoming/Overdue   | Available           | Endpoint khusus dengan `timezone`               |
+| Sorting                  | Not available       | Client-side pada halaman yang dimuat            |
+| Pencarian global         | BLOCKED             | Tidak ada endpoint global; fan-out per resource |
+| Pencarian todo/tag/label | Available           | Parameter `q` per workspace                     |
+| Pencarian nama workspace | BLOCKED             | `GET /workspaces` tidak menerima `q`            |
+| Pagination cursor        | Available           | Todo dan notifikasi memakai `nextCursor`        |
+| Pusat notifikasi         | Available           | List, unread count, read, read-all, preferences |
+| Detail/hapus notifikasi  | BLOCKED             | Endpoint tidak tersedia                         |
+| WebSocket/SSE/Web Push   | BLOCKED             | Backend tidak menyediakan                       |
 
 ## Authentication API
 
@@ -289,7 +295,7 @@ Seluruh anggota workspace (`owner`, `admin`, `member`) boleh melihat, membuat, m
 
 **Endpoint:** `/api/v1/workspaces/:workspaceId/todos`
 
-Query: `limit` (1–100, default 20), `cursor`, serta filter `status`, `priority`, `dueFrom`, `dueTo`, `createdFrom`, `createdTo`, `q`, `tagIds`, dan `labelId`. Pagination adalah keyset, bukan total count. Phase 5 frontend memakai `limit=100` dan satu halaman pertama.
+Query: `limit` (1–100, default 20), `cursor`, serta filter `status`, `priority`, `dueFrom`, `dueTo`, `createdFrom`, `createdTo`, `q`, `tagIds`, dan `labelId`. Pagination adalah keyset, bukan total count. Phase 6 frontend memakai `limit=30` dan mengambil halaman berikutnya lewat `pagination.nextCursor` untuk infinite scroll. Today/Upcoming tetap memakai `limit=100` satu halaman pada hook Phase 5.
 
 Detail filter:
 
@@ -472,7 +478,23 @@ Backend memiliki Notification Engine/worker untuk memproses job reminder. Pengir
 
 **Status:** Not available.
 
-Tidak ada parameter `sort`, `sortBy`, `order`, atau sejenis pada endpoint todo. Frontend mengurutkan halaman pertama secara client-side. Dokumentasi lengkap ada di [filtering-and-sorting.md](filtering-and-sorting.md).
+Tidak ada parameter `sort`, `sortBy`, `order`, atau sejenis pada endpoint todo. Frontend mengurutkan halaman yang sudah dimuat secara client-side. Karena infinite scroll memuat sebagian data, sorting belum mencakup seluruh dataset di backend. Dokumentasi lengkap ada di [filtering-and-sorting.md](filtering-and-sorting.md) dan [cursor-pagination.md](cursor-pagination.md).
+
+## Search API
+
+**Status:** Partially available.
+
+Tidak ada endpoint pencarian global. Pencarian dilakukan dengan fan-out ke endpoint per workspace yang menerima `q`:
+
+- `GET /api/v1/workspaces/:workspaceId/todos?q=...&limit=8`
+- `GET /api/v1/workspaces/:workspaceId/tags?q=...&limit=5`
+- `GET /api/v1/workspaces/:workspaceId/labels?q=...&limit=5`
+
+`q` pada todo mencari `title` dan `description` secara case-insensitive dengan maksimum 200 karakter. `q` pada tag dan label mencari nama dengan maksimum 50 karakter. Semua endpoint memakai cursor pagination; frontend hanya mengambil halaman pertama per kategori per workspace dan mendokumentasikan batas ini.
+
+Daftar workspace dimuat dengan `GET /api/v1/workspaces?limit=50&offset=...` sampai `total` terpenuhi (maksimal 10 halaman). Endpoint ini **tidak menerima `q`**, sehingga pencarian nama workspace berstatus BLOCKED.
+
+Tidak ada endpoint suggestions, ranking relevansi global, atau total count lintas workspace. Frontend memakai hasil nyata sebagai saran, menggabungkan hasil per kategori, dan melaporkan workspace yang gagal dicari tanpa menggagalkan seluruh pencarian. Detail ada di [global-search.md](global-search.md).
 
 ## Collaboration API
 
@@ -492,16 +514,18 @@ Role yang sah: `owner`, `admin`, `member`.
 
 **Status:** Available. Bearer. Hanya notifikasi milik user yang login.
 
-- `GET /api/v1/notifications` dengan query `limit`, `cursor`, `readStatus`, `type`
+- `GET /api/v1/notifications` dengan query `limit` (default 20), `cursor`, `readStatus` (`all`, `unread`, `read`), dan `type`
 - `GET /api/v1/notifications/unread-count` mengembalikan `{ "unreadCount": 0 }`
 - `GET /api/v1/notifications/preferences` mengembalikan `{ "preferences": { "inAppEnabled": true, "emailEnabled": false } }`
 - `PATCH /api/v1/notifications/preferences` body `{ "emailEnabled": true }`
 - `PATCH /api/v1/notifications/read-all` mengembalikan `{ "updated": 0 }`
 - `PATCH /api/v1/notifications/:notificationId/read`
 
-Tipe yang ada pada schema route: `reminder_due`, `todo_due_soon`.
+Tipe yang ada pada schema route: `reminder_due`, `todo_due_soon`. Respons list memakai `{ "items": [...], "pagination": { "limit": 20, "hasMore": false, "nextCursor": null } }`. Setiap item memiliki `id`, `type`, `title`, `body`, `data` (opsional berisi `workspaceId`, `todoId`, `reminderId`, `dueAt`, `offsetMinutes`, `effectiveAt`), `readAt`, dan `createdAt`.
 
-Not available: API job queue, WebSocket, dan mematikan kanal in-app.
+Frontend memakai cursor dari `nextCursor` untuk halaman berikutnya. Unread count berasal dari endpoint terpisah dan tidak dihitung dari halaman yang dimuat. Polling feed unread berjalan setiap 60 detik dan berhenti saat tab tersembunyi.
+
+Not available: detail notifikasi, hapus notifikasi, tipe overdue, API job queue, WebSocket, SSE, Web Push, dan mematikan kanal in-app. Pengiriman background bergantung pada worker/scheduler backend. Detail ada di [notifications.md](notifications.md).
 
 ## Health
 

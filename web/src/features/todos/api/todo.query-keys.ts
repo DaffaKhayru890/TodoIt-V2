@@ -6,6 +6,19 @@ import type {
 } from '../models/todo.model';
 
 /**
+ * Bagian key yang tidak dikirim ke backend tetapi harus mereset pagination
+ * ketika berubah. Sorting diterapkan client-side, sehingga tanpa scope ini
+ * halaman lama dengan urutan berbeda akan tercampur dengan halaman baru.
+ */
+export interface TodoInfiniteScope {
+  readonly params?: TodoListParams;
+  readonly sort?: {
+    readonly field: string;
+    readonly direction: string;
+  };
+}
+
+/**
  * Query key factory Todo.
  *
  * Semua list dan detail membawa workspaceId. Ini mencegah cache Workspace A
@@ -21,6 +34,9 @@ export const todoKeys = {
 
   workspace: (workspaceId: string, params?: TodoListParams) =>
     [...todoKeys.workspaceLists(workspaceId), params ?? {}] as const,
+
+  workspaceInfinite: (workspaceId: string, scope: TodoInfiniteScope = {}) =>
+    [...todoKeys.workspaceLists(workspaceId), 'infinite', scope] as const,
 
   views: (workspaceId: string) => [...todoKeys.workspaceLists(workspaceId), 'view'] as const,
 

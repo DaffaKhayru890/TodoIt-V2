@@ -1,7 +1,8 @@
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button/button';
 import { Skeleton } from '@/components/ui/skeleton/skeleton';
 import { ApiError } from '@/core/errors/api-error';
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { splitTodosByStatus, type Todo } from '../../models/todo.model';
 import { TodoEmptyState } from '../todo-empty-state/TodoEmptyState';
 import { TodoItem } from '../todo-item/TodoItem';
@@ -13,11 +14,15 @@ export interface TodoListProps {
   readonly isError: boolean;
   readonly error?: unknown;
   readonly hasMore?: boolean;
+  readonly isFetchingNextPage?: boolean;
+  readonly isFetchNextPageError?: boolean;
+  readonly loadedPageCount?: number;
   readonly updatingTodoId?: string | null;
   readonly now?: Date | undefined;
   readonly isFiltered?: boolean;
   readonly onClearFilters?: () => void;
   readonly onRetry: () => void;
+  readonly onLoadMore?: () => void;
   readonly onCreate: () => void;
   readonly onEdit: (todo: Todo) => void;
   readonly onDelete: (todo: Todo) => void;
@@ -55,11 +60,15 @@ export function TodoList({
   isError,
   error,
   hasMore = false,
+  isFetchingNextPage = false,
+  isFetchNextPageError = false,
+  loadedPageCount = 1,
   updatingTodoId,
   now,
   isFiltered = false,
   onClearFilters,
   onRetry,
+  onLoadMore,
   onCreate,
   onEdit,
   onDelete,
@@ -69,6 +78,15 @@ export function TodoList({
   const completedHeadingId = useId();
   const completedPanelId = useId();
   const [completedOpen, setCompletedOpen] = useState(true);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useIntersectionObserver({
+    targetRef: sentinelRef,
+    enabled: hasMore && Boolean(onLoadMore) && !isFetchingNextPage && !isFetchNextPageError,
+    onIntersect: () => {
+      onLoadMore?.();
+    }
+  });
 
   if (isLoading && !todos) {
     return <TodoListSkeleton />;
@@ -95,7 +113,7 @@ export function TodoList({
         <div className="todo-list__filtered-empty">
           <h2 className="todo-list__filtered-title">Tidak ada tugas yang cocok</h2>
           <p className="todo-list__filtered-description">
-            Tidak ada tugas pada halaman pertama yang sesuai dengan kombinasi filter aktif.
+            Tidak ada tugas pada data yang sudah dimuat yang sesuai dengan kombinasi filter aktif.
           </p>
           {onClearFilters ? (
             <Button type="button" variant="outline" onClick={onClearFilters}>
@@ -189,12 +207,49 @@ export function TodoList({
         </section>
       ) : null}
 
-      {hasMore ? (
-        <p className="todo-list__pagination-note">
-          Menampilkan tugas terbaru pada halaman pertama. Navigasi halaman berikutnya akan tersedia
-          pada phase berikutnya.
+      <div className="todo-list__pagination">
+        <p className="visually-hidden" aria-live="polite">
+          {isFetchingNextPage ? 'Memuat tugas berikutnya.' : `${items.length} tugas ditampilkan.`}
         </p>
-      ) : null}
+
+        {isFetchNextPageError ? (
+          <div className="todo-list__pagination-error" role="alert">
+            <span>Gagal memuat tugas berikutnya.</span>
+            {onLoadMore ? (
+              <Button type="button" variant="outline" size="small" onClick={onLoadMore}>
+                Coba lagi
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+
+        {isFetchingNextPage ? (
+          <p className="todo-list__loading-more" aria-live="polite">
+            Memuat tugas berikutnya…
+          </p>
+        ) : null}
+
+        {hasMore && !isFetchingNextPage && !isFetchNextPageError ? (
+          <>
+            <div ref={sentinelRef} className="todo-list__sentinel" aria-hidden="true" />
+            <Button
+              type="button"
+              variant="outline"
+              size="small"
+              fullWidth
+              onClick={() => {
+                onLoadMore?.();
+              }}
+            >
+              Muat lebih banyak
+            </Button>
+          </>
+        ) : null}
+
+        {!hasMore && loadedPageCount > 1 ? (
+          <p className="todo-list__end">Semua tugas sudah dimuat.</p>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -19,9 +19,7 @@ export function toAppNotification(dto: NotificationDto): AppNotification {
   };
 }
 
-export function toNotificationListResult(
-  dto: NotificationListResponseDto
-): NotificationListResult {
+export function toNotificationListResult(dto: NotificationListResponseDto): NotificationListResult {
   return {
     items: dto.items.map(toAppNotification),
     pagination: {

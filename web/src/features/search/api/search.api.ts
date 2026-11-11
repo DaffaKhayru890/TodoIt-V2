@@ -44,15 +44,17 @@ function withQuery(path: string, params: URLSearchParams): string {
   return query ? `${path}?${query}` : path;
 }
 
-function buildPath(workspaceId: string, resource: 'todos' | 'tags' | 'labels', query: string, limit: number): string {
+function buildPath(
+  workspaceId: string,
+  resource: 'todos' | 'tags' | 'labels',
+  query: string,
+  limit: number
+): string {
   const params = new URLSearchParams();
   params.set('limit', String(limit));
   params.set('q', query);
 
-  return withQuery(
-    `/api/v1/workspaces/${encodeURIComponent(workspaceId)}/${resource}`,
-    params
-  );
+  return withQuery(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}/${resource}`, params);
 }
 
 function preview(value: string | null): string | null {
@@ -82,7 +84,10 @@ function toTodoItem(todo: Todo, workspace: SearchWorkspace): SearchResultItem {
   };
 }
 
-function toTagItem(tag: { id: string; name: string }, workspace: SearchWorkspace): SearchResultItem {
+function toTagItem(
+  tag: { id: string; name: string },
+  workspace: SearchWorkspace
+): SearchResultItem {
   return {
     id: tag.id,
     kind: 'tag',
@@ -159,11 +164,13 @@ function buildGroups(items: readonly WorkspaceSearchOutcome[]): readonly SearchR
   const tags = items.flatMap((item) => item.tags);
   const labels = items.flatMap((item) => item.labels);
 
-  return [
+  const groups: readonly SearchResultGroup[] = [
     { kind: 'todo', label: 'Tugas', items: todos },
     { kind: 'tag', label: 'Tag', items: tags },
     { kind: 'label', label: 'Label', items: labels }
-  ].filter((group) => group.items.length > 0);
+  ];
+
+  return groups.filter((group) => group.items.length > 0);
 }
 
 function dedupeById(items: readonly SearchResultItem[]): readonly SearchResultItem[] {

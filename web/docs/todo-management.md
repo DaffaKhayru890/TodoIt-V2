@@ -151,7 +151,7 @@ Query tidak melakukan retry untuk `401`, `403`, dan `404`. Error jaringan/5xx di
 
 ## E. Batasan dan Keputusan Teknis
 
-1. **Satu halaman pertama saja.** Backend memakai cursor pagination. Phase 4 meminta `limit=100` dan menyimpan `hasMore`/`nextCursor`. Jika masih ada halaman berikutnya, UI menampilkan catatan bahwa navigasi halaman akan hadir pada phase berikutnya. Metadata pagination dipertahankan agar Phase 6 dapat menggantinya dengan infinite query.
+1. **Infinite query sejak Phase 6.** Backend memakai cursor pagination. `WorkspaceTodoSection` meminta `limit=30` dan memuat halaman berikutnya dari `pagination.nextCursor` lewat sentinel atau tombol **Muat lebih banyak**. Filter/sorting client-side hanya berlaku pada halaman yang sudah dimuat.
 2. **Reopen bukan endpoint khusus.** Backend tidak memiliki endpoint reopen. Reopen memakai `PATCH` status `todo`, yang juga mengosongkan `completedAt` di server.
 3. **Soft delete.** Tidak ada restore/hard delete dari aplikasi.
 4. **`cancelled` tidak ditampilkan.** Belum ada kontrol pembatalan pada Phase 4.

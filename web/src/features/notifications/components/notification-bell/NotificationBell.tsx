@@ -7,9 +7,7 @@ export function NotificationBell({ onOpen }: { onOpen: () => void }) {
   const unreadQuery = useUnreadNotificationCount();
   const unreadCount = unreadQuery.data ?? 0;
   const label =
-    unreadCount > 0
-      ? `Buka notifikasi, ${unreadCount} belum dibaca`
-      : 'Buka notifikasi';
+    unreadCount > 0 ? `Buka notifikasi, ${unreadCount} belum dibaca` : 'Buka notifikasi';
 
   return (
     <div className="notification-bell">

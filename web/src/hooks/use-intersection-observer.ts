@@ -37,6 +37,13 @@ export function useIntersectionObserver({
       return;
     }
 
+    const observerThreshold =
+      threshold === undefined
+        ? undefined
+        : typeof threshold === 'number'
+          ? threshold
+          : [...threshold];
+
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
@@ -46,7 +53,7 @@ export function useIntersectionObserver({
       {
         root: rootRef?.current ?? null,
         rootMargin,
-        threshold
+        ...(observerThreshold === undefined ? {} : { threshold: observerThreshold })
       }
     );
 

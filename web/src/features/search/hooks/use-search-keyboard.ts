@@ -18,15 +18,18 @@ export function useSearchKeyboard({
   onSubmit
 }: UseSearchKeyboardOptions) {
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [previousResetKey, setPreviousResetKey] = useState(resetKey);
   const state = useRef({ itemCount, onSelect, onSubmit });
+
+  // Pola "adjust state during render": reset active option tanpa effect.
+  if (previousResetKey !== resetKey) {
+    setPreviousResetKey(resetKey);
+    setActiveIndex(-1);
+  }
 
   useEffect(() => {
     state.current = { itemCount, onSelect, onSubmit };
   });
-
-  useEffect(() => {
-    setActiveIndex(-1);
-  }, [resetKey]);
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
     if (event.key === 'ArrowDown') {
@@ -35,9 +38,7 @@ export function useSearchKeyboard({
       }
 
       event.preventDefault();
-      setActiveIndex((current) =>
-        current >= state.current.itemCount - 1 ? 0 : current + 1
-      );
+      setActiveIndex((current) => (current >= state.current.itemCount - 1 ? 0 : current + 1));
       return;
     }
 
@@ -47,9 +48,7 @@ export function useSearchKeyboard({
       }
 
       event.preventDefault();
-      setActiveIndex((current) =>
-        current <= 0 ? state.current.itemCount - 1 : current - 1
-      );
+      setActiveIndex((current) => (current <= 0 ? state.current.itemCount - 1 : current - 1));
       return;
     }
 

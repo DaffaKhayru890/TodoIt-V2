@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button/button';
 import { Modal } from '@/components/ui/modal/modal';
@@ -13,10 +13,7 @@ import {
   useNotifications,
   useUnreadNotificationCount
 } from '../../hooks/use-notifications';
-import type {
-  AppNotification,
-  NotificationReadStatus
-} from '../../models/notification.model';
+import type { AppNotification, NotificationReadStatus } from '../../models/notification.model';
 import { flattenNotificationPages } from '../../utils/flatten-notification-pages';
 import { getNotificationTarget } from '../../utils/notification-navigation';
 import { NotificationEmptyState } from '../notification-empty-state/NotificationEmptyState';
@@ -35,7 +32,9 @@ function getErrorMessage(error: unknown, fallback: string): string {
 export function NotificationCenter({ open, onClose }: { open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<NotificationReadStatus>('all');
-  const [now, setNow] = useState(() => new Date());
+  // Waktu acuan diperbarui setiap panel dibuka agar label relatif tetap segar,
+  // tanpa setState di dalam effect.
+  const now = useMemo(() => new Date(), [open]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -49,17 +48,6 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
     () => flattenNotificationPages(notificationsQuery.data?.pages),
     [notificationsQuery.data]
   );
-
-  useEffect(() => {
-    if (open) {
-      setNow(new Date());
-    }
-  }, [open]);
-
-  useEffect(() => {
-    setStatusMessage(null);
-    setErrorMessage(null);
-  }, [filter, open]);
 
   useIntersectionObserver({
     targetRef: sentinelRef,
@@ -76,6 +64,16 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
   const clearFeedback = () => {
     setStatusMessage(null);
     setErrorMessage(null);
+  };
+
+  const handleClose = () => {
+    clearFeedback();
+    onClose();
+  };
+
+  const handleFilterChange = (next: NotificationReadStatus) => {
+    clearFeedback();
+    setFilter(next);
   };
 
   const handleMarkRead = async (notification: AppNotification) => {
@@ -115,7 +113,7 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
       return;
     }
 
-    onClose();
+    handleClose();
     navigate(target);
   };
 
@@ -125,7 +123,9 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
     try {
       const updated = await markAllRead.mutateAsync();
       setStatusMessage(
-        updated > 0 ? `${updated} notifikasi ditandai sudah dibaca.` : 'Tidak ada notifikasi yang perlu ditandai.'
+        updated > 0
+          ? `${updated} notifikasi ditandai sudah dibaca.`
+          : 'Tidak ada notifikasi yang perlu ditandai.'
       );
     } catch (error) {
       setErrorMessage(
@@ -136,17 +136,11 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
 
   const showInitialLoading = notificationsQuery.isLoading;
   const showInitialError = notificationsQuery.isError && notifications.length === 0;
-  const showEmpty =
-    !showInitialLoading && !showInitialError && notifications.length === 0;
+  const showEmpty = !showInitialLoading && !showInitialError && notifications.length === 0;
   const unreadCount = unreadQuery.data ?? 0;
 
   return (
-    <Modal
-      open={open}
-      title="Notifikasi"
-      onClose={onClose}
-      className="modal--notifications"
-    >
+    <Modal open={open} title="Notifikasi" onClose={handleClose} className="modal--notifications">
       <div className="notification-center">
         <div className="notification-center__toolbar">
           <div className="notification-center__filters" role="group" aria-label="Filter notifikasi">
@@ -159,7 +153,7 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
                   filter === item.value && 'notification-center__filter--active'
                 )}
                 aria-pressed={filter === item.value}
-                onClick={() => setFilter(item.value)}
+                onClick={() => handleFilterChange(item.value)}
               >
                 {item.label}
               </button>
@@ -179,20 +173,26 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
           </Button>
         </div>
 
-        <p className="visually-hidden" role="status" aria-live="polite">
+        <p className="visually-hidden" aria-live="polite">
           {showInitialLoading
             ? 'Memuat notifikasi.'
             : `${notifications.length} notifikasi ditampilkan.`}
         </p>
 
         {statusMessage ? (
-          <div className="notification-center__feedback notification-center__feedback--success" role="status">
+          <div
+            className="notification-center__feedback notification-center__feedback--success"
+            role="status"
+          >
             {statusMessage}
           </div>
         ) : null}
 
         {errorMessage ? (
-          <div className="notification-center__feedback notification-center__feedback--error" role="alert">
+          <div
+            className="notification-center__feedback notification-center__feedback--error"
+            role="alert"
+          >
             {errorMessage}
           </div>
         ) : null}
@@ -248,14 +248,18 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
             ) : null}
 
             {notificationsQuery.isFetchingNextPage ? (
-              <p className="notification-center__loading-more" role="status">
+              <p className="notification-center__loading-more" aria-live="polite">
                 Memuat notifikasi berikutnya…
               </p>
             ) : null}
 
             {notificationsQuery.hasNextPage ? (
               <>
-                <div ref={sentinelRef} className="notification-center__sentinel" aria-hidden="true" />
+                <div
+                  ref={sentinelRef}
+                  className="notification-center__sentinel"
+                  aria-hidden="true"
+                />
                 <Button
                   type="button"
                   variant="outline"
@@ -282,7 +286,7 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
             variant="ghost"
             size="small"
             onClick={() => {
-              onClose();
+              handleClose();
               navigate(paths.settings);
             }}
           >

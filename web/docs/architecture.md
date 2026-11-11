@@ -8,7 +8,7 @@ Frontend memakai pemisahan app, core, komponen, halaman, fitur bisnis (`src/feat
 
 `AppProviders` membungkus `QueryProvider`. `QueryClient` dibuat lewat initializer `useState`, jadi tidak dibuat ulang setiap render.
 
-`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Rute `/workspace/:workspaceId` terhubung ke `WorkspacePage`, rute anak `/workspace/:workspaceId/todos/:todoId` terhubung ke `TodoDetailPage`, serta `/workspace/:workspaceId/today` dan `/workspace/:workspaceId/upcoming` terhubung ke halaman productivity. Rute tag dan label memakai `/workspace/:workspaceId/tags` dan `/workspace/:workspaceId/labels`.
+`AppRouter` memakai `BrowserRouter`. Rute aplikasi memakai layout route `AppLayout` dan `Outlet`. Rute `/workspace/:workspaceId` terhubung ke `WorkspacePage`, rute anak `/workspace/:workspaceId/todos/:todoId` terhubung ke `TodoDetailPage`, serta `/workspace/:workspaceId/today` dan `/workspace/:workspaceId/upcoming` terhubung ke halaman productivity. Rute tag dan label memakai `/workspace/:workspaceId/tags` dan `/workspace/:workspaceId/labels`. Phase 6 menambahkan `/search` dan `/settings`.
 
 ## Features (`src/features/`)
 
@@ -57,6 +57,19 @@ Modul todo diperluas tanpa merombak Phase 4:
 
 Detail ada di [productivity-features.md](productivity-features.md).
 
+### Pencarian, notifikasi, dan pagination (Phase 6)
+
+Phase 6 menambahkan tiga modul tanpa mengubah backend:
+
+- `search/`: model hasil, `searchApi` yang melakukan fan-out ke `todos`, `tags`, dan `labels` per workspace, query key, loader seluruh workspace, debounce, riwayat `localStorage`, highlight, navigasi keyboard, shortcut, komponen popup/trigger/content, dan halaman `/search`.
+- `notifications/`: DTO, guard, mapper, `notificationApi`, query key, hook list/feed/unread/preferences, polling, Browser Notification API, bell, badge, pusat notifikasi, preferensi, dan halaman `/settings`.
+- `todos/hooks/use-infinite-workspace-todos.ts`: `useInfiniteQuery` berbasis cursor backend dengan ukuran halaman 30. Sorting hanya masuk query key untuk mereset pagination, bukan dikirim ke backend.
+- `todos/utils/flatten-todo-pages.ts`: penggabungan halaman, dedupe ID, dan pertahanan workspace.
+- `todos/utils/workspace-scroll-key.ts` serta `hooks/scroll-position-storage.ts`/`hooks/use-scroll-restoration.ts`: penyimpanan dan pemulihan posisi scroll per workspace, filter, dan sorting.
+- `hooks/use-intersection-observer.ts`: sentinel infinite scroll dengan fallback tombol.
+
+`AppLayout` merender `SearchPopup`, `NotificationBell`, `NotificationCenter`, `useSearchShortcut`, dan `useNotificationUpdates`. `WorkspaceTodoSection` memakai infinite query, menggabungkan halaman, menerapkan filter/sorting client-side pada halaman yang dimuat, lalu memulihkan scroll. Detail ada di [global-search.md](global-search.md), [notifications.md](notifications.md), dan [cursor-pagination.md](cursor-pagination.md).
+
 Fixture pengujian berada di `src/test/fixtures/` dan tidak diimpor oleh runtime produksi.
 
 ## Core
@@ -88,6 +101,8 @@ Query key todo selalu membawa `workspaceId`: `workspaceLists(workspaceId)` untuk
 
 Mutation tag/label menginvalidasi daftar metadata workspace dan cache todo workspace karena nama metadata tertanam pada representasi todo. Mutation reminder menginvalidasi daftar reminder todo serta cache todo terkait. Detail ada di [todo-api-integration.md](todo-api-integration.md) dan [productivity-features.md](productivity-features.md).
 
+Query key Phase 6 memisahkan `search` (query + daftar workspace), `notifications` (list per filter, feed unread, unread count, preferences), dan `todoKeys.workspaceInfinite` (workspace + filter + sorting). `useGlobalSearch` meneruskan `AbortSignal` ke fan-out. `useNotificationUpdates` menginvalidasi daftar dan unread count saat ada ID notifikasi baru. Infinite query tugas memakai cursor dari respons dan tidak pernah membangun cursor sendiri.
+
 Login, penyimpanan access token, dan pemanggilan `/api/v1/auth/refresh` belum diimplementasikan. `getAccessToken` adalah titik integrasi untuk phase autentikasi. Tanpa phase tersebut, request ke backend nyata akan ditolak 401; handler MSW dipakai untuk pengujian.
 
 ## CSS
@@ -101,4 +116,4 @@ Tailwind 4 dimuat dari `src/styles/globals.css` lewat `@import "tailwindcss"` da
 
 ## Testing
 
-Vitest memakai environment jsdom. `renderWithProviders` memasang `QueryClientProvider` dan `MemoryRouter`. Tes HTTP memakai handler MSW. Detail ada di [testing-guide.md](testing-guide.md) dan [productivity-testing.md](productivity-testing.md).
+Vitest memakai environment jsdom. `renderWithProviders` memasang `QueryClientProvider`, `ToastProvider`, dan `MemoryRouter`. Tes HTTP memakai handler MSW. Detail ada di [testing-guide.md](testing-guide.md), [productivity-testing.md](productivity-testing.md), [global-search.md](global-search.md), [notifications.md](notifications.md), dan [cursor-pagination.md](cursor-pagination.md).

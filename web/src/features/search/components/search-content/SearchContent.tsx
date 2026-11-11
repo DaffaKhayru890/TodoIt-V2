@@ -10,14 +10,14 @@ import {
   SEARCH_MIN_QUERY_LENGTH,
   isSearchableQuery,
   type SearchResultItem
-} from '../models/search.model';
-import { useGlobalSearch } from '../hooks/use-global-search';
-import { useRecentSearches } from '../hooks/use-recent-searches';
-import { useSearchKeyboard } from '../hooks/use-search-keyboard';
-import { HighlightedText } from '../components/highlighted-text/HighlightedText';
+} from '../../models/search.model';
+import { useGlobalSearch } from '../../hooks/use-global-search';
+import { useRecentSearches } from '../../hooks/use-recent-searches';
+import { useSearchKeyboard } from '../../hooks/use-search-keyboard';
+import { HighlightedText } from '../highlighted-text/HighlightedText';
 
 export interface SearchContentProps {
-  readonly autoFocus?: boolean;
+  readonly focusOnMount?: boolean;
   readonly onClose?: () => void;
 }
 
@@ -29,7 +29,7 @@ function getSearchErrorMessage(error: unknown): string {
   return 'Pencarian gagal diproses. Silakan coba lagi.';
 }
 
-export function SearchContent({ autoFocus = false, onClose }: SearchContentProps) {
+export function SearchContent({ focusOnMount = false, onClose }: SearchContentProps) {
   const navigate = useNavigate();
   const recent = useRecentSearches();
   const [value, setValue] = useState('');
@@ -47,24 +47,18 @@ export function SearchContent({ autoFocus = false, onClose }: SearchContentProps
   } = useGlobalSearch(value);
 
   const results = searchQuery.data;
-  const items = useMemo(
-    () => results?.groups.flatMap((group) => group.items) ?? [],
-    [results]
-  );
+  const items = useMemo(() => results?.groups.flatMap((group) => group.items) ?? [], [results]);
   const queryEnabled = isSearchableQuery(debouncedQuery) && workspaces.length > 0;
   const isInitialLoading =
-    isSearchableQuery(normalizedQuery) &&
-    (isDebouncing || (queryEnabled && searchQuery.isPending));
+    isSearchableQuery(normalizedQuery) && (isDebouncing || (queryEnabled && searchQuery.isPending));
   const isRefreshing = queryEnabled && searchQuery.isFetching && !searchQuery.isPending;
   const showResults = !isDebouncing && !isQueryTooShort && results !== undefined;
-  const showEmpty =
-    showResults && !searchQuery.isError && results.total === 0 && !isInitialLoading;
-  const showError =
-    isSearchableQuery(normalizedQuery) && searchQuery.isError && !isDebouncing;
+  const showEmpty = showResults && !searchQuery.isError && results.total === 0 && !isInitialLoading;
+  const showError = isSearchableQuery(normalizedQuery) && searchQuery.isError && !isDebouncing;
   const canCommit = isSearchableQuery(normalizedQuery);
 
   useEffect(() => {
-    if (!autoFocus) {
+    if (!focusOnMount) {
       return;
     }
 
@@ -75,7 +69,7 @@ export function SearchContent({ autoFocus = false, onClose }: SearchContentProps
     return () => {
       clearTimeout(timer);
     };
-  }, [autoFocus]);
+  }, [focusOnMount]);
 
   const commitSearch = () => {
     if (canCommit) {
@@ -183,9 +177,7 @@ export function SearchContent({ autoFocus = false, onClose }: SearchContentProps
         />
       ) : null}
 
-      {normalizedQuery.length > 0 && workspacesQuery.isLoading ? (
-        <SearchLoading />
-      ) : null}
+      {normalizedQuery.length > 0 && workspacesQuery.isLoading ? <SearchLoading /> : null}
 
       {normalizedQuery.length > 0 && workspacesQuery.isError ? (
         <div className="search-panel__state search-panel__state--error" role="alert">
@@ -300,10 +292,7 @@ export function SearchContent({ autoFocus = false, onClose }: SearchContentProps
                               </span>
                               {item.description ? (
                                 <span className="search-results__item-description">
-                                  <HighlightedText
-                                    text={item.description}
-                                    query={debouncedQuery}
-                                  />
+                                  <HighlightedText text={item.description} query={debouncedQuery} />
                                 </span>
                               ) : null}
                               <span className="search-results__item-meta">

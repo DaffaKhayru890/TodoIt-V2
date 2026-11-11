@@ -8,8 +8,16 @@ export { NotificationPreferences } from './components/notification-preferences/N
 export { NotificationSettingsPage } from './pages/NotificationSettingsPage';
 export { notificationApi } from './api/notification.api';
 export { notificationKeys } from './api/notification.query-keys';
-export { useNotifications, useUnreadNotificationCount, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from './hooks/use-notifications';
-export { useNotificationPreferences, useUpdateNotificationPreferences } from './hooks/use-notification-preferences';
+export {
+  useNotifications,
+  useUnreadNotificationCount,
+  useMarkNotificationAsRead,
+  useMarkAllNotificationsAsRead
+} from './hooks/use-notifications';
+export {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences
+} from './hooks/use-notification-preferences';
 export { useNotificationUpdates } from './hooks/use-notification-updates';
 export { useBrowserNotifications } from './hooks/use-browser-notifications';
 export * from './models/notification.model';

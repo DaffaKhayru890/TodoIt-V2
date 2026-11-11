@@ -1,9 +1,5 @@
 import { useCallback, useState } from 'react';
-import {
-  addRecentSearch,
-  recentSearchStorage,
-  removeRecentSearch
-} from '../utils/recent-searches';
+import { addRecentSearch, recentSearchStorage, removeRecentSearch } from '../utils/recent-searches';
 
 export interface RecentSearchesController {
   readonly items: readonly string[];
@@ -25,16 +21,13 @@ export function useRecentSearches(): RecentSearchesController {
     recentSearchStorage.write(next);
   }, []);
 
-  const addSearch = useCallback(
-    (query: string) => {
-      setItems((current) => {
-        const next = addRecentSearch(current, query);
-        recentSearchStorage.write(next);
-        return next;
-      });
-    },
-    []
-  );
+  const addSearch = useCallback((query: string) => {
+    setItems((current) => {
+      const next = addRecentSearch(current, query);
+      recentSearchStorage.write(next);
+      return next;
+    });
+  }, []);
 
   const removeSearch = useCallback((query: string) => {
     setItems((current) => {

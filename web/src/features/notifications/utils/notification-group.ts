@@ -18,10 +18,7 @@ function addLocalDays(value: Date, days: number): Date {
   return next;
 }
 
-export function getNotificationDateGroup(
-  createdAt: Date,
-  now: Date
-): NotificationDateGroupKey {
+export function getNotificationDateGroup(createdAt: Date, now: Date): NotificationDateGroupKey {
   const today = startOfLocalDay(now).getTime();
   const yesterday = startOfLocalDay(addLocalDays(now, -1)).getTime();
   const value = createdAt.getTime();

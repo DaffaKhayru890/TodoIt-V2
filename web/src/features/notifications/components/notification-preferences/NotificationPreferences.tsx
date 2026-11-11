@@ -7,9 +7,7 @@ import {
   useUpdateNotificationPreferences
 } from '../../hooks/use-notification-preferences';
 import { useBrowserNotifications } from '../../hooks/use-browser-notifications';
-import {
-  getNotificationTypeLabel
-} from '../../utils/notification-label';
+import { getNotificationTypeLabel } from '../../utils/notification-label';
 import { NOTIFICATION_TYPES } from '../../models/notification.model';
 
 function getErrorMessage(error: unknown): string {
@@ -25,7 +23,10 @@ export function NotificationPreferences() {
 
   return (
     <div className="notification-preferences">
-      <section className="notification-preferences__section" aria-labelledby="notification-channels">
+      <section
+        className="notification-preferences__section"
+        aria-labelledby="notification-channels"
+      >
         <h2 id="notification-channels" className="notification-preferences__title">
           Kanal notifikasi
         </h2>

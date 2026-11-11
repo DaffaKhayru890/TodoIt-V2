@@ -26,7 +26,9 @@ export function splitHighlight(text: string, query: string): readonly HighlightP
   const pattern = new RegExp(`(${escapeRegExp(needle)})`, 'gi');
   const pieces = text.split(pattern);
 
+  // Parity harus ditentukan sebelum menyaring bagian kosong, karena posisi
+  // ganjil pada hasil split menandai capturing group (bagian yang cocok).
   return pieces
-    .filter((piece) => piece.length > 0)
-    .map((piece, index) => ({ text: piece, match: index % 2 === 1 }));
+    .map((piece, index) => ({ text: piece, match: index % 2 === 1 }))
+    .filter((part) => part.text.length > 0);
 }

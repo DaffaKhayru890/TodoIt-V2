@@ -3,11 +3,12 @@ import { FiPlus } from 'react-icons/fi';
 import { useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button/button';
 import { ApiError } from '@/core/errors/api-error';
+import { useScrollRestoration } from '@/hooks/use-scroll-restoration';
 import { useLabels } from '@/features/labels/hooks/use-labels';
 import { useTags } from '@/features/tags/hooks/use-tags';
 import { useCompleteTodo } from '../../hooks/use-complete-todo';
+import { useInfiniteWorkspaceTodos } from '../../hooks/use-infinite-workspace-todos';
 import { useReopenTodo } from '../../hooks/use-reopen-todo';
-import { useWorkspaceTodos } from '../../hooks/use-workspace-todos';
 import {
   EMPTY_TODO_FILTER,
   hasActiveTodoFilters,
@@ -22,7 +23,9 @@ import {
   serializeTodoSort,
   toTodoListQueryPlan
 } from '../../utils/filter-url';
+import { flattenTodoPages } from '../../utils/flatten-todo-pages';
 import { sortTodos } from '../../utils/sort-todos';
+import { buildWorkspaceScrollKey } from '../../utils/workspace-scroll-key';
 import { CreateTodoDialog } from '../create-todo-dialog/CreateTodoDialog';
 import { DeleteTodoDialog } from '../delete-todo-dialog/DeleteTodoDialog';
 import { EditTodoDialog } from '../edit-todo-dialog/EditTodoDialog';
@@ -54,7 +57,7 @@ export function WorkspaceTodoSection({ workspaceId, workspaceName }: WorkspaceTo
   const now = useMemo(() => new Date(), []);
   const plan = useMemo(() => toTodoListQueryPlan(filter, now), [filter, now]);
 
-  const todosQuery = useWorkspaceTodos(workspaceId, plan.params);
+  const todosQuery = useInfiniteWorkspaceTodos(workspaceId, plan.params, { sort });
   const tagsQuery = useTags(workspaceId);
   const labelsQuery = useLabels(workspaceId);
   const completeMutation = useCompleteTodo();
@@ -66,6 +69,11 @@ export function WorkspaceTodoSection({ workspaceId, workspaceName }: WorkspaceTo
   const [updatingTodoId, setUpdatingTodoId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useScrollRestoration({
+    storageKey: buildWorkspaceScrollKey(workspaceId, filter, sort),
+    ready: todosQuery.isSuccess
+  });
 
   const clearFeedback = () => {
     setSuccessMessage(null);
@@ -105,10 +113,12 @@ export function WorkspaceTodoSection({ workspaceId, workspaceName }: WorkspaceTo
     }
   };
 
-  const items = applyClientTodoFilter(todosQuery.data?.items ?? [], plan, now);
+  const loadedItems = flattenTodoPages(workspaceId, todosQuery.data?.pages);
+  const items = applyClientTodoFilter(loadedItems, plan, now);
   // `undefined` menandakan data belum pernah dimuat, sehingga TodoList masih
   // menampilkan skeleton/error. Array kosong berarti data sudah ada tetapi
-  // tidak ada tugas yang cocok.
+  // tidak ada tugas yang cocok. Filter/sorting client-side hanya berlaku pada
+  // halaman yang sudah dimuat; batasan ini didokumentasikan di docs.
   const visibleTodos = todosQuery.data ? sortTodos(items, sort) : undefined;
   const filtered = hasActiveTodoFilters(filter);
 
@@ -184,13 +194,19 @@ export function WorkspaceTodoSection({ workspaceId, workspaceName }: WorkspaceTo
         isLoading={todosQuery.isLoading}
         isError={todosQuery.isError}
         error={todosQuery.error}
-        hasMore={todosQuery.data?.pagination.hasMore ?? false}
+        hasMore={todosQuery.hasNextPage ?? false}
+        isFetchingNextPage={todosQuery.isFetchingNextPage}
+        isFetchNextPageError={todosQuery.isFetchNextPageError}
+        loadedPageCount={todosQuery.data?.pages.length ?? 0}
         updatingTodoId={updatingTodoId}
         now={now}
         isFiltered={filtered}
         onClearFilters={clearFilters}
         onRetry={() => {
           void todosQuery.refetch();
+        }}
+        onLoadMore={() => {
+          void todosQuery.fetchNextPage();
         }}
         onCreate={() => {
           clearFeedback();

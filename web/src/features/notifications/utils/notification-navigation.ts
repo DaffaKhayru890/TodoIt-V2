@@ -23,5 +23,7 @@ export function getNotificationTarget(notification: AppNotification): string | n
 }
 
 export function getNotificationTargetLabel(notification: AppNotification): string {
-  return getNotificationTarget(notification) ? 'Buka tugas terkait' : 'Tugas terkait tidak tersedia';
+  return getNotificationTarget(notification)
+    ? 'Buka tugas terkait'
+    : 'Tugas terkait tidak tersedia';
 }

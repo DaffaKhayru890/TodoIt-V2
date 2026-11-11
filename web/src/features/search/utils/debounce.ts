@@ -9,9 +9,12 @@ export function useDebouncedValue<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebounced(value);
-    }, Math.max(0, delay));
+    const timer = setTimeout(
+      () => {
+        setDebounced(value);
+      },
+      Math.max(0, delay)
+    );
 
     return () => {
       clearTimeout(timer);

@@ -62,17 +62,12 @@ export function ToastProvider({ children }: { readonly children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="toast-region" role="status" aria-live="polite" aria-atomic="false">
+      <div className="toast-region" aria-live="polite" aria-atomic="false">
         {toasts.map((toast) => (
-          <div
-            className={joinClasses('toast', `toast--${toast.tone ?? 'info'}`)}
-            key={toast.id}
-          >
+          <div className={joinClasses('toast', `toast--${toast.tone ?? 'info'}`)} key={toast.id}>
             <div className="toast__content">
               <p className="toast__title">{toast.title}</p>
-              {toast.description ? (
-                <p className="toast__description">{toast.description}</p>
-              ) : null}
+              {toast.description ? <p className="toast__description">{toast.description}</p> : null}
             </div>
             <button
               type="button"

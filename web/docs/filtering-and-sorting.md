@@ -1,6 +1,6 @@
 # Filtering dan sorting
 
-Filter dapat digabungkan. Sebagian diterjemahkan ke query API, sebagian diterapkan client-side karena backend belum mendukungnya. Sorting sepenuhnya client-side pada halaman pertama.
+Filter dapat digabungkan. Sebagian diterjemahkan ke query API, sebagian diterapkan client-side karena backend belum mendukungnya. Sorting sepenuhnya client-side pada halaman yang sudah dimuat.
 
 ## Model filter
 
@@ -50,7 +50,7 @@ Parameter backend lain yang belum diekspos UI: `createdFrom`, `createdTo`, dan `
 
 `applyClientTodoFilter` menerapkan filter tersebut pada item yang sudah dimuat.
 
-**Batasan penting:** filter client-side hanya melihat halaman pertama (`limit=100`). UI tidak mengklaim hasil lengkap untuk dataset yang lebih besar. Ini didokumentasikan dan tidak disamarkan sebagai server-side filtering.
+**Batasan penting:** filter client-side hanya melihat halaman yang sudah dimuat. Sejak Phase 6 daftar memakai cursor pagination `limit=30` dan infinite scroll, sehingga pengguna dapat memuat halaman berikutnya, tetapi filter/sorting tetap tidak menjangkau data yang belum dimuat. UI tidak mengklaim hasil lengkap untuk dataset yang lebih besar dan tidak menyamarkan ini sebagai server-side filtering.
 
 ## Filter panel
 
@@ -140,17 +140,18 @@ Memakai bobot eksplisit dari `todo-priority.ts` (1–4), bukan alfabet.
 
 1. Membaca `useSearchParams`.
 2. Memparse filter dan sort.
-3. Mengirim query plan ke `useWorkspaceTodos`.
-4. Menerapkan client filter.
-5. Menyalin hasil dan mengurutkannya.
-6. Merender daftar aktif dan selesai.
+3. Mengirim query plan ke `useInfiniteWorkspaceTodos`.
+4. Menggabungkan halaman dengan `flattenTodoPages`.
+5. Menerapkan client filter pada item yang sudah dimuat.
+6. Menyalin hasil dan mengurutkannya.
+7. Merender daftar aktif dan selesai dengan sentinel pagination.
 
 Today dan Upcoming tidak memakai filter panel; keduanya memakai endpoint view dan grouping/status sendiri.
 
 ## Batasan
 
 - Sorting tidak didukung backend, sehingga hanya mengurutkan data yang sudah dimuat.
-- Pagination lanjutan dan infinite scroll belum ada (Phase 6).
-- Filter client-side tidak menjangkau halaman berikutnya.
-- Pencarian `q` dan filter tanggal pembuatan belum diekspos di UI.
+- Infinite scroll dan cursor pagination tersedia sejak Phase 6, tetapi sorting/filter client-side tetap hanya menjangkau halaman yang sudah dimuat.
+- Filter client-side tidak menjangkau halaman berikutnya sampai halaman tersebut dimuat.
+- Pencarian `q` tersedia lewat pencarian global; filter tanggal pembuatan belum diekspos di UI.
 - Tidak ada multi-label; backend hanya mendukung satu label utama per todo.

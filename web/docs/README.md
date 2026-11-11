@@ -2,7 +2,7 @@
 
 Frontend TodoIt-v2. Backend tetap berada di root repository dan tidak dipindahkan. Folder `web/` adalah aplikasi React terpisah yang berbicara ke API tersebut.
 
-Phase 1 menyiapkan tooling dan fondasi API. Phase 2 menambahkan design system Neo Brutalism, komponen UI, dan application shell dengan dua sidebar. Phase 3 mengimplementasikan Workspace Management dengan integrasi API backend, TanStack Query, dialog create/edit, konfirmasi archive, detail page, dan penanganan permission. Phase 4 mengimplementasikan Todo Management di dalam workspace: daftar tugas aktif/selesai, create/edit/delete, completion/reopen, halaman detail todo, serta seluruh state loading, empty, error, not found, dan access denied. Phase 5 menambahkan productivity features: tag dan label workspace, assignment metadata, priority, due date, reminder, Today, Upcoming, overdue indicator, filter gabungan berbasis URL, dan sorting client-side. Hard delete workspace, sorting server-side, pagination lanjutan, dan fitur kolaborasi/notifikasi belum tersedia.
+Phase 1 menyiapkan tooling dan fondasi API. Phase 2 menambahkan design system Neo Brutalism, komponen UI, dan application shell dengan dua sidebar. Phase 3 mengimplementasikan Workspace Management dengan integrasi API backend, TanStack Query, dialog create/edit, konfirmasi archive, detail page, dan penanganan permission. Phase 4 mengimplementasikan Todo Management di dalam workspace: daftar tugas aktif/selesai, create/edit/delete, completion/reopen, halaman detail todo, serta seluruh state loading, empty, error, not found, dan access denied. Phase 5 menambahkan productivity features: tag dan label workspace, assignment metadata, priority, due date, reminder, Today, Upcoming, overdue indicator, filter gabungan berbasis URL, dan sorting client-side. Phase 6 menambahkan pencarian global dengan fan-out ke endpoint todo/tag/label per workspace, riwayat pencarian lokal, pusat notifikasi in-app dengan polling dan preferensi, notifikasi browser opsional, serta cursor pagination/infinite scrolling dan pemulihan posisi scroll untuk daftar tugas. Endpoint pencarian global, sorting server-side, detail/hapus notifikasi, dan Web Push belum tersedia dan didokumentasikan sebagai BLOCKED.
 
 Dokumentasi fitur:
 
@@ -18,6 +18,9 @@ Dokumentasi fitur:
 - [Today dan Upcoming](today-and-upcoming.md)
 - [Filtering dan sorting](filtering-and-sorting.md)
 - [Testing productivity](productivity-testing.md)
+- [Pencarian global](global-search.md)
+- [Notifikasi](notifications.md)
+- [Cursor pagination dan infinite scrolling](cursor-pagination.md)
 
 ## Teknologi
 
@@ -78,7 +81,7 @@ web/
 │   ├── app/          inisialisasi, provider, router
 │   ├── components/   komponen UI dan layout bersama
 │   ├── core/         HTTP client, env, error
-│   ├── features/     domain bisnis (workspace, todo, tag, label, reminder)
+│   ├── features/     domain bisnis (workspace, todo, tag, label, reminder, search, notifications)
 │   ├── hooks/        hook UI bersama
 │   ├── pages/        halaman placeholder
 │   ├── styles/       token, global, komponen, utility
@@ -100,6 +103,9 @@ web/
 - [Today dan Upcoming](today-and-upcoming.md)
 - [Filtering dan sorting](filtering-and-sorting.md)
 - [Testing productivity](productivity-testing.md)
+- [Pencarian global](global-search.md)
+- [Notifikasi](notifications.md)
+- [Cursor pagination dan infinite scrolling](cursor-pagination.md)
 - [Arsitektur](architecture.md)
 - [Audit backend](backend-audit.md)
 - [Kontrak API](api-contract.md)

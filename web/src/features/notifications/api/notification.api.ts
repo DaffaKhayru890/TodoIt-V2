@@ -6,10 +6,7 @@ import {
   assertNotificationResponseDto,
   assertUnreadCountResponseDto
 } from '../models/notification.guard';
-import {
-  toNotificationListResult,
-  toAppNotification
-} from '../models/notification.mapper';
+import { toNotificationListResult, toAppNotification } from '../models/notification.mapper';
 import { toNotificationPreferences } from '../models/notification.guard';
 import type {
   ListNotificationsParams,
@@ -115,13 +112,10 @@ export function createNotificationApi(client: HttpClient = httpClient): Notifica
     },
 
     async updatePreferences(input, options) {
-      const response = await client.request<unknown>(
-        `${NOTIFICATIONS_PATH}/preferences`,
-        {
-          ...requestOptions('PATCH', options),
-          body: { emailEnabled: input.emailEnabled }
-        }
-      );
+      const response = await client.request<unknown>(`${NOTIFICATIONS_PATH}/preferences`, {
+        ...requestOptions('PATCH', options),
+        body: { emailEnabled: input.emailEnabled }
+      });
 
       assertNotificationPreferencesResponseDto(response);
       return toNotificationPreferences(response);

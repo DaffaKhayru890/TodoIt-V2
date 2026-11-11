@@ -100,10 +100,7 @@ export function persistRecentSearches(
 }
 
 /** Query terbaru selalu di depan; duplikat case-insensitive diganti versi terbaru. */
-export function addRecentSearch(
-  items: readonly string[],
-  query: string
-): readonly string[] {
+export function addRecentSearch(items: readonly string[], query: string): readonly string[] {
   const normalized = normalizeSearchQuery(query);
 
   if (!normalized) {

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FiMenu, FiSearch } from 'react-icons/fi';
+import { FiMenu } from 'react-icons/fi';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { buildNavigation } from '@/app/navigation/navigation';
 import { paths } from '@/app/router/route-paths';
@@ -141,10 +141,25 @@ export function AppLayout() {
           workspaceId={activeWorkspaceId || undefined}
           sections={buildNavigation(activeWorkspaceId || undefined)}
           collapsed={secondaryCollapsed}
+          onSearch={() => {
+            closeDrawer();
+            setSearchOpen(true);
+          }}
+          notificationSlot={
+            <NotificationBell
+              onOpen={() => {
+                closeDrawer();
+                setNotificationsOpen(true);
+              }}
+            />
+          }
           {...(compact ? { onClose: closeDrawer } : {})}
         />
       </div>
       <MainContent />
+
+      <SearchPopup open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <NotificationCenter open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
       <CreateWorkspaceDialog
         open={isCreateOpen}

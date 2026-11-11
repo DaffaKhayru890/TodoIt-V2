@@ -3,7 +3,10 @@ import { Badge } from '@/components/ui/badge/badge';
 import { joinClasses } from '@/core/utils/join-classes';
 import type { AppNotification } from '../../models/notification.model';
 import { getNotificationTypeConfig } from '../../utils/notification-label';
-import { getNotificationTarget, getNotificationTargetLabel } from '../../utils/notification-navigation';
+import {
+  getNotificationTarget,
+  getNotificationTargetLabel
+} from '../../utils/notification-navigation';
 import { formatNotificationTime } from '../../utils/notification-time';
 
 export function NotificationItem({

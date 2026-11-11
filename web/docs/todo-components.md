@@ -213,15 +213,16 @@ Props menerima `register` dan `errors` dari React Hook Form sehingga aturan vali
 
 ## D. Hook
 
-| Hook                | Jenis    | Tugas                                              |
-| ------------------- | -------- | -------------------------------------------------- |
-| `useWorkspaceTodos` | query    | Daftar todo halaman pertama (`limit=100`)          |
-| `useTodo`           | query    | Detail todo                                        |
-| `useCreateTodo`     | mutation | Create + isi cache detail + invalidate list        |
-| `useUpdateTodo`     | mutation | Update + perbarui cache detail + invalidate list   |
-| `useCompleteTodo`   | mutation | Complete + perbarui cache detail + invalidate list |
-| `useReopenTodo`     | mutation | PATCH status `todo` + invalidate                   |
-| `useDeleteTodo`     | mutation | Delete + hapus cache detail + invalidate list      |
+| Hook                        | Jenis    | Tugas                                                  |
+| --------------------------- | -------- | ------------------------------------------------------ |
+| `useWorkspaceTodos`         | query    | Daftar todo satu halaman (`limit=100`) untuk view lama |
+| `useInfiniteWorkspaceTodos` | query    | Infinite scroll berbasis cursor (`limit=30`)           |
+| `useTodo`                   | query    | Detail todo                                            |
+| `useCreateTodo`             | mutation | Create + isi cache detail + invalidate list            |
+| `useUpdateTodo`             | mutation | Update + perbarui cache detail + invalidate list       |
+| `useCompleteTodo`           | mutation | Complete + perbarui cache detail + invalidate list     |
+| `useReopenTodo`             | mutation | PATCH status `todo` + invalidate                       |
+| `useDeleteTodo`             | mutation | Delete + hapus cache detail + invalidate list          |
 
 Semua mutation menerima `workspaceId` secara eksplisit agar tidak bergantung pada state global.
 

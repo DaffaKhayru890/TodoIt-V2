@@ -18,8 +18,8 @@ Phase 5 memperluas Todo Management dengan metadata produktivitas, tampilan waktu
 | Overdue                  | Tersedia                    | `GET /todos/overdue` dan filter `due=overdue`                                            |
 | Filter server-side       | Sebagian                    | `status`, `priority`, `dueFrom/dueTo`, `createdFrom/createdTo`, `q`, `tagIds`, `labelId` |
 | Filter client-side       | Terbatas                    | `active`, `no-date`, dan penyaringan overdue aktif                                       |
-| Sorting                  | Tidak tersedia di backend   | Client-side pada halaman pertama                                                         |
-| Pagination lanjutan      | Belum                       | Phase 6                                                                                  |
+| Sorting                  | Tidak tersedia di backend   | Client-side pada halaman yang dimuat                                                     |
+| Pagination lanjutan      | Tersedia sejak Phase 6      | Cursor pagination dan infinite scroll                                                    |
 
 ## Hubungan dengan Todo Management
 
@@ -84,7 +84,7 @@ Tidak ada invalidasi global `queryClient.clear()`.
 
 ## Batasan
 
-- Sorting tidak didukung backend, sehingga hanya berlaku pada data halaman pertama yang sudah dimuat.
-- Filter `active` dan `no-date` tidak dapat diekspresikan API; hasilnya dibatasi pada halaman pertama.
+- Sorting tidak didukung backend, sehingga hanya berlaku pada data yang sudah dimuat.
+- Filter `active` dan `no-date` tidak dapat diekspresikan API; hasilnya dibatasi pada halaman yang sudah dimuat.
 - Reminder hanya menyimpan konfigurasi. Pengiriman bergantung pada Notification Engine/worker backend.
-- Pagination UI lanjutan, pencarian global, notification center, dan fitur kolaborasi berada di luar Phase 5.
+- Pencarian global, notification center, dan cursor pagination ditambahkan pada Phase 6; fitur kolaborasi tetap berada di luar cakupan.

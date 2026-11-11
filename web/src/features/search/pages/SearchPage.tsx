@@ -14,7 +14,7 @@ export function SearchPage() {
         </p>
       </header>
       <section className="search-page__panel" aria-label="Pencarian global">
-        <SearchContent autoFocus />
+        <SearchContent focusOnMount />
       </section>
     </div>
   );

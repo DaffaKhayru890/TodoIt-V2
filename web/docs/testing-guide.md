@@ -17,7 +17,7 @@ Coverage memakai `@vitest/coverage-v8`. File tes, setup, dan `main.tsx` dikeluar
 
 `src/test/setup.ts` memanggil `cleanup()` setiap tes karena Vitest tidak memasang cleanup otomatis saat globals dimatikan.
 
-`renderWithProviders` membungkus komponen dengan `QueryClientProvider` baru dan `MemoryRouter`. Query client tes terpisah dari client aplikasi.
+`renderWithProviders` membungkus komponen dengan `QueryClientProvider` baru, `ToastProvider`, dan `MemoryRouter`. Query client tes terpisah dari client aplikasi.
 
 Interaksi memakai `@testing-library/user-event`. Tes router mengklik tautan dan memeriksa heading halaman tidak ditemukan. Karena daftar workspace dimuat secara asinkron, tes yang membutuhkan tautan workspace menunggu `findByRole` sebelum berinteraksi.
 
@@ -79,6 +79,49 @@ Hasil akhir Phase 5: 96 file test, 523 test lulus, coverage 91,80% statements / 
 `configure({ asyncUtilTimeout: 5000 })` dipasang di setup karena suite berjalan paralel; ini memberi ruang bagi query async sebelum assertion, tanpa mengubah perilaku aplikasi.
 
 `vite.config.ts` membatasi `maxWorkers: 6` dan memasang `testTimeout: 20_000`. Dengan puluhan file jsdom, menjalankan semua worker sekaligus membuat kontensi CPU dan memicu timeout palsu pada test yang sebenarnya cepat. Batas ini hanya mengatur eksekusi test, bukan menonaktifkan pemeriksaan.
+
+## Komponen & Fitur Phase 6 (Search, Notifications, Pagination)
+
+Phase 6 menambahkan:
+
+- **Pencarian global:** model dan konstanta query, fan-out `searchApi` dengan `AbortSignal`, dedupe ID, pelaporan `failedWorkspaces`, loader seluruh workspace dengan offset pagination, debounce, normalisasi query, highlight, riwayat `localStorage`, shortcut `Ctrl+K`, navigasi keyboard, popup/trigger/content, dan halaman `/search`.
+- **Notifikasi:** DTO/guard/mapper, API list/unread/read/read-all/preferences, query key, infinite list 20 item, feed unread, polling 60 detik yang berhenti saat tab tersembunyi, deteksi notifikasi baru berbasis ID, toast, Browser Notification API dengan izin eksplisit, bell/badge, pusat notifikasi, dan halaman preferensi `/settings`.
+- **Cursor pagination dan infinite scroll:** `useInfiniteWorkspaceTodos` dengan `limit=30`, cursor dari `nextCursor`, sorting sebagai bagian query key, `flattenTodoPages` dengan dedupe dan workspace guard, sentinel `IntersectionObserver`, fallback tombol **Muat lebih banyak**, indikator akhir daftar, serta pemulihan scroll per workspace/filter/sorting.
+- **Workflow A–F:** A pencarian lintas workspace lewat `Ctrl+K`, B riwayat pencarian, C sentinel dan fallback pagination, D pemulihan scroll setelah kembali dari detail, E pusat notifikasi dan navigasi tugas, F browser notification saat tab tersembunyi.
+
+File test Phase 6:
+
+- `features/search/utils/debounce.test.tsx`
+- `features/search/utils/recent-searches.test.ts`
+- `features/search/utils/highlight-search.test.ts`
+- `features/search/components/highlighted-text/HighlightedText.test.tsx`
+- `features/search/api/search.api.test.ts`
+- `features/search/hooks/search-hooks.test.tsx`
+- `features/search/components/search-content/SearchContent.test.tsx`
+- `features/search/components/search-trigger/SearchTrigger.test.tsx`
+- `features/search/tests/search-workflows.test.tsx`
+- `features/notifications/api/notification.api.test.ts`
+- `features/notifications/hooks/notification-hooks.test.tsx`
+- `features/notifications/utils/notification-utils.test.ts`
+- `features/notifications/components/notification-bell/NotificationBell.test.tsx`
+- `features/notifications/components/notification-center/NotificationCenter.test.tsx`
+- `features/notifications/components/notification-preferences/NotificationPreferences.test.tsx`
+- `features/notifications/tests/notification-workflows.test.tsx`
+- `features/todos/utils/infinite-todo-utils.test.ts`
+- `features/todos/hooks/use-infinite-workspace-todos.test.tsx`
+- `hooks/use-intersection-observer.test.tsx`
+- `hooks/use-scroll-restoration.test.tsx`
+- `features/todos/tests/infinite-workflows.test.tsx`
+
+Beberapa hal yang perlu diperhatikan saat menulis test Phase 6:
+
+- Opsi pencarian harus dicari di dalam dialog yang terbuka, karena halaman workspace juga memiliki elemen `<select>` sorting dengan `role="option"`.
+- `NotificationCenter` merender judul tipe dan judul notifikasi yang dapat memiliki teks sama; gunakan selector class atau scope yang tepat.
+- Test browser notification memasang fake `Notification` dan mengembalikan `document.hidden` lewat spy.
+- Test scroll restoration memakai container `#main-content`.
+- `IntersectionObserver` di-stub atau dihapus untuk menguji jalur sentinel dan fallback tombol.
+
+Hasil akhir Phase 6: 117 file test, 663 test lulus, coverage 91,94% statements / 87,94% branches / 92,88% functions / 91,82% lines. Detail ada di [global-search.md](global-search.md), [notifications.md](notifications.md), dan [cursor-pagination.md](cursor-pagination.md).
 
 ## Konvensi
 

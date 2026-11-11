@@ -47,7 +47,11 @@ function isPagination(value: unknown): value is NotificationPaginationDto {
 }
 
 function invalidResponse(): never {
-  throw new ApiError('Respons notifikasi dari server tidak valid.', 0, 'INVALID_NOTIFICATION_RESPONSE');
+  throw new ApiError(
+    'Respons notifikasi dari server tidak valid.',
+    0,
+    'INVALID_NOTIFICATION_RESPONSE'
+  );
 }
 
 export function assertNotificationListResponseDto(
