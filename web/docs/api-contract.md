@@ -533,3 +533,20 @@ Not available: detail notifikasi, hapus notifikasi, tipe overdue, API job queue,
 
 - `GET /health` dan `GET /health/live` mengembalikan `{ "status": "ok" }`.
 - `GET /ready` memeriksa database.
+
+### Workspace Invitations
+
+**Status:** Available
+
+- `GET /api/v1/workspaces/:workspaceId/invitations` – list pending and sent invitations for the workspace.
+- `POST /api/v1/workspaces/:workspaceId/invitations` – create a new invitation (email, role).
+- `GET /api/v1/workspaces/:workspaceId/invitations/:invitationId` – get invitation details.
+- `POST /api/v1/workspaces/:workspaceId/invitations/:invitationId/accept` – accept an invitation (user must be authenticated).
+- `POST /api/v1/workspaces/:workspaceId/invitations/:invitationId/decline` – decline an invitation.
+- `DELETE /api/v1/workspaces/:workspaceId/invitations/:invitationId` – revoke (cancel) a pending invitation.
+
+**Notes:**
+- Non‑member receives `404 WORKSPACE_ACCESS_DENIED` for all invitation routes.
+- Invitation creation returns `{ invitation: { id, email, role, status: "pending", createdAt, expiresAt } }`.
+- Accept returns the updated workspace membership.
+- No resend endpoint is present in the backend.
