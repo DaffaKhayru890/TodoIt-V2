@@ -1,0 +1,19 @@
+# Git
+.git
+.gitignore
+
+# Python and environment
+.env
+.env.*
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.idea/
+.vscode/
+
+# Build artifacts
+*.pyc
+*.pyo

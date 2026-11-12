@@ -1,0 +1,27 @@
+# Environment files
+.env
+.env.*
+!.env.development.example
+!.env.test.example
+!.env.staging.example
+!.env.production.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
