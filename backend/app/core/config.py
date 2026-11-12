@@ -46,6 +46,8 @@ class Settings(BaseSettings):
         default=SecretStr("change-me"),
         alias="JWT_SECRET_KEY",
     )
+    jwt_issuer: str = Field(default="todo-list-api", alias="JWT_ISSUER")
+    jwt_audience: str = Field(default="todo-list-client", alias="JWT_AUDIENCE")
     jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
     jwt_access_token_expire_minutes: int = Field(
         default=15,
@@ -55,6 +57,19 @@ class Settings(BaseSettings):
         default=7,
         alias="JWT_REFRESH_TOKEN_EXPIRE_DAYS",
     )
+
+    refresh_cookie_name: str = Field(default="refresh_token", alias="REFRESH_COOKIE_NAME")
+    refresh_cookie_secure: bool = Field(default=False, alias="REFRESH_COOKIE_SECURE")
+    refresh_cookie_httponly: bool = Field(default=True, alias="REFRESH_COOKIE_HTTPONLY")
+    refresh_cookie_samesite: str = Field(default="lax", alias="REFRESH_COOKIE_SAMESITE")
+    refresh_cookie_path: str = Field(default="/api/v1/auth", alias="REFRESH_COOKIE_PATH")
+    refresh_cookie_domain: str | None = Field(default=None, alias="REFRESH_COOKIE_DOMAIN")
+
+    csrf_cookie_name: str = Field(default="csrf_token", alias="CSRF_COOKIE_NAME")
+    csrf_header_name: str = Field(default="X-CSRF-Token", alias="CSRF_HEADER_NAME")
+    csrf_cookie_secure: bool = Field(default=False, alias="CSRF_COOKIE_SECURE")
+    csrf_cookie_samesite: str = Field(default="lax", alias="CSRF_COOKIE_SAMESITE")
+    csrf_cookie_httponly: bool = Field(default=False, alias="CSRF_COOKIE_HTTPONLY")
 
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     log_format: str = Field(default="console", alias="LOG_FORMAT")
@@ -74,11 +89,36 @@ class Settings(BaseSettings):
         jwt_secret = self.jwt_secret_key.get_secret_value()
         postgres_password = self.postgres_password.get_secret_value()
 
+        allowed_algorithms = {"HS256", "HS384", "HS512"}
+        if self.jwt_algorithm not in allowed_algorithms:
+            raise ValueError("JWT_ALGORITHM must be one of HS256, HS384, or HS512")
+        if self.jwt_access_token_expire_minutes <= 0:
+            raise ValueError("JWT_ACCESS_TOKEN_EXPIRE_MINUTES must be positive")
+        if self.jwt_refresh_token_expire_days <= 0:
+            raise ValueError("JWT_REFRESH_TOKEN_EXPIRE_DAYS must be positive")
+        if self.jwt_refresh_token_expire_days <= self.jwt_access_token_expire_minutes / (60 * 24):
+            raise ValueError("JWT refresh expiration must be greater than access expiration")
+        if self.refresh_cookie_samesite.lower() == "none" and not self.refresh_cookie_secure:
+            raise ValueError("Refresh cookie secure flag must be true when SameSite=None")
+        if self.csrf_cookie_samesite.lower() == "none" and not self.csrf_cookie_secure:
+            raise ValueError("CSRF cookie secure flag must be true when SameSite=None")
+
         if self.app_env == "production":
-            if not jwt_secret or jwt_secret == "change-me":
+            production_secret_values = {
+                "change-me",
+                "replace-with-strong-production-secret",
+            }
+            production_db_passwords = {"postgres", "change-me"}
+            if not jwt_secret or jwt_secret in production_secret_values:
                 raise ValueError("JWT_SECRET_KEY must be set in production")
-            if not postgres_password or postgres_password == "postgres":
+            if not postgres_password or postgres_password in production_db_passwords:
                 raise ValueError("POSTGRES_PASSWORD must be set in production")
+            if not self.refresh_cookie_secure:
+                raise ValueError("REFRESH_COOKIE_SECURE must be true in production")
+            if not self.csrf_cookie_secure:
+                raise ValueError("CSRF_COOKIE_SECURE must be true in production")
+            if self.refresh_cookie_httponly is not True:
+                raise ValueError("REFRESH_COOKIE_HTTPONLY must be true in production")
 
         if self.app_env == "test" and self.postgres_db == "todoit_db":
             self.postgres_db = "todoit_test_db"

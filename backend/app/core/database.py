@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+# ruff: noqa: I001
+
 from collections.abc import AsyncGenerator
 
 from sqlalchemy import text
@@ -12,6 +14,9 @@ from app.core.config import settings
 class Base(DeclarativeBase):
     pass
 
+
+from app.services.auth.models import RefreshSession  # noqa: E402,F401
+from app.services.users.models import User  # noqa: E402,F401
 
 database_url = settings.database_url
 engine = create_async_engine(

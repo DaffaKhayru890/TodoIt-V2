@@ -10,6 +10,8 @@ from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import register_middleware
+from app.services.auth.routes.auth_routes import router as auth_router
+from app.services.users.routes.user_routes import router as user_router
 
 
 def create_app() -> FastAPI:
@@ -33,6 +35,8 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(api_router)
+    app.include_router(auth_router)
+    app.include_router(user_router)
 
     @app.get("/")
     async def root() -> dict:
