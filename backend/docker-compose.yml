@@ -1,0 +1,53 @@
+name: todoit
+
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: "dev@123"
+      POSTGRES_DB: todolist
+    ports:
+      # Bind ke localhost agar database tidak terbuka ke jaringan luar.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d todolist"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - todoit
+
+  api:
+    build:
+      context: .
+      target: development
+    env_file:
+      - .env.development
+    environment:
+      DB_HOST: postgres
+      APP_PORT: "8080"
+      APP_SWAGGER_ENABLED: "true"
+    ports:
+      - "${API_HOST_PORT:-8080}:8080"
+    volumes:
+      - .:/src
+      - go_mod_cache:/go/pkg/mod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - todoit
+
+volumes:
+  postgres_data:
+  go_mod_cache:
+
+networks:
+  todoit:
+    driver: bridge

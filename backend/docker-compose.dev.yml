@@ -1,0 +1,21 @@
+# Override khusus development. Base compose sudah development-friendly;
+# file ini membuat pilihan target, hot reload, dan bind mount eksplisit.
+#
+# Jalankan:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+
+services:
+  api:
+    build:
+      context: .
+      target: development
+    command: ["air", "-c", ".air.toml"]
+    environment:
+      DB_HOST: postgres
+      APP_PORT: "8080"
+    volumes:
+      - .:/src
+      - go_mod_cache:/go/pkg/mod
+
+volumes:
+  go_mod_cache:

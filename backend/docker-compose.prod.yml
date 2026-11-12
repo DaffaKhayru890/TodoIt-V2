@@ -1,0 +1,68 @@
+# Production-oriented Compose. Ini BUKAN sistem high availability lengkap.
+# Database PostgreSQL diharapkan eksternal dan dikonfigurasi lewat environment
+# atau secret manager. Jangan menyimpan secret di file ini.
+#
+# Wajib di-set di environment sebelum menjalankan:
+#   DB_HOST, DB_USER, DB_PASSWORD, CORS_ALLOWED_ORIGINS
+#
+# Contoh:
+#   DB_HOST=db.internal DB_USER=todoit_app DB_PASSWORD='...' \
+#   CORS_ALLOWED_ORIGINS=https://app.example.com \
+#   docker compose -f docker-compose.prod.yml up -d --build
+
+name: todoit-prod
+
+services:
+  api:
+    image: ${API_IMAGE:-todoit-backend:latest}
+    build:
+      context: .
+      target: production
+    environment:
+      APP_NAME: ${APP_NAME:-todolist}
+      APP_ENV: production
+      APP_PORT: "8080"
+      APP_DEFAULT_TIMEZONE: ${APP_DEFAULT_TIMEZONE:-UTC}
+      APP_LOG_LEVEL: ${APP_LOG_LEVEL:-info}
+      APP_LOG_FORMAT: json
+      APP_SWAGGER_ENABLED: "false"
+      DB_HOST: ${DB_HOST:?DB_HOST is required}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:?DB_USER is required}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      DB_NAME: ${DB_NAME:-todolist}
+      DB_SSLMODE: ${DB_SSLMODE:-verify-full}
+      DB_MAX_IDLE_CONNECTIONS: ${DB_MAX_IDLE_CONNECTIONS:-10}
+      DB_MAX_OPEN_CONNECTIONS: ${DB_MAX_OPEN_CONNECTIONS:-25}
+      DB_CONNECTION_MAX_LIFETIME: ${DB_CONNECTION_MAX_LIFETIME:-30m}
+      DB_CONNECTION_MAX_IDLE_TIME: ${DB_CONNECTION_MAX_IDLE_TIME:-5m}
+      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-10s}
+      HTTP_READ_TIMEOUT: ${HTTP_READ_TIMEOUT:-10s}
+      HTTP_READ_HEADER_TIMEOUT: ${HTTP_READ_HEADER_TIMEOUT:-5s}
+      HTTP_WRITE_TIMEOUT: ${HTTP_WRITE_TIMEOUT:-30s}
+      HTTP_IDLE_TIMEOUT: ${HTTP_IDLE_TIMEOUT:-60s}
+      HTTP_SHUTDOWN_TIMEOUT: ${HTTP_SHUTDOWN_TIMEOUT:-15s}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
+      CORS_ALLOW_CREDENTIALS: ${CORS_ALLOW_CREDENTIALS:-false}
+    ports:
+      - "${API_HOST_PORT:-8080}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "/app/api", "-healthcheck"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - todoit-prod
+
+networks:
+  todoit-prod:
+    driver: bridge

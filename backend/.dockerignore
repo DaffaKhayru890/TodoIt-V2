@@ -1,0 +1,24 @@
+# Jangan membawa secret atau artefak lokal ke build context.
+.git
+.gitignore
+.gitattributes
+.env
+.env.*
+!.env.example
+!.env.staging.example
+!.env.production.example
+
+tmp/
+bin/
+dist/
+coverage/
+*.log
+*.out
+*.test
+
+.idea/
+.vscode/
+.DS_Store
+
+# Catatan: docs/ tidak dikecualikan karena docs/openapi/openapi.yaml dan
+# embed.go dibutuhkan oleh go:embed saat build.

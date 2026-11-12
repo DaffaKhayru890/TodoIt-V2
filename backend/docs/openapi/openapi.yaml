@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: TodoIt Backend API
+  version: 0.1.0
+  description: |
+    Fondasi API TodoIt (Phase 1). Spesifikasi ini hanya mendokumentasikan
+    endpoint foundation yang benar-benar tersedia: health, readiness, dan
+    dokumentasi. Endpoint domain (auth, workspace, task, dan seterusnya)
+    ditambahkan pada phase berikutnya.
+  contact:
+    name: TodoIt Backend Team
+servers:
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: Health
+    description: Liveness dan readiness probe.
+  - name: Documentation
+    description: Akses spesifikasi OpenAPI dan Swagger UI.
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Liveness check
+      description: |
+        Memeriksa bahwa proses HTTP masih berjalan. Endpoint ini tidak
+        melakukan ping ke database dan tidak memerlukan autentikasi.
+      operationId: getHealth
+      responses:
+        "200":
+          description: Aplikasi hidup.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              example:
+                success: true
+                message: Application is healthy
+                data:
+                  status: ok
+        "405":
+          description: Method tidak didukung.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check
+      description: |
+        Memeriksa dependency penting, yaitu koneksi PostgreSQL. Response 503
+        tidak memuat detail internal database.
+      operationId: getReady
+      responses:
+        "200":
+          description: Aplikasi siap menerima request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyResponse"
+              example:
+                success: true
+                message: Application is ready
+                data:
+                  status: ok
+                  database: up
+        "503":
+          description: Dependency belum siap.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: Service unavailable
+                error:
+                  code: SERVICE_UNAVAILABLE
+                  details: []
+        "405":
+          description: Method tidak didukung.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /docs:
+    get:
+      tags:
+        - Documentation
+      summary: Swagger UI
+      description: |
+        Menampilkan Swagger UI yang memuat /openapi.yaml. Halaman ini dapat
+        dinonaktifkan melalui APP_SWAGGER_ENABLED pada staging/production.
+      operationId: getDocs
+      responses:
+        "200":
+          description: Halaman HTML Swagger UI.
+          content:
+            text/html:
+              schema:
+                type: string
+        "404":
+          description: Dokumentasi dinonaktifkan pada environment ini.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /openapi.yaml:
+    get:
+      tags:
+        - Documentation
+      summary: Raw OpenAPI specification
+      description: Mengembalikan file OpenAPI 3.0.3 YAML yang di-embed ke binary.
+      operationId: getOpenAPISpec
+      responses:
+        "200":
+          description: Spesifikasi OpenAPI YAML.
+          content:
+            application/yaml:
+              schema:
+                type: string
+        "405":
+          description: Method tidak didukung.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - success
+        - message
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Application is healthy
+        data:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              example: ok
+    ReadyResponse:
+      type: object
+      required:
+        - success
+        - message
+        - data
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Application is ready
+        data:
+          type: object
+          required:
+            - status
+            - database
+          properties:
+            status:
+              type: string
+              example: ok
+            database:
+              type: string
+              example: up
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Service unavailable
+        error:
+          type: object
+          required:
+            - code
+            - details
+          properties:
+            code:
+              type: string
+              enum:
+                - VALIDATION_ERROR
+                - BAD_REQUEST
+                - NOT_FOUND
+                - UNAUTHORIZED
+                - FORBIDDEN
+                - CONFLICT
+                - METHOD_NOT_ALLOWED
+                - INTERNAL_SERVER_ERROR
+                - SERVICE_UNAVAILABLE
+            details:
+              type: array
+              items:
+                type: string
+              example: []
