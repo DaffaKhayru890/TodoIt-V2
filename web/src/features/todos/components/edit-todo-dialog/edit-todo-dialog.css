@@ -1,7 +1,0 @@
-@layer components {
-  .edit-todo-dialog__note {
-    margin: 0;
-    font-size: var(--text-body-sm);
-    color: var(--color-text-muted);
-  }
-}
