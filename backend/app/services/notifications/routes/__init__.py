@@ -1,0 +1,3 @@
+from app.services.notifications.routes.notification_routes import router
+
+__all__ = ["router"]

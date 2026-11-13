@@ -12,6 +12,8 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.services.labels.models import Label
+    from app.services.notifications.models import Notification
+    from app.services.reminders.models import Reminder
     from app.services.tags.models import Tag
     from app.services.users.models import User
     from app.services.workspaces.models import Workspace
@@ -66,6 +68,11 @@ class Todo(Base):
         secondary="todo_labels",
         back_populates="todos",
         cascade="save-update, merge",
+    )
+    reminders: Mapped[list[Reminder]] = relationship(back_populates="todo", cascade="all, delete-orphan")
+    notifications: Mapped[list[Notification]] = relationship(
+        back_populates="todo",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:

@@ -12,6 +12,8 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.services.auth.models import RefreshSession
+    from app.services.notifications.models import Notification
+    from app.services.reminders.models import Reminder
     from app.services.todos.models import Todo
     from app.services.workspaces.models import Workspace, WorkspaceInvitation, WorkspaceMember
 
@@ -57,6 +59,11 @@ class User(Base):
     )
     created_todos: Mapped[list[Todo]] = relationship(
         back_populates="creator",
+        cascade="all, delete-orphan",
+    )
+    reminders: Mapped[list[Reminder]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    notifications: Mapped[list[Notification]] = relationship(
+        back_populates="user",
         cascade="all, delete-orphan",
     )
 

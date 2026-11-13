@@ -167,6 +167,10 @@ class TodoService:
         await session.flush()
 
         await TodoService._assign_relationships(session, todo, tag_ids=tag_ids, label_ids=label_ids)
+        from app.services.reminders.service import ReminderService
+
+        if due_at is not None:
+            await ReminderService.sync_automatic_reminder_for_todo(session, todo, user_id)
         await session.commit()
         return todo
 
@@ -484,6 +488,13 @@ class TodoService:
         if label_ids is not None:
             await TodoService._assign_relationships(session, todo, label_ids=label_ids)
 
+        from app.services.reminders.service import ReminderService
+
+        if status == "completed":
+            await ReminderService.cancel_pending_for_todo(session, todo_id=todo.id)
+        else:
+            await ReminderService.sync_automatic_reminder_for_todo(session, todo, todo.created_by)
+
         todo.updated_at = _utc_now()
         await session.commit()
         return todo
@@ -495,5 +506,8 @@ class TodoService:
         todo = await TodoService.get_todo(
             session, workspace_id=workspace_id, user_id=user_id, todo_id=todo_id
         )
+        from app.services.reminders.service import ReminderService
+
+        await ReminderService.cancel_pending_for_todo(session, todo_id=todo.id)
         await TodoRepository.delete(session, todo)
         await session.commit()
