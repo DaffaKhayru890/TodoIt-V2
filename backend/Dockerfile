@@ -12,19 +12,22 @@ COPY README.md ./
 FROM base AS development
 RUN pip install --upgrade pip && pip install "uv"
 COPY . .
-RUN uv pip install --system --editable .[dev]
+RUN uv pip install --system --editable . --group dev
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 FROM base AS test
 RUN pip install --upgrade pip && pip install "uv"
 COPY . .
-RUN uv pip install --system --editable .[dev]
+RUN uv pip install --system --editable . --group dev
 CMD ["pytest"]
 
 FROM base AS production
 RUN pip install --upgrade pip && pip install "uv"
 COPY . .
-RUN uv pip install --system --editable .
+RUN uv pip install --system --editable . \
+    && useradd --create-home --shell /usr/sbin/nologin appuser \
+    && chown -R appuser:appuser /app
+USER appuser
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

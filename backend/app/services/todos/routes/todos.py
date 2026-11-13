@@ -156,6 +156,7 @@ async def update_todo(
         due_at=payload.due_at,
         tag_ids=payload.tag_ids,
         label_ids=payload.label_ids,
+        due_at_provided="due_at" in payload.model_fields_set,
     )
     return _todo_response(updated)
 

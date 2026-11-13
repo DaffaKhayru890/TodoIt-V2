@@ -16,6 +16,15 @@ This directory contains the Phase 0 technical planning for the Todo workspace co
 10. `docker-deployment-design.md` – container strategy and deployment concerns.
 11. `testing-strategy.md` – lab test architecture for unit and API validation.
 12. `technical-decisions.md` – key design choices and rationale.
+13. `phase-4-implementation-report.md` – Todo, tag, and label implementation.
+14. `reminder-system.md` – Phase 5 reminder model, API, and constraints.
+15. `reminder-lifecycle.md` – reminder state machine and transitions.
+16. `automatic-due-reminder.md` – automatic due-date synchronization.
+17. `notification-system.md` – notification persistence and read state.
+18. `notification-api.md` – notification endpoints and cursor contract.
+19. `notification-worker.md` – worker loop, locking, and idempotency.
+20. `worker-deployment.md` – Docker, scaling, and operations.
+21. `phase-5-implementation-report.md` – Phase 5 verification report.
 
 ## Scope of this phase
 

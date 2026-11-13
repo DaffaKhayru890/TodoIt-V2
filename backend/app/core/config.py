@@ -32,11 +32,25 @@ class Settings(BaseSettings):
     max_upcoming_days: int = Field(default=30, alias="MAX_UPCOMING_DAYS")
     todo_default_limit: int = Field(default=20, alias="TODO_DEFAULT_LIMIT")
     todo_max_limit: int = Field(default=100, alias="TODO_MAX_LIMIT")
-    automatic_due_reminders_enabled: bool = Field(default=True, alias="AUTOMATIC_DUE_REMINDERS_ENABLED")
-    default_due_reminder_minutes: int = Field(default=60, alias="DEFAULT_DUE_REMINDER_MINUTES")
+    automatic_due_reminders_enabled: bool = Field(
+        default=True, alias="AUTOMATIC_DUE_REMINDERS_ENABLED"
+    )
+    default_due_reminder_minutes: int = Field(
+        default=60, ge=1, le=10080, alias="DEFAULT_DUE_REMINDER_MINUTES"
+    )
     notification_worker_enabled: bool = Field(default=True, alias="NOTIFICATION_WORKER_ENABLED")
-    notification_poll_interval_seconds: int = Field(default=30, alias="NOTIFICATION_POLL_INTERVAL_SECONDS")
-    notification_batch_size: int = Field(default=100, alias="NOTIFICATION_BATCH_SIZE")
+    notification_poll_interval_seconds: int = Field(
+        default=30, ge=1, le=3600, alias="NOTIFICATION_POLL_INTERVAL_SECONDS"
+    )
+    notification_batch_size: int = Field(
+        default=100, ge=1, le=1000, alias="NOTIFICATION_BATCH_SIZE"
+    )
+    notification_worker_shutdown_timeout_seconds: int = Field(
+        default=15,
+        ge=1,
+        le=120,
+        alias="NOTIFICATION_WORKER_SHUTDOWN_TIMEOUT_SECONDS",
+    )
     openapi_enabled: bool = Field(default=True, alias="OPENAPI_ENABLED")
 
     postgres_host: str = Field(default="localhost", alias="POSTGRES_HOST")
@@ -125,6 +139,8 @@ class Settings(BaseSettings):
             raise ValueError("NOTIFICATION_POLL_INTERVAL_SECONDS must be positive")
         if self.notification_batch_size < 1 or self.notification_batch_size > 1000:
             raise ValueError("NOTIFICATION_BATCH_SIZE must be between 1 and 1000")
+        if self.notification_worker_shutdown_timeout_seconds <= 0:
+            raise ValueError("NOTIFICATION_WORKER_SHUTDOWN_TIMEOUT_SECONDS must be positive")
         if self.app_env == "production":
             production_secret_values = {
                 "change-me",

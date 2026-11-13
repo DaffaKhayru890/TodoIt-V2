@@ -29,3 +29,7 @@ class NotificationListPage(BaseModel):
 class NotificationListResponse(BaseModel):
     items: list[NotificationResponse]
     page: NotificationListPage
+
+
+class MarkAllReadResponse(BaseModel):
+    updated_count: int

@@ -46,9 +46,7 @@ class RefreshSessionRepository:
         session_id: UUID,
     ) -> RefreshSession | None:
         result = await session.execute(
-            select(RefreshSession)
-            .where(RefreshSession.id == session_id)
-            .with_for_update(),
+            select(RefreshSession).where(RefreshSession.id == session_id).with_for_update(),
         )
         return result.scalar_one_or_none()
 

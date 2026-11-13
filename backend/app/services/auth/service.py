@@ -215,8 +215,7 @@ class AuthService:
             refresh_session,
             token_hash=hash_token(new_refresh_token),
             current_jti=new_jti,
-            expires_at=datetime.now(UTC)
-            + timedelta(days=settings.jwt_refresh_token_expire_days),
+            expires_at=datetime.now(UTC) + timedelta(days=settings.jwt_refresh_token_expire_days),
         )
 
         new_access_token = create_jwt_token(

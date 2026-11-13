@@ -109,7 +109,12 @@ def upgrade() -> None:
         ["workspace_id"],
         unique=False,
     )
-    op.create_index(op.f("ix_workspace_invitations_email"), "workspace_invitations", ["email"], unique=False)
+    op.create_index(
+        op.f("ix_workspace_invitations_email"),
+        "workspace_invitations",
+        ["email"],
+        unique=False,
+    )
     op.create_index(
         op.f("ix_workspace_invitations_inviter_id"),
         "workspace_invitations",

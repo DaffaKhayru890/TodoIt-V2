@@ -4,7 +4,15 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,12 +27,46 @@ if TYPE_CHECKING:
 class Reminder(Base):
     __tablename__ = "reminders"
     __table_args__ = (
-        CheckConstraint("status IN ('pending', 'processed', 'cancelled')", name="ck_reminders_status"),
-        CheckConstraint("source IN ('manual', 'automatic')", name="ck_reminders_source"),
+        CheckConstraint(
+            "status IN ('pending', 'processed', 'cancelled')",
+            name="ck_reminders_status",
+        ),
+        CheckConstraint(
+            "source IN ('manual', 'automatic')",
+            name="ck_reminders_source",
+        ),
+        CheckConstraint(
+            "(status = 'processed' AND processed_at IS NOT NULL) "
+            "OR (status <> 'processed' AND processed_at IS NULL)",
+            name="ck_reminders_processed_at_consistency",
+        ),
+        Index("ix_reminders_status", "status"),
+        Index("ix_reminders_remind_at", "remind_at"),
         Index("ix_reminders_status_remind_at", "status", "remind_at"),
         Index("ix_reminders_user_id", "user_id"),
         Index("ix_reminders_todo_id", "todo_id"),
         Index("ix_reminders_source", "source"),
+        # At most one pending automatic reminder per Todo/recipient pair.
+        # Processed and cancelled rows are excluded so a new automatic reminder
+        # can be scheduled after the previous one has been delivered.
+        Index(
+            "uq_reminders_automatic_pending",
+            "todo_id",
+            "user_id",
+            unique=True,
+            postgresql_where=text("source = 'automatic' AND status = 'pending'"),
+        ),
+        # Prevent accidental duplicate pending manual reminders at the exact
+        # same instant. Users may still create several reminders at different
+        # times for the same Todo.
+        Index(
+            "uq_reminders_manual_pending_time",
+            "todo_id",
+            "user_id",
+            "remind_at",
+            unique=True,
+            postgresql_where=text("source = 'manual' AND status = 'pending'"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -61,7 +103,7 @@ class Reminder(Base):
     notification: Mapped[Notification | None] = relationship(
         back_populates="reminder",
         uselist=False,
-        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     def __repr__(self) -> str:

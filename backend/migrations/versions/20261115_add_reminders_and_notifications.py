@@ -35,7 +35,10 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["todo_id"], ["todos.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.CheckConstraint("source IN ('manual', 'automatic')", name="ck_reminders_source"),
-        sa.CheckConstraint("status IN ('pending', 'processed', 'cancelled')", name="ck_reminders_status"),
+        sa.CheckConstraint(
+            "status IN ('pending', 'processed', 'cancelled')",
+            name="ck_reminders_status",
+        ),
     )
     op.create_index(op.f("ix_reminders_todo_id"), "reminders", ["todo_id"], unique=False)
     op.create_index(op.f("ix_reminders_user_id"), "reminders", ["user_id"], unique=False)
@@ -77,7 +80,12 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_notifications_user_id"), "notifications", ["user_id"], unique=False)
     op.create_index(op.f("ix_notifications_todo_id"), "notifications", ["todo_id"], unique=False)
-    op.create_index(op.f("ix_notifications_reminder_id"), "notifications", ["reminder_id"], unique=False)
+    op.create_index(
+        op.f("ix_notifications_reminder_id"),
+        "notifications",
+        ["reminder_id"],
+        unique=False,
+    )
     op.create_index(op.f("ix_notifications_is_read"), "notifications", ["is_read"], unique=False)
     op.create_index(
         "ix_notifications_user_created_at",

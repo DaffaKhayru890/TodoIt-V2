@@ -14,6 +14,9 @@
 | Password hashing | Argon2 | Best-practice password hashing with strong resistance to brute-force |
 | Pagination | Cursor-based keyset | Stable infinite-scroll behavior and better large dataset support |
 | Notification processing | Database-backed worker | Persistent, recoverable, and simple within the monolith |
+| Notification pagination | Signed keyset cursor | User- and filter-bound cursors without OFFSET drift |
+| Reminder concurrency | `FOR UPDATE SKIP LOCKED` | Multiple workers can claim disjoint batches safely |
+| Reminder idempotency | Unique notification per reminder | Prevents duplicate delivery across races and restarts |
 | Containerization | Docker multi-stage | Separation of build, test, and production runtime environments |
 | Time handling | UTC primary storage | Reduces ambiguity and makes timezone conversion consistent |
 | Workspace access model | Role-based memberships | Clear authorization boundaries and easier permission enforcement |
@@ -35,6 +38,50 @@ A generic repository pattern is intentionally avoided to keep the code explicit 
 ### No over-engineering for background processing
 
 The reminder worker is kept small and database-driven. It does not require Redis, Celery, or Kafka for initial implementation because the project requirement is a single-monolith application with persistent PostgreSQL processing.
+
+### Phase 5 reminder ownership and state
+
+Reminders are personal resources. The recipient is always the authenticated
+user for manual reminders and the Todo creator for automatic reminders.
+`source` and `status` are server-managed and never accepted from API clients.
+
+Reminder state is limited to `pending`, `processed`, and `cancelled`. A database
+check constraint keeps `processed_at` consistent with `status`. Partial unique
+indexes prevent duplicate pending automatic reminders and duplicate manual
+reminders at the same instant.
+
+### Automatic due-date reminders are derived state
+
+Automatic reminders are a projection of Todo `due_at`, not an independently
+editable resource. Todo create/update synchronizes them inside the Todo
+transaction. Clearing the due date cancels only automatic reminders; completing
+the Todo cancels all pending reminders.
+
+### Notification snapshots and history
+
+Notifications copy `title` and `message` at delivery time. `todo_id` and
+`reminder_id` use `ON DELETE SET NULL` so inbox history survives Todo or
+reminder deletion. A unique constraint on `reminder_id` provides exactly-once
+notification creation.
+
+### Worker transactions and isolation
+
+The worker claims one batch per transaction with `FOR UPDATE SKIP LOCKED` and
+uses a savepoint per reminder. A malformed record cannot abort the batch, and a
+failed reminder stays pending for a later poll. Duplicate insert races are
+reconciled using the existing notification.
+
+### Signed notification cursors
+
+Notification cursors are HMAC-SHA256 signed and bound to the user and the active
+`is_read` filter. This prevents cursor tampering and cross-user or cross-filter
+reuse. The implementation shares the cursor helper in `app/common/cursor.py`.
+
+### Injectable clock
+
+Reminder logic accepts a `Clock` callable instead of calling `datetime.now`
+directly. This keeps time-based tests deterministic and makes the worker and API
+use the same UTC semantics.
 
 ### User timezone is authoritative for Todo calendar views
 

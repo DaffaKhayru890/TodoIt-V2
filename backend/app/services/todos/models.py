@@ -69,10 +69,16 @@ class Todo(Base):
         back_populates="todos",
         cascade="save-update, merge",
     )
-    reminders: Mapped[list[Reminder]] = relationship(back_populates="todo", cascade="all, delete-orphan")
-    notifications: Mapped[list[Notification]] = relationship(
+    reminders: Mapped[list[Reminder]] = relationship(
         back_populates="todo",
         cascade="all, delete-orphan",
+    )
+    # Notification rows are historical snapshots. The database foreign key uses
+    # ON DELETE SET NULL, so deleting a Todo must never delete notification
+    # history.
+    notifications: Mapped[list[Notification]] = relationship(
+        back_populates="todo",
+        passive_deletes=True,
     )
 
     def __repr__(self) -> str:

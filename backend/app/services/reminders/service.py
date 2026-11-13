@@ -1,42 +1,68 @@
 from __future__ import annotations
 
-import base64
-import hashlib
-import hmac
-import json
-from datetime import UTC, datetime, timedelta
-from typing import Any
+from datetime import datetime, timedelta
 from uuid import UUID
 
-from fastapi import HTTPException, status
-from sqlalchemy import select
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.clock import Clock, ensure_utc, utc_now
 from app.core.config import settings
+from app.core.exceptions import (
+    ReminderAlreadyCancelledError,
+    ReminderAlreadyProcessedError,
+    ReminderDuplicateError,
+    ReminderInvalidStateError,
+    ReminderInvalidTimeError,
+    ReminderNotFoundError,
+    ReminderPermissionDeniedError,
+    ReminderTodoNotFoundError,
+    ReminderUserNotMemberError,
+)
 from app.services.reminders.models import Reminder
+from app.services.reminders.repository import ReminderRepository
 from app.services.todos.models import Todo
-from app.services.users.models import User
-from app.services.workspaces.models import WorkspaceMember
 from app.services.workspaces.service import WorkspaceService
 
 
-def _utc_now() -> datetime:
-    return datetime.now(UTC)
-
-
-def _coerce_utc(value: datetime) -> datetime:
-    if value.tzinfo is None:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="INVALID_REMINDER_TIME",
-        )
-    return value.astimezone(UTC)
-
-
 class ReminderService:
+    """Business rules for personal reminders.
+
+    All mutating methods own their transaction boundary. Automatic reminder
+    synchronisation methods only flush so the caller (``TodoService``) can
+    commit the Todo change and reminder change atomically.
+    """
+
     @staticmethod
-    async def get_by_id(session: AsyncSession, reminder_id: UUID) -> Reminder | None:
-        return await session.get(Reminder, reminder_id)
+    async def _get_accessible_todo(
+        session: AsyncSession,
+        *,
+        todo_id: UUID,
+        user_id: UUID,
+    ) -> Todo:
+        todo = await session.get(Todo, todo_id)
+        if todo is None:
+            raise ReminderTodoNotFoundError()
+        try:
+            await WorkspaceService.require_access(session, todo.workspace_id, user_id)
+        except HTTPException as exc:
+            if exc.status_code == 403:
+                raise ReminderUserNotMemberError() from exc
+            raise ReminderTodoNotFoundError() from exc
+        return todo
+
+    @staticmethod
+    def _normalise_remind_at(remind_at: datetime, clock: Clock) -> datetime:
+        try:
+            remind_at_utc = ensure_utc(remind_at)
+        except ValueError as exc:
+            raise ReminderInvalidTimeError(
+                "Reminder time must include timezone information"
+            ) from exc
+        if remind_at_utc <= clock():
+            raise ReminderInvalidTimeError("Reminder time must be in the future")
+        return remind_at_utc
 
     @staticmethod
     async def create_manual_reminder(
@@ -45,18 +71,19 @@ class ReminderService:
         todo_id: UUID,
         user_id: UUID,
         remind_at: datetime,
+        clock: Clock = utc_now,
     ) -> Reminder:
-        todo = await session.get(Todo, todo_id)
-        if todo is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="TODO_NOT_FOUND")
-        await WorkspaceService.require_access(session, todo.workspace_id, user_id)
+        await ReminderService._get_accessible_todo(session, todo_id=todo_id, user_id=user_id)
+        remind_at_utc = ReminderService._normalise_remind_at(remind_at, clock)
 
-        remind_at_utc = _coerce_utc(remind_at)
-        if remind_at_utc <= _utc_now():
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="INVALID_REMINDER_TIME",
-            )
+        duplicate = await ReminderRepository.find_pending_manual_at(
+            session,
+            todo_id=todo_id,
+            user_id=user_id,
+            remind_at=remind_at_utc,
+        )
+        if duplicate is not None:
+            raise ReminderDuplicateError()
 
         reminder = Reminder(
             todo_id=todo_id,
@@ -66,6 +93,11 @@ class ReminderService:
             remind_at=remind_at_utc,
         )
         session.add(reminder)
+        try:
+            await session.flush()
+        except IntegrityError as exc:
+            await session.rollback()
+            raise ReminderDuplicateError() from exc
         await session.commit()
         return reminder
 
@@ -76,16 +108,12 @@ class ReminderService:
         todo_id: UUID,
         user_id: UUID,
     ) -> list[Reminder]:
-        todo = await session.get(Todo, todo_id)
-        if todo is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="TODO_NOT_FOUND")
-        await WorkspaceService.require_access(session, todo.workspace_id, user_id)
-        result = await session.execute(
-            select(Reminder)
-            .where(Reminder.todo_id == todo_id, Reminder.user_id == user_id)
-            .order_by(Reminder.remind_at.asc(), Reminder.id.asc())
+        await ReminderService._get_accessible_todo(session, todo_id=todo_id, user_id=user_id)
+        return await ReminderRepository.list_for_todo_and_user(
+            session,
+            todo_id=todo_id,
+            user_id=user_id,
         )
-        return list(result.scalars().all())
 
     @staticmethod
     async def update_reminder(
@@ -94,30 +122,38 @@ class ReminderService:
         reminder_id: UUID,
         user_id: UUID,
         remind_at: datetime,
+        clock: Clock = utc_now,
     ) -> Reminder:
-        reminder = await ReminderService.get_by_id(session, reminder_id)
+        reminder = await ReminderRepository.get_by_id_for_update(session, reminder_id)
         if reminder is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="REMINDER_NOT_FOUND")
+            raise ReminderNotFoundError()
         if reminder.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="REMINDER_PERMISSION_DENIED",
-            )
-        if reminder.source != "manual" or reminder.status != "pending":
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="REMINDER_INVALID_STATE",
-            )
+            raise ReminderPermissionDeniedError()
+        if reminder.status == "processed":
+            raise ReminderAlreadyProcessedError()
+        if reminder.status == "cancelled":
+            raise ReminderAlreadyCancelledError()
+        if reminder.source != "manual":
+            raise ReminderInvalidStateError("Automatic reminders are managed by the Todo due date")
 
-        remind_at_utc = _coerce_utc(remind_at)
-        if remind_at_utc <= _utc_now():
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="INVALID_REMINDER_TIME",
-            )
+        remind_at_utc = ReminderService._normalise_remind_at(remind_at, clock)
+        duplicate = await ReminderRepository.find_pending_manual_at(
+            session,
+            todo_id=reminder.todo_id,
+            user_id=user_id,
+            remind_at=remind_at_utc,
+            exclude_id=reminder.id,
+        )
+        if duplicate is not None:
+            raise ReminderDuplicateError()
 
         reminder.remind_at = remind_at_utc
-        reminder.updated_at = _utc_now()
+        reminder.updated_at = clock()
+        try:
+            await session.flush()
+        except IntegrityError as exc:
+            await session.rollback()
+            raise ReminderDuplicateError() from exc
         await session.commit()
         return reminder
 
@@ -127,82 +163,94 @@ class ReminderService:
         *,
         reminder_id: UUID,
         user_id: UUID,
+        clock: Clock = utc_now,
     ) -> None:
-        reminder = await ReminderService.get_by_id(session, reminder_id)
+        reminder = await ReminderRepository.get_by_id_for_update(session, reminder_id)
         if reminder is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="REMINDER_NOT_FOUND")
+            raise ReminderNotFoundError()
         if reminder.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="REMINDER_PERMISSION_DENIED",
-            )
+            raise ReminderPermissionDeniedError()
         if reminder.status == "cancelled":
+            # Cancellation is idempotent: the resource is already in the
+            # desired terminal state.
             return
         if reminder.status == "processed":
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="REMINDER_ALREADY_PROCESSED",
-            )
-        reminder.status = "cancelled"
-        reminder.updated_at = _utc_now()
-        await session.commit()
+            raise ReminderAlreadyProcessedError()
 
-    @staticmethod
-    async def cancel_pending_for_todo(session: AsyncSession, *, todo_id: UUID) -> None:
-        result = await session.execute(
-            select(Reminder).where(
-                Reminder.todo_id == todo_id,
-                Reminder.status == "pending",
-            )
-        )
-        reminders = list(result.scalars().all())
-        for reminder in reminders:
-            reminder.status = "cancelled"
-            reminder.updated_at = _utc_now()
-        if reminders:
-            await session.commit()
+        reminder.status = "cancelled"
+        reminder.processed_at = None
+        reminder.updated_at = clock()
+        await session.commit()
 
     @staticmethod
     async def sync_automatic_reminder_for_todo(
         session: AsyncSession,
         todo: Todo,
-        user_id: UUID,
+        recipient_id: UUID,
+        *,
+        clock: Clock = utc_now,
     ) -> Reminder | None:
+        """Create, move, or cancel the pending automatic reminder for a Todo.
+
+        This method only flushes. The Todo service commits the Todo update and
+        the reminder change in one transaction.
+        """
+
         if not settings.automatic_due_reminders_enabled:
             return None
+
+        now = clock()
+
         if todo.status == "completed":
-            await ReminderService.cancel_pending_for_todo(session, todo_id=todo.id)
-            return None
-        if todo.due_at is None:
-            await ReminderService.cancel_pending_for_todo(session, todo_id=todo.id)
+            await ReminderRepository.cancel_pending(
+                session,
+                todo_id=todo.id,
+                now=now,
+            )
             return None
 
-        due_at_utc = _coerce_utc(todo.due_at)
-        if due_at_utc <= _utc_now():
-            await ReminderService.cancel_pending_for_todo(session, todo_id=todo.id)
+        if todo.due_at is None:
+            await ReminderRepository.cancel_pending(
+                session,
+                todo_id=todo.id,
+                user_id=recipient_id,
+                source="automatic",
+                now=now,
+            )
+            return None
+
+        due_at_utc = ensure_utc(todo.due_at)
+        if due_at_utc <= now:
+            await ReminderRepository.cancel_pending(
+                session,
+                todo_id=todo.id,
+                user_id=recipient_id,
+                source="automatic",
+                now=now,
+            )
             return None
 
         trigger_at = due_at_utc - timedelta(minutes=settings.default_due_reminder_minutes)
-        if trigger_at <= _utc_now():
-            trigger_at = _utc_now()
+        if trigger_at <= now:
+            # The due date is closer than the configured lead time. Deliver the
+            # reminder on the next worker poll instead of scheduling it in the
+            # past.
+            trigger_at = now
 
-        existing = await session.execute(
-            select(Reminder).where(
-                Reminder.todo_id == todo.id,
-                Reminder.user_id == user_id,
-                Reminder.source == "automatic",
-                Reminder.status == "pending",
-            )
+        reminder = await ReminderRepository.find_pending_automatic(
+            session,
+            todo_id=todo.id,
+            user_id=recipient_id,
         )
-        reminder = existing.scalar_one_or_none()
         if reminder is not None:
             reminder.remind_at = trigger_at
-            reminder.updated_at = _utc_now()
+            reminder.updated_at = now
+            await session.flush()
             return reminder
 
         reminder = Reminder(
             todo_id=todo.id,
-            user_id=user_id,
+            user_id=recipient_id,
             source="automatic",
             status="pending",
             remind_at=trigger_at,
@@ -212,25 +260,16 @@ class ReminderService:
         return reminder
 
     @staticmethod
-    async def list_due_reminders(session: AsyncSession, limit: int) -> list[Reminder]:
-        result = await session.execute(
-            select(Reminder)
-            .where(Reminder.status == "pending", Reminder.remind_at <= _utc_now())
-            .order_by(Reminder.remind_at.asc(), Reminder.id.asc())
-            .limit(limit)
-            .with_for_update(skip_locked=True)
+    async def cancel_pending_for_todo(
+        session: AsyncSession,
+        *,
+        todo_id: UUID,
+        clock: Clock = utc_now,
+    ) -> int:
+        """Cancel every pending reminder for a Todo (manual and automatic)."""
+
+        return await ReminderRepository.cancel_pending(
+            session,
+            todo_id=todo_id,
+            now=clock(),
         )
-        return list(result.scalars().all())
-
-    @staticmethod
-    async def mark_processed(session: AsyncSession, reminder: Reminder) -> None:
-        reminder.status = "processed"
-        reminder.processed_at = _utc_now()
-        reminder.updated_at = _utc_now()
-        await session.flush()
-
-    @staticmethod
-    async def cancel_if_unusable(session: AsyncSession, reminder: Reminder) -> None:
-        reminder.status = "cancelled"
-        reminder.updated_at = _utc_now()
-        await session.flush()

@@ -61,7 +61,10 @@ class User(Base):
         back_populates="creator",
         cascade="all, delete-orphan",
     )
-    reminders: Mapped[list[Reminder]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    reminders: Mapped[list[Reminder]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
     notifications: Mapped[list[Notification]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",

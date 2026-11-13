@@ -4,7 +4,17 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, func
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,8 +29,21 @@ if TYPE_CHECKING:
 class Notification(Base):
     __tablename__ = "notifications"
     __table_args__ = (
-        CheckConstraint("type IN ('todo_reminder', 'due_date_reminder')", name="ck_notifications_type"),
+        CheckConstraint(
+            "type IN ('todo_reminder', 'due_date_reminder')",
+            name="ck_notifications_type",
+        ),
+        CheckConstraint(
+            "(is_read = false AND read_at IS NULL) OR (is_read = true AND read_at IS NOT NULL)",
+            name="ck_notifications_read_consistency",
+        ),
+        UniqueConstraint("reminder_id", name="uq_notifications_reminder_id"),
+        Index("ix_notifications_user_id", "user_id"),
+        Index("ix_notifications_todo_id", "todo_id"),
+        Index("ix_notifications_reminder_id", "reminder_id"),
+        Index("ix_notifications_is_read", "is_read"),
         Index("ix_notifications_user_created_at", "user_id", "created_at"),
+        Index("ix_notifications_user_created_id", "user_id", "created_at", "id"),
         Index("ix_notifications_user_unread", "user_id", "is_read"),
     )
 
@@ -39,12 +62,11 @@ class Notification(Base):
         UUID(as_uuid=True),
         ForeignKey("reminders.id", ondelete="SET NULL"),
         nullable=True,
-        unique=True,
     )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     type: Mapped[str] = mapped_column(String(32), nullable=False, default="todo_reminder")
-    is_read: Mapped[bool] = mapped_column(default=False, nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

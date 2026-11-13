@@ -36,7 +36,10 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(["workspace_id"], ["workspaces.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="CASCADE"),
-        sa.CheckConstraint("status IN ('todo', 'in_progress', 'completed')", name="ck_todos_status"),
+        sa.CheckConstraint(
+            "status IN ('todo', 'in_progress', 'completed')",
+            name="ck_todos_status",
+        ),
         sa.CheckConstraint(
             "priority IN ('low', 'medium', 'high', 'urgent')",
             name="ck_todos_priority",

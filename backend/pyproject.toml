@@ -65,6 +65,9 @@ addopts = "-q"
 [tool.coverage.run]
 source = ["app"]
 branch = true
+# SQLAlchemy's async bridge switches greenlets; without this coverage can lose
+# trace data (and can crash on SQLAlchemy's Cython cache key helper).
+concurrency = ["greenlet"]
 
 [tool.coverage.report]
 show_missing = true

@@ -13,6 +13,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.clock import Clock, utc_now
 from app.core.config import settings
 from app.services.labels.models import Label
 from app.services.tags.models import Tag
@@ -134,6 +135,7 @@ class TodoService:
         due_at: datetime | None,
         tag_ids: list[UUID] | None = None,
         label_ids: list[UUID] | None = None,
+        clock: Clock = utc_now,
     ) -> Todo:
         await WorkspaceService.require_access(session, workspace_id, user_id)
         cleaned_title = (title or "").strip()
@@ -169,9 +171,18 @@ class TodoService:
         await TodoService._assign_relationships(session, todo, tag_ids=tag_ids, label_ids=label_ids)
         from app.services.reminders.service import ReminderService
 
-        if due_at is not None:
-            await ReminderService.sync_automatic_reminder_for_todo(session, todo, user_id)
-        await session.commit()
+        try:
+            if due_at is not None:
+                await ReminderService.sync_automatic_reminder_for_todo(
+                    session,
+                    todo,
+                    user_id,
+                    clock=clock,
+                )
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
         return todo
 
     @staticmethod
@@ -448,6 +459,8 @@ class TodoService:
         due_at: datetime | None,
         tag_ids: list[UUID] | None,
         label_ids: list[UUID] | None,
+        due_at_provided: bool = False,
+        clock: Clock = utc_now,
     ) -> Todo:
         todo = await TodoService.get_todo(
             session, workspace_id=workspace_id, user_id=user_id, todo_id=todo_id
@@ -477,12 +490,16 @@ class TodoService:
                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_PRIORITY"
                 )
             todo.priority = priority
-        if due_at is not None:
-            if due_at.tzinfo is None:
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_DUE_DATE"
-                )
-            todo.due_at = _as_utc(due_at)
+        if due_at_provided:
+            if due_at is None:
+                todo.due_at = None
+            else:
+                if due_at.tzinfo is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="INVALID_DUE_DATE",
+                    )
+                todo.due_at = _as_utc(due_at)
         if tag_ids is not None:
             await TodoService._assign_relationships(session, todo, tag_ids=tag_ids)
         if label_ids is not None:
@@ -490,24 +507,50 @@ class TodoService:
 
         from app.services.reminders.service import ReminderService
 
-        if status == "completed":
-            await ReminderService.cancel_pending_for_todo(session, todo_id=todo.id)
-        else:
-            await ReminderService.sync_automatic_reminder_for_todo(session, todo, todo.created_by)
+        try:
+            if todo.status == "completed":
+                await ReminderService.cancel_pending_for_todo(
+                    session,
+                    todo_id=todo.id,
+                    clock=clock,
+                )
+            else:
+                await ReminderService.sync_automatic_reminder_for_todo(
+                    session,
+                    todo,
+                    todo.created_by,
+                    clock=clock,
+                )
 
-        todo.updated_at = _utc_now()
-        await session.commit()
+            todo.updated_at = clock()
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
         return todo
 
     @staticmethod
     async def delete_todo(
-        session: AsyncSession, *, workspace_id: UUID, user_id: UUID, todo_id: UUID
+        session: AsyncSession,
+        *,
+        workspace_id: UUID,
+        user_id: UUID,
+        todo_id: UUID,
+        clock: Clock = utc_now,
     ) -> None:
         todo = await TodoService.get_todo(
             session, workspace_id=workspace_id, user_id=user_id, todo_id=todo_id
         )
         from app.services.reminders.service import ReminderService
 
-        await ReminderService.cancel_pending_for_todo(session, todo_id=todo.id)
-        await TodoRepository.delete(session, todo)
-        await session.commit()
+        try:
+            await ReminderService.cancel_pending_for_todo(
+                session,
+                todo_id=todo.id,
+                clock=clock,
+            )
+            await TodoRepository.delete(session, todo)
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
