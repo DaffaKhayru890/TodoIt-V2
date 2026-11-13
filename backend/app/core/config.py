@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     app_port: int = Field(default=8000, alias="APP_PORT")
     api_v1_prefix: str = Field(default="/api/v1", alias="API_V1_PREFIX")
     default_timezone: str = Field(default="UTC", alias="DEFAULT_TIMEZONE")
+    pagination_cursor_secret: SecretStr = Field(
+        default=SecretStr("dev-cursor-secret"), alias="PAGINATION_CURSOR_SECRET"
+    )
+    default_upcoming_days: int = Field(default=7, alias="DEFAULT_UPCOMING_DAYS")
+    max_upcoming_days: int = Field(default=30, alias="MAX_UPCOMING_DAYS")
+    todo_default_limit: int = Field(default=20, alias="TODO_DEFAULT_LIMIT")
+    todo_max_limit: int = Field(default=100, alias="TODO_MAX_LIMIT")
     openapi_enabled: bool = Field(default=True, alias="OPENAPI_ENABLED")
 
     postgres_host: str = Field(default="localhost", alias="POSTGRES_HOST")
@@ -103,6 +110,10 @@ class Settings(BaseSettings):
         if self.csrf_cookie_samesite.lower() == "none" and not self.csrf_cookie_secure:
             raise ValueError("CSRF cookie secure flag must be true when SameSite=None")
 
+        if self.default_upcoming_days < 1 or self.max_upcoming_days < self.default_upcoming_days:
+            raise ValueError("DEFAULT_UPCOMING_DAYS and MAX_UPCOMING_DAYS must be valid")
+        if self.todo_default_limit <= 0 or self.todo_max_limit < self.todo_default_limit:
+            raise ValueError("TODO_DEFAULT_LIMIT and TODO_MAX_LIMIT must be valid")
         if self.app_env == "production":
             production_secret_values = {
                 "change-me",
@@ -119,6 +130,11 @@ class Settings(BaseSettings):
                 raise ValueError("CSRF_COOKIE_SECURE must be true in production")
             if self.refresh_cookie_httponly is not True:
                 raise ValueError("REFRESH_COOKIE_HTTPONLY must be true in production")
+            if (
+                not self.pagination_cursor_secret.get_secret_value()
+                or self.pagination_cursor_secret.get_secret_value() == "dev-cursor-secret"
+            ):
+                raise ValueError("PAGINATION_CURSOR_SECRET must be set in production")
 
         if self.app_env == "test" and self.postgres_db == "todoit_db":
             self.postgres_db = "todoit_test_db"

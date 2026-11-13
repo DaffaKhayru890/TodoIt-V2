@@ -25,5 +25,16 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - `/health/live`
 - `/health/ready`
 
-## Notes
-The project intentionally contains only the foundation layer for later auth, workspace, and todo features.
+## Todo phase notes
+The project now includes the initial Phase 4 Todo, Tag, and Label domain layer for workspace-scoped task management.
+
+### Included features
+- Todo CRUD under workspace routes
+- tag and label assignment support
+- workspace access checks via the existing membership model
+- simple filtered Todo list view support
+- signed cursor-based pagination support
+- Alembic migration for the new domain tables
+
+### Documentation
+- `docs/phase-4-implementation-report.md`

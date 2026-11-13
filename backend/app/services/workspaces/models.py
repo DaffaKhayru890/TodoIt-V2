@@ -11,6 +11,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
 if TYPE_CHECKING:
+    from app.services.labels.models import Label
+    from app.services.tags.models import Tag
+    from app.services.todos.models import Todo
     from app.services.users.models import User
 
 
@@ -47,6 +50,18 @@ class Workspace(Base):
         cascade="all, delete-orphan",
     )
     invitations: Mapped[list[WorkspaceInvitation]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+    todos: Mapped[list[Todo]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+    tags: Mapped[list[Tag]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+    labels: Mapped[list[Label]] = relationship(
         back_populates="workspace",
         cascade="all, delete-orphan",
     )

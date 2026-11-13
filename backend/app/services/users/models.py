@@ -12,6 +12,7 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.services.auth.models import RefreshSession
+    from app.services.todos.models import Todo
     from app.services.workspaces.models import Workspace, WorkspaceInvitation, WorkspaceMember
 
 
@@ -52,6 +53,10 @@ class User(Base):
     )
     workspace_invitations: Mapped[list[WorkspaceInvitation]] = relationship(
         back_populates="inviter",
+        cascade="all, delete-orphan",
+    )
+    created_todos: Mapped[list[Todo]] = relationship(
+        back_populates="creator",
         cascade="all, delete-orphan",
     )
 

@@ -16,6 +16,9 @@ class Base(DeclarativeBase):
 
 
 from app.services.auth.models import RefreshSession  # noqa: E402,F401
+from app.services.labels.models import Label  # noqa: E402,F401
+from app.services.tags.models import Tag  # noqa: E402,F401
+from app.services.todos.models import Todo, TodoLabel, TodoTag  # noqa: E402,F401
 from app.services.users.models import User  # noqa: E402,F401
 from app.services.workspaces.models import (  # noqa: E402,F401
     Workspace,

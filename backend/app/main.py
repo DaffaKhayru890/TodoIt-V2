@@ -11,6 +11,9 @@ from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import register_middleware
 from app.services.auth.routes.auth_routes import router as auth_router
+from app.services.labels.routes.labels import router as labels_router
+from app.services.tags.routes.tags import router as tags_router
+from app.services.todos.routes.todos import router as todos_router
 from app.services.users.routes.user_routes import router as user_router
 from app.services.workspaces.routes.workspaces import (
     invitation_router,
@@ -47,6 +50,9 @@ def create_app() -> FastAPI:
     app.include_router(legacy_workspace_router)
     app.include_router(invitation_router)
     app.include_router(legacy_invitation_router)
+    app.include_router(todos_router)
+    app.include_router(tags_router)
+    app.include_router(labels_router)
 
     @app.get("/")
     async def root() -> dict:
