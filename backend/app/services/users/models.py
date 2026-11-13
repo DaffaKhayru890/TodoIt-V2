@@ -12,6 +12,7 @@ from app.core.database import Base
 
 if TYPE_CHECKING:
     from app.services.auth.models import RefreshSession
+    from app.services.workspaces.models import Workspace, WorkspaceInvitation, WorkspaceMember
 
 
 class User(Base):
@@ -39,6 +40,18 @@ class User(Base):
 
     refresh_sessions: Mapped[list[RefreshSession]] = relationship(
         back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    workspaces_owned: Mapped[list[Workspace]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
+    )
+    workspace_memberships: Mapped[list[WorkspaceMember]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    workspace_invitations: Mapped[list[WorkspaceInvitation]] = relationship(
+        back_populates="inviter",
         cascade="all, delete-orphan",
     )
 

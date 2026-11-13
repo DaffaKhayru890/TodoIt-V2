@@ -17,6 +17,11 @@ class Base(DeclarativeBase):
 
 from app.services.auth.models import RefreshSession  # noqa: E402,F401
 from app.services.users.models import User  # noqa: E402,F401
+from app.services.workspaces.models import (  # noqa: E402,F401
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceMember,
+)
 
 database_url = settings.database_url
 engine = create_async_engine(
