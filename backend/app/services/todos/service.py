@@ -9,9 +9,11 @@ from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from fastapi import status as http_status
 from sqlalchemy import exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.clock import Clock, utc_now
 from app.core.config import settings
@@ -76,7 +78,7 @@ class TodoService:
         tags = list(result.scalars().all())
         if len(tags) != len(values):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="TAG_FROM_DIFFERENT_WORKSPACE",
             )
         return tags
@@ -96,7 +98,7 @@ class TodoService:
         labels = list(result.scalars().all())
         if len(labels) != len(values):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="LABEL_FROM_DIFFERENT_WORKSPACE",
             )
         return labels
@@ -141,19 +143,20 @@ class TodoService:
         cleaned_title = (title or "").strip()
         if not cleaned_title:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_TITLE"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_TITLE"
             )
         if status not in VALID_STATUSES:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_STATUS"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_STATUS"
             )
         if priority not in VALID_PRIORITIES:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_PRIORITY"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="INVALID_TODO_PRIORITY",
             )
         if due_at is not None and due_at.tzinfo is None:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_DUE_DATE"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_DUE_DATE"
             )
 
         todo = Todo(
@@ -165,10 +168,12 @@ class TodoService:
             priority=priority,
             due_at=_as_utc(due_at),
         )
+        # Relationships must be assigned while the Todo is still transient:
+        # assigning them after a flush would trigger an async lazy load.
+        await TodoService._assign_relationships(session, todo, tag_ids=tag_ids, label_ids=label_ids)
         session.add(todo)
         await session.flush()
 
-        await TodoService._assign_relationships(session, todo, tag_ids=tag_ids, label_ids=label_ids)
         from app.services.reminders.service import ReminderService
 
         try:
@@ -192,12 +197,16 @@ class TodoService:
         await WorkspaceService.require_access(session, workspace_id, user_id)
         todo = await TodoService.get_by_id(session, todo_id)
         if todo is None or todo.workspace_id != workspace_id:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="TODO_NOT_FOUND")
+            raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="TODO_NOT_FOUND")
         return todo
 
     @staticmethod
     async def get_by_id(session: AsyncSession, todo_id: UUID) -> Todo | None:
-        result = await session.execute(select(Todo).where(Todo.id == todo_id))
+        result = await session.execute(
+            select(Todo)
+            .options(selectinload(Todo.tags), selectinload(Todo.labels))
+            .where(Todo.id == todo_id)
+        )
         return result.scalar_one_or_none()
 
     @staticmethod
@@ -221,26 +230,33 @@ class TodoService:
         await WorkspaceService.require_access(session, workspace_id, user_id)
         if view not in (None, *sorted(VALID_VIEWS)):
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_VIEW"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_VIEW"
             )
         if status is not None and status not in VALID_STATUSES:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_STATUS"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_STATUS"
             )
         if priority is not None and priority not in VALID_PRIORITIES:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_PRIORITY"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="INVALID_TODO_PRIORITY",
             )
         if limit < 1 or limit > settings.todo_max_limit:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_PAGINATION_LIMIT"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="INVALID_PAGINATION_LIMIT",
             )
         if upcoming_days < 1 or upcoming_days > settings.max_upcoming_days:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_UPCOMING_DAYS"
+                status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="INVALID_UPCOMING_DAYS",
             )
 
-        query = select(Todo).where(Todo.workspace_id == workspace_id)
+        query = (
+            select(Todo)
+            .options(selectinload(Todo.tags), selectinload(Todo.labels))
+            .where(Todo.workspace_id == workspace_id)
+        )
         filter_hash = TodoService._filter_hash(
             workspace_id=workspace_id,
             view=view,
@@ -258,7 +274,7 @@ class TodoService:
             payload = TodoService._decode_cursor(cursor)
             if payload["filter_hash"] != filter_hash:
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="CURSOR_FILTER_MISMATCH"
+                    status_code=http_status.HTTP_400_BAD_REQUEST, detail="CURSOR_FILTER_MISMATCH"
                 )
             query = query.where(
                 (Todo.created_at < payload["created_at"])
@@ -404,14 +420,14 @@ class TodoService:
             payload_b64, sig_b64 = cursor.split(".", 1)
         except ValueError as exc:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
+                status_code=http_status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
             ) from exc
         try:
             raw_payload = base64.urlsafe_b64decode(payload_b64 + "=" * (-len(payload_b64) % 4))
             expected_sig = base64.urlsafe_b64decode(sig_b64 + "=" * (-len(sig_b64) % 4))
         except Exception as exc:  # pragma: no cover - defensive validation
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
+                status_code=http_status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
             ) from exc
 
         digest = hmac.new(
@@ -421,26 +437,30 @@ class TodoService:
         ).digest()
         if not hmac.compare_digest(digest, expected_sig):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="CURSOR_SIGNATURE_INVALID"
+                status_code=http_status.HTTP_400_BAD_REQUEST, detail="CURSOR_SIGNATURE_INVALID"
             )
 
         try:
             payload = json.loads(raw_payload.decode("utf-8"))
         except Exception as exc:  # pragma: no cover - defensive validation
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
+                status_code=http_status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
             ) from exc
 
         if payload.get("version") != 1:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR")
+            raise HTTPException(
+                status_code=http_status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
+            )
         if "created_at" not in payload or "id" not in payload or "filter_hash" not in payload:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR")
+            raise HTTPException(
+                status_code=http_status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
+            )
         try:
             created_at = datetime.fromisoformat(payload["created_at"]).astimezone(UTC)
             todo_id = UUID(payload["id"])
         except Exception as exc:  # pragma: no cover - defensive validation
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
+                status_code=http_status.HTTP_400_BAD_REQUEST, detail="INVALID_CURSOR"
             ) from exc
 
         return {"created_at": created_at, "id": todo_id, "filter_hash": payload["filter_hash"]}
@@ -469,7 +489,8 @@ class TodoService:
             cleaned = title.strip()
             if not cleaned:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_TITLE"
+                    status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="INVALID_TODO_TITLE",
                 )
             todo.title = cleaned
         if description is not None:
@@ -477,7 +498,8 @@ class TodoService:
         if status is not None:
             if status not in VALID_STATUSES:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_STATUS"
+                    status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="INVALID_TODO_STATUS",
                 )
             todo.status = status
             if status == "completed" and todo.completed_at is None:
@@ -487,7 +509,8 @@ class TodoService:
         if priority is not None:
             if priority not in VALID_PRIORITIES:
                 raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="INVALID_TODO_PRIORITY"
+                    status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="INVALID_TODO_PRIORITY",
                 )
             todo.priority = priority
         if due_at_provided:
@@ -496,7 +519,7 @@ class TodoService:
             else:
                 if due_at.tzinfo is None:
                     raise HTTPException(
-                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        status_code=http_status.HTTP_422_UNPROCESSABLE_ENTITY,
                         detail="INVALID_DUE_DATE",
                     )
                 todo.due_at = _as_utc(due_at)

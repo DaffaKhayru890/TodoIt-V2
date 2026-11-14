@@ -183,10 +183,10 @@ All commands were run in `backend/` with the PostgreSQL test database.
 ### Tests
 
 ```text
-130 passed, 2 warnings in 29.65s
+186 passed in 45.04s
 ```
 
-Test files: 20. New Phase 5 coverage includes:
+Test files: 25. Phase 5 coverage includes:
 
 - reminder validation and time calculation,
 - automatic reminder synchronization,
@@ -198,6 +198,34 @@ Test files: 20. New Phase 5 coverage includes:
 - concurrent workers with separate engines and `SKIP LOCKED`,
 - batch draining without lost reminders.
 
+Additional regression tests were added to raise whole-application coverage
+without weakening the Phase 5 assertions:
+
+- `tests/api/test_auth_api.py` — register, login, refresh rotation, replay
+  detection, logout/logout-all, token authentication, revoked sessions,
+  `/auth/me`, `/users/me`.
+- `tests/api/test_workspaces_api.py` — workspace CRUD, archive, member roles,
+  invitations, accept/revoke, legacy route aliases, permission boundaries.
+- `tests/api/test_todos_api.py` — Todo CRUD, all views, combined filters,
+  search, tag/label assignment, cursor pagination, cursor tampering, and
+  cross-workspace isolation.
+- `tests/api/test_tags_labels_api.py` — tag/label CRUD, validation, duplicate
+  names, and role-based permissions.
+- `tests/unit/test_common_utils.py` — response helpers, environment enum,
+  clock utility, DB dependency, and `TodoRepository`.
+
+### Phase 4 bugs found and fixed during regression testing
+
+1. Todo tag/label assignment performed an async lazy load
+   (`todo.tags = []` after `flush()`), which raised `MissingGreenlet`. The
+   relationship assignment now happens while the Todo is still transient, and
+   `TodoService.get_by_id` / `list_todos` eager-load tags and labels with
+   `selectinload`.
+2. `TodoService.create_todo`, `list_todos`, and `update_todo` used a `status`
+   parameter that shadowed the imported FastAPI `status` module, so validation
+   error branches raised `AttributeError`. The module is now imported as
+   `http_status`.
+
 ### Coverage
 
 Coverage is configured with `concurrency = ["greenlet"]` because SQLAlchemy's
@@ -207,11 +235,11 @@ can fail inside SQLAlchemy's Cython cache-key helper.
 | Scope | Coverage |
 |---|---|
 | Phase 5 domain modules (`reminders`, `notifications`, cursor, clock) | **96%** |
-| Whole application | **63%** |
+| Whole application | **90%** |
 
-The Phase 5 modules exceed the 85% target. The whole-application figure includes
-pre-existing Phase 0–4 modules that still have a small legacy test suite; Phase 5
-did not attempt to retrofit unrelated coverage.
+Both figures exceed the 85% target. The whole-application figure was raised by
+adding substantive regression tests for the existing authentication, workspace,
+Todo, tag, and label modules rather than empty tests.
 
 Key Phase 5 file coverage:
 
@@ -229,7 +257,7 @@ Key Phase 5 file coverage:
 
 ```text
 ruff check .        -> All checks passed
-ruff format --check -> 131 files already formatted
+ruff format --check -> 144 files already formatted
 ```
 
 ### Alembic
@@ -254,21 +282,38 @@ them.
 
 Built successfully:
 
-- `todoit-backend:phase5-dev` (development target)
-- `todoit-backend:phase5-test` (test target)
-- `todoit-backend:phase5-prod` (production target)
+- `todo-backend:development` (`--target development`)
+- `todo-backend:test` (`--target test`)
+- `todo-backend:production` (`--target production`)
 
 The test image reports `pytest 8.4.2` and `ruff 0.17.5`. The production image
 runs as `uid=1000(appuser)`.
 
-Production worker runtime smoke test against PostgreSQL:
+Runtime verification was performed with the production image against a dedicated
+PostgreSQL database (`todoit_phase5_runtime`), using the real Alembic migration
+and two concurrent worker containers:
+
+```text
+API /health/live   -> 200 {"status":"alive"}
+API /health/ready  -> 200 {"status":"ready"}
+worker-1           -> selected=1 processed=1 duplicates=0 cancelled=0 failed=0
+GET notifications  -> 1 due_date_reminder for the Todo creator
+mark as read       -> is_read=true, read_at set
+list unread        -> empty
+read-all           -> updated_count=0 (idempotent)
+```
+
+Two workers were running during the batch; only one processed the reminder and
+exactly one notification was created, confirming `SKIP LOCKED` behavior at the
+container level. Graceful shutdown was verified:
 
 ```text
 notification worker received signal SIGTERM
 notification worker stopped gracefully
 notification worker database engine disposed
-exit=0
 ```
+
+The containers and temporary databases were removed after verification.
 
 ## 9. Documentation
 
@@ -315,6 +360,6 @@ Updated:
 - [x] Required environment variables added to all templates
 - [x] Ruff checks pass
 - [x] Full test suite passes
-- [x] Phase 5 coverage exceeds 85%
+- [x] Whole-application coverage exceeds 85% (measured 90%; Phase 5 modules 96%)
 - [x] Documentation completed
 - [x] No Phase 6 work started

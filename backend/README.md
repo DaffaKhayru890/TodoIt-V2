@@ -99,8 +99,8 @@ uv run ruff check .
 uv run ruff format --check .
 ```
 
-The Phase 5 domain modules are covered at 96% (whole-application coverage is
-lower because the legacy Phase 0–4 suite is intentionally small).
+The Phase 5 domain modules are covered at 96%; whole-application coverage is
+90%, including regression tests for the Phase 0–4 modules.
 
 ### Documentation
 - `docs/phase-4-implementation-report.md`

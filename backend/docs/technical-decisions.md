@@ -83,6 +83,14 @@ Reminder logic accepts a `Clock` callable instead of calling `datetime.now`
 directly. This keeps time-based tests deterministic and makes the worker and API
 use the same UTC semantics.
 
+### Async ORM relationships must be loaded explicitly
+
+SQLAlchemy async sessions cannot perform implicit lazy loads. Todo tag and label
+relationships are therefore eager-loaded with `selectinload` in
+`TodoService.get_by_id` and `list_todos`, and create-time relationship
+assignment happens while the Todo is still transient. This avoids
+`MissingGreenlet` errors without changing the public API.
+
 ### User timezone is authoritative for Todo calendar views
 
 The due-date logic follows the user timezone rather than server timezone. This is essential for Today, Upcoming, Overdue calculations and reduces future user confusion.
